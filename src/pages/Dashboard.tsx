@@ -145,7 +145,7 @@ export default function Dashboard() {
               <CardTitle className="text-lg font-semibold text-blue-900">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link to={createPageUrl(isAdmin ? "Projects" : "MyProjects")} className="block">
+              <Link to={`${createPageUrl(isAdmin ? "Projects" : "MyProjects")}?new=true`} className="block">
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-3">
                     <FolderOpen className="w-5 h-5 text-blue-600" />

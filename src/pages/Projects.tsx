@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Project } from "@/api/entities";
 import { DailyUpdate } from "@/api/entities";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import ProjectGrid from "../components/projects/ProjectGrid";
 import ProjectFilters from "../components/projects/ProjectFilters";
 
 export default function Projects() {
+  const location = useLocation();
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -22,7 +24,15 @@ export default function Projects() {
 
   useEffect(() => {
     loadProjects();
-  }, []);
+    
+    // Check if ?new=true is in the URL
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('new') === 'true') {
+      setShowForm(true);
+      // Clean up the URL without the ?new=true parameter
+      window.history.replaceState({}, '', location.pathname);
+    }
+  }, [location]);
 
   const loadProjects = async () => {
     setIsLoading(true);

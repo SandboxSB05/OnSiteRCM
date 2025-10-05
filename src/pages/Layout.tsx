@@ -14,7 +14,8 @@ import {
   LogOut,
   Menu,
   X,
-  Plus // Added Plus icon
+  Plus, // Added Plus icon
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,11 @@ const getUserNavigationItems = (isAdmin) => {
       title: "Daily Updates",
       url: createPageUrl("DailyUpdates"),
       icon: Upload,
+    },
+    {
+      title: "Client Updates",
+      url: createPageUrl("ClientUpdates"),
+      icon: MessageSquare,
     },
     {
       title: "My Analytics", // Added "My Analytics"
@@ -95,15 +101,26 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = async () => {
     try {
       await User.logout();
-      // Redirect to login or home page after logout
-      window.location.href = createPageUrl("Login"); // Or handle with react-router-dom navigate
+      // Clear localStorage
+      localStorage.removeItem('roof_tracker_user');
+      localStorage.removeItem('roof_tracker_remember');
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been signed out of your account.",
+        variant: "success",
+      });
+      
+      // Redirect to home page after logout
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
     } catch (error) {
       console.error("Error logging out:", error);
-      toast({
-        title: "Logout Failed",
-        description: "There was an error logging out. Please try again.",
-        variant: "destructive",
-      });
+      // Even if User.logout() fails, clear localStorage and redirect
+      localStorage.removeItem('roof_tracker_user');
+      localStorage.removeItem('roof_tracker_remember');
+      window.location.href = '/';
     }
   };
 
@@ -132,7 +149,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
           <div className="flex items-center gap-2"> {/* Added div for grouping */}
             {isAdmin && <Badge variant="secondary" className="bg-purple-100 text-purple-800">Admin</Badge>}
-            <Link to={createPageUrl("MyProjects")}> {/* New Project Button */}
+            <Link to={`${createPageUrl("MyProjects")}?new=true`}> {/* New Project Button */}
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="w-4 h-4 mr-1" />
                 New Project
@@ -205,7 +222,7 @@ export default function Layout({ children, currentPageName }) {
 
               {/* Quick Actions */}
               <div className="px-6 py-4 border-b border-gray-100">
-                <Link to={createPageUrl("MyProjects")}>
+                <Link to={`${createPageUrl("MyProjects")}?new=true`}>
                   <Button className="w-full bg-blue-600 hover:bg-blue-700">
                     <Plus className="w-4 h-4 mr-2" />
                     New Project

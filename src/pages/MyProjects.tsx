@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Project } from "@/api/entities";
 import { ProjectCollaborator } from "@/api/entities";
 import { User } from "@/api/entities";
@@ -11,9 +12,10 @@ import ProjectFilters from "../components/projects/ProjectFilters";
 import ProjectGrid from "../components/projects/ProjectGrid";
 
 export default function MyProjects() {
+  const location = useLocation();
   const [projects, setProjects] = useState([]);
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +25,15 @@ export default function MyProjects() {
 
   useEffect(() => {
     loadUserAndProjects();
-  }, []);
+    
+    // Check if ?new=true is in the URL
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('new') === 'true') {
+      setShowForm(true);
+      // Clean up the URL without the ?new=true parameter
+      window.history.replaceState({}, '', location.pathname);
+    }
+  }, [location]);
 
   const loadUserAndProjects = async () => {
     setIsLoading(true);
@@ -97,15 +107,6 @@ export default function MyProjects() {
           <h1 className="text-3xl font-bold text-gray-900">My Projects</h1>
           <p className="text-gray-600 mt-1">Manage your roofing projects and daily update activity</p>
         </div>
-        {!showForm && (
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
-          </Button>
-        )}
       </div>
 
       {showForm && (

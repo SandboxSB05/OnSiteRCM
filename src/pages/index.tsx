@@ -1,4 +1,10 @@
-import Layout from "./Layout.jsx";
+import Layout from "./Layout";
+
+import Home from "./Home";
+
+import Login from "./Login";
+
+import Register from "./Register";
 
 import Dashboard from "./Dashboard";
 
@@ -18,9 +24,19 @@ import Project from "./Project";
 
 import MyAnalytics from "./MyAnalytics";
 
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import ClientUpdates from "./ClientUpdates";
+
+import ClientUpdateDetail from "./ClientUpdateDetail";
+
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 
 const PAGES = {
+    
+    Home: Home,
+    
+    Login: Login,
+    
+    Register: Register,
     
     Dashboard: Dashboard,
     
@@ -39,6 +55,10 @@ const PAGES = {
     Project: Project,
     
     MyAnalytics: MyAnalytics,
+    
+    ClientUpdates: ClientUpdates,
+    
+    ClientUpdateDetail: ClientUpdateDetail,
     
 }
 
@@ -60,13 +80,51 @@ function PagesContent() {
     const location = useLocation();
     const currentPage = _getCurrentPage(location.pathname);
     
+    // Check if user is logged in (simple check - can be enhanced)
+    const isAuthenticated = () => {
+        return localStorage.getItem('roof_tracker_user') !== null;
+    };
+    
+    // Public routes that don't need authentication
+    const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail'];
+    const isPublicRoute = publicRoutes.some(route => 
+        location.pathname.toLowerCase() === route.toLowerCase()
+    );
+    
+    // If not authenticated and trying to access protected route, redirect to login
+    if (!isAuthenticated() && !isPublicRoute) {
+        return (
+            <Routes>
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        );
+    }
+    
+    // If authenticated and trying to access login/register, redirect to dashboard
+    if (isAuthenticated() && (location.pathname === '/login' || location.pathname === '/register')) {
+        return (
+            <Routes>
+                <Route path="*" element={<Navigate to="/Dashboard" replace />} />
+            </Routes>
+        );
+    }
+    
+    // Public routes without Layout
+    if (isPublicRoute && location.pathname !== '/clientupdatedetail') {
+        return (
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/ClientUpdateDetail" element={<ClientUpdateDetail />} />
+            </Routes>
+        );
+    }
+    
+    // Protected routes with Layout
     return (
         <Layout currentPageName={currentPage}>
             <Routes>            
-                
-                    <Route path="/" element={<Dashboard />} />
-                
-                
                 <Route path="/Dashboard" element={<Dashboard />} />
                 
                 <Route path="/Projects" element={<Projects />} />
@@ -85,6 +143,9 @@ function PagesContent() {
                 
                 <Route path="/MyAnalytics" element={<MyAnalytics />} />
                 
+                <Route path="/ClientUpdates" element={<ClientUpdates />} />
+                
+                <Route path="/ClientUpdateDetail" element={<ClientUpdateDetail />} />
             </Routes>
         </Layout>
     );
