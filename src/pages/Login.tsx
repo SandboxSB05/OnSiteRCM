@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FolderOpen, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { login, type LoginCredentials } from '@/services/authService';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,17 +21,17 @@ export default function Login() {
     rememberMe: false
   });
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setError(''); // Clear error when user types
   };
 
-  const handleCheckboxChange = (checked) => {
+  const handleCheckboxChange = (checked: boolean) => {
     setFormData(prev => ({ ...prev, rememberMe: checked }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     
@@ -48,38 +49,33 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock login - in production, this would call your auth API
-      const mockUser = {
-        id: '1',
+      const credentials: LoginCredentials = {
         email: formData.email,
-        name: formData.email.split('@')[0],
-        role: 'admin',
-        company: 'Demo Company'
+        password: formData.password,
       };
 
-      // Store user in localStorage
-      localStorage.setItem('roof_tracker_user', JSON.stringify(mockUser));
+      // Call the authentication API
+      const response = await login(credentials);
+
+      // Store remember me preference
       if (formData.rememberMe) {
         localStorage.setItem('roof_tracker_remember', 'true');
       }
 
       toast({
         title: 'Login successful!',
-        description: `Welcome back, ${mockUser.name}!`,
-        variant: 'success'
+        description: `Welcome back, ${response.user.name}!`,
       });
 
       // Redirect based on user role
-      if (mockUser.role === 'client') {
+      if (response.user.role === 'client') {
         navigate('/MyProjects');
       } else {
         navigate('/Dashboard');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(errorMessage);
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);

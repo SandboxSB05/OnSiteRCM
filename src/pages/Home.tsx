@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -12,10 +12,15 @@ import {
   BarChart3,
   Shield,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Zap
 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { setAuthToken, setCurrentUser } from '@/services/authService';
 
 export default function Home() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const features = [
     {
       icon: <FolderOpen className="w-6 h-6 text-blue-600" />,
@@ -58,6 +63,32 @@ export default function Home() {
     "24/7 access from anywhere"
   ];
 
+  // DEV ONLY: Skip authentication
+  const handleDevBypass = () => {
+    const mockUser = {
+      id: 'dev-user-1',
+      email: 'dev@onsite.com',
+      name: 'Dev User',
+      role: 'admin' as const,
+      company: 'OnSite Development'
+    };
+
+    // Create a mock token
+    const mockToken = 'dev-token-' + Date.now();
+
+    // Store user and token
+    setCurrentUser(mockUser);
+    setAuthToken(mockToken);
+
+    toast({
+      title: 'DEV MODE: Bypassed Authentication',
+      description: 'Logged in as Dev User (Admin)',
+    });
+
+    // Navigate to dashboard
+    navigate('/Dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
       {/* Header/Navigation */}
@@ -71,6 +102,15 @@ export default function Home() {
               <span className="text-2xl font-bold text-gray-900">OnSite</span>
             </div>
             <div className="flex items-center space-x-4">
+              {/* DEV ONLY: Quick Bypass Button */}
+              <Button
+                onClick={handleDevBypass}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
+                size="sm"
+              >
+                <Zap className="w-4 h-4 mr-1" />
+                DEV: Skip to App
+              </Button>
               <Link to="/login">
                 <Button variant="ghost" className="text-gray-700">
                   Login

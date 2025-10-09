@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FolderOpen, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { register, type RegisterData } from '@/services/authService';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -23,13 +24,13 @@ export default function Register() {
     agreeToTerms: false
   });
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setError(''); // Clear error when user types
   };
 
-  const handleCheckboxChange = (checked) => {
+  const handleCheckboxChange = (checked: boolean) => {
     setFormData(prev => ({ ...prev, agreeToTerms: checked }));
   };
 
@@ -67,7 +68,7 @@ export default function Register() {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     
@@ -78,33 +79,28 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Mock registration - in production, this would call your auth API
-      const newUser = {
-        id: Date.now().toString(),
+      const userData: RegisterData = {
+        fullName: formData.fullName,
         email: formData.email,
-        name: formData.fullName,
-        role: 'admin', // First user is admin, subsequent users could be 'user'
-        company: formData.company
+        company: formData.company,
+        password: formData.password,
       };
 
-      // Store user in localStorage
-      localStorage.setItem('roof_tracker_user', JSON.stringify(newUser));
+      // Call the authentication API
+      const response = await register(userData);
 
       toast({
         title: 'Account created successfully!',
-        description: `Welcome to OnSite, ${newUser.name}!`,
-        variant: 'success'
+        description: `Welcome to OnSite, ${response.user.name}!`,
       });
 
-      // Redirect to dashboard
+      // Redirect to dashboard after short delay
       setTimeout(() => {
         navigate('/Dashboard');
       }, 500);
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setError(errorMessage);
       console.error('Registration error:', err);
       setIsLoading(false);
     }
