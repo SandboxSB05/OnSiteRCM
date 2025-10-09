@@ -1,7 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 // import { createClient } from '@supabase/supabase-js';
 
-// Mock mode - no external dependencies required
+// Initialize Supabase client - COMMENTED OUT UNTIL REAL CREDENTIALS ARE PROVIDED
 // const supabaseUrl = process.env.SUPABASE_URL!;
 // const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -32,7 +32,7 @@ export default async function handler(
   }
 
   try {
-    // Get token from Authorization header (for validation, though not strictly required in mock mode)
+    // Get token from Authorization header
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -42,8 +42,19 @@ export default async function handler(
       });
     }
 
-    // MOCK DATA - In production, this would delete the session from the database
-    // For demo purposes, we just return success
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Delete the session from database
+    const { error: deleteError } = await supabase
+      .from('sessions')
+      .delete()
+      .eq('token', token);
+
+    if (deleteError) {
+      console.error('Session deletion error:', deleteError);
+      // Still return success even if deletion fails
+    }
+
     return res.status(200).json({
       message: 'Logged out successfully'
     });
