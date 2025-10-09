@@ -1,0 +1,150 @@
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// JWT secret for token generation
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_EXPIRES_IN = '24h';
+
+interface LoginRequestBody {
+  email: string;
+  password: string;
+}
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'user' | 'client';
+  company: string;
+}
+
+/**
+ * POST /api/auth/login
+ * 
+ * Authenticate user and return JWT token
+ * 
+ * Request Body:
+ * {
+ *   "email": "john@example.com",
+ *   "password": "securepassword123"
+ * }
+ * 
+ * Response:
+ * {
+ *   "user": {
+ *     "id": "uuid",
+ *     "email": "john@example.com",
+ *     "name": "John Smith",
+ *     "role": "admin",
+ *     "company": "ABC Roofing"
+ *   },
+ *   "token": "jwt-token"
+ * }
+ */
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      message: 'This endpoint only accepts POST requests'
+    });
+  }
+
+  try {
+    const { email, password } = req.body as LoginRequestBody;
+
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'Email and password are required'
+      });
+    }
+
+    // Find user by email
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (userError || !user) {
+      return res.status(401).json({
+        error: 'Authentication failed',
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        error: 'Authentication failed',
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Generate JWT token
+    const tokenPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      company: user.company
+    };
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN
+    });
+
+    // Create a session record
+    await supabase
+      .from('sessions')
+      .insert([
+        {
+          user_id: user.id,
+          token: token,
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+        }
+      ]);
+
+    // Update last login timestamp
+    await supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', user.id);
+
+    // Return user data (without password hash)
+    const userData: User = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      company: user.company
+    };
+
+    return res.status(200).json({
+      user: userData,
+      token: token,
+      message: 'Login successful'
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: 'An unexpected error occurred during login'
+    });
+  }
+}

@@ -1,0 +1,69 @@
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+/**
+ * POST /api/auth/logout
+ * 
+ * Invalidate user session
+ * 
+ * Headers:
+ * Authorization: Bearer <token>
+ * 
+ * Response:
+ * {
+ *   "message": "Logged out successfully"
+ * }
+ */
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      message: 'This endpoint only accepts POST requests'
+    });
+  }
+
+  try {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'No token provided'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Delete the session from database
+    const { error: deleteError } = await supabase
+      .from('sessions')
+      .delete()
+      .eq('token', token);
+
+    if (deleteError) {
+      console.error('Session deletion error:', deleteError);
+      // Still return success even if deletion fails
+    }
+
+    return res.status(200).json({
+      message: 'Logged out successfully'
+    });
+
+  } catch (error) {
+    console.error('Logout error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: 'An unexpected error occurred during logout'
+    });
+  }
+}
