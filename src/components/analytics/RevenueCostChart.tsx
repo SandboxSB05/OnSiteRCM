@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function RevenueCostChart({ data }) {
+export default function RevenueCostChart({ data }: { data: any }) {
   const chartData = [
     { name: 'Financials', Revenue: data.revenue, Cost: data.totalCost, Profit: data.netProfit }
   ];
@@ -16,9 +16,9 @@ export default function RevenueCostChart({ data }) {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
             <XAxis dataKey="name" tickLine={false} axisLine={false} />
-            <YAxis tickFormatter={(value) => `$${(value/1000)}k`} />
+            <YAxis tickFormatter={(value: number) => `$${(value/1000)}k`} />
             <Tooltip
-              formatter={(value) => `$${value.toLocaleString()}`}
+              formatter={(value: number) => `$${value.toLocaleString()}`}
               cursor={{ fill: 'rgba(243, 244, 246, 0.5)' }}
             />
             <Legend />

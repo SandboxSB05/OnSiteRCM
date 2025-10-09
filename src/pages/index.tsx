@@ -62,11 +62,11 @@ const PAGES = {
     
 }
 
-function _getCurrentPage(url) {
+function _getCurrentPage(url: string) {
     if (url.endsWith('/')) {
         url = url.slice(0, -1);
     }
-    let urlLastPart = url.split('/').pop();
+    let urlLastPart = url.split('/').pop() || '';
     if (urlLastPart.includes('?')) {
         urlLastPart = urlLastPart.split('?')[0];
     }
@@ -85,6 +85,18 @@ function PagesContent() {
         return localStorage.getItem('roof_tracker_user') !== null;
     };
     
+    // Get user role from localStorage
+    const getUserRole = () => {
+        const userStr = localStorage.getItem('roof_tracker_user');
+        if (!userStr) return null;
+        try {
+            const user = JSON.parse(userStr);
+            return user.role;
+        } catch {
+            return null;
+        }
+    };
+    
     // Public routes that don't need authentication
     const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail'];
     const isPublicRoute = publicRoutes.some(route => 
@@ -100,11 +112,13 @@ function PagesContent() {
         );
     }
     
-    // If authenticated and trying to access login/register, redirect to dashboard
+    // If authenticated and trying to access login/register, redirect based on role
     if (isAuthenticated() && (location.pathname === '/login' || location.pathname === '/register')) {
+        const userRole = getUserRole();
+        const redirectPath = userRole === 'client' ? '/MyProjects' : '/Dashboard';
         return (
             <Routes>
-                <Route path="*" element={<Navigate to="/Dashboard" replace />} />
+                <Route path="*" element={<Navigate to={redirectPath} replace />} />
             </Routes>
         );
     }

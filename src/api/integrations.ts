@@ -114,7 +114,7 @@ export async function InvokeLLM(params: LLMParams): Promise<LLMResponse> {
 
 // Email Service Integration
 export async function SendEmail(emailData: EmailData): Promise<EmailResponse> {
-  const { to, subject, body, from, cc, bcc, attachments } = emailData;
+  const { to, subject, body, from, attachments } = emailData;
   
   console.log('%c[API CALL] SendEmail()', 'color: #009688; font-weight: bold');
   console.log('  → HTTP: POST /api/integrations/email/send');

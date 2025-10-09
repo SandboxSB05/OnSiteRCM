@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Project } from "@/api/entities";
 import { DailyUpdate } from "@/api/entities";
 import { User } from "@/api/entities";
@@ -7,13 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, FolderOpen, DollarSign, Activity, Clock } from "lucide-react";
 
-import KeyMetrics from "../components/analytics/KeyMetrics";
 import RevenueCostChart from "../components/analytics/RevenueCostChart";
 import CostBreakdownChart from "../components/analytics/CostBreakdownChart";
 
 const LABOR_RATE_PER_HOUR = 50;
 
-const categorizeMaterial = (name) => {
+const categorizeMaterial = (name: string) => {
   const lowerName = name.toLowerCase();
   if (lowerName.includes('shingle')) return 'Shingles';
   if (lowerName.includes('underlay')) return 'Underlayment';
@@ -23,35 +21,34 @@ const categorizeMaterial = (name) => {
 };
 
 export default function MyAnalytics() {
-  const [projects, setProjects] = useState([]);
-  const [user, setUser] = useState(null);
-  const [analyticsData, setAnalyticsData] = useState(null);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const calculateUserAnalytics = useCallback(async (userProjects) => {
+  const calculateUserAnalytics = useCallback(async (userProjects: any[]) => {
     try {
       // Get all daily updates for user's projects
-      const projectIds = userProjects.map(p => p.id);
+      const projectIds = userProjects.map((p: any) => p.id);
       const allUpdates = await Promise.all(
-        projectIds.map(id => DailyUpdate.filter({ project_id: id }))
+        projectIds.map((id: string) => DailyUpdate.filter({ project_id: id }))
       );
       const flatUpdates = allUpdates.flat();
 
       // Calculate totals across all user projects
-      const totalLaborHours = flatUpdates.reduce((sum, u) => sum + (u.hours_worked || 0), 0);
+      const totalLaborHours = flatUpdates.reduce((sum: number, u: any) => sum + (u.hours_worked || 0), 0);
       const laborCost = totalLaborHours * LABOR_RATE_PER_HOUR;
 
-      const allMaterialCosts = flatUpdates.flatMap(u => u.materials_used || []);
-      const totalMaterialCost = allMaterialCosts.reduce((sum, m) => sum + (m.cost || 0), 0);
+      const allMaterialCosts = flatUpdates.flatMap((u: any) => u.materials_used || []);
+      const totalMaterialCost = allMaterialCosts.reduce((sum: number, m: any) => sum + (m.cost || 0), 0);
       
       const totalCost = laborCost + totalMaterialCost;
-      const totalRevenue = userProjects.reduce((sum, p) => sum + (p.project_budget || 0), 0);
+      const totalRevenue = userProjects.reduce((sum: number, p: any) => sum + (p.project_budget || 0), 0);
       const netProfit = totalRevenue - totalCost;
       const roi = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
       const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
       
       // Cost breakdown across all projects
-      const costBreakdown = allMaterialCosts.reduce((acc, item) => {
+      const costBreakdown = allMaterialCosts.reduce((acc: any, item: any) => {
         const category = categorizeMaterial(item.material_name);
         acc[category] = (acc[category] || 0) + (item.cost || 0);
         return acc;
@@ -61,7 +58,7 @@ export default function MyAnalytics() {
       const formattedBreakdown = Object.entries(costBreakdown).map(([name, value]) => ({ name, value }));
       
       // Pipeline metrics
-      const pipeline = userProjects.reduce((acc, project) => {
+      const pipeline = userProjects.reduce((acc: any, project: any) => {
         acc[project.project_status] = (acc[project.project_status] || 0) + 1;
         return acc;
       }, {});
@@ -75,8 +72,8 @@ export default function MyAnalytics() {
         costBreakdown: formattedBreakdown,
         pipeline,
         totalProjects: userProjects.length,
-        activeProjects: userProjects.filter(p => p.project_status === 'in_progress').length,
-        completedProjects: userProjects.filter(p => p.project_status === 'completed').length,
+        activeProjects: userProjects.filter((p: any) => p.project_status === 'in_progress').length,
+        completedProjects: userProjects.filter((p: any) => p.project_status === 'completed').length,
         avgUpdatesPerProject: userProjects.length > 0 ? flatUpdates.length / userProjects.length : 0
       });
     } catch (error) {
@@ -88,7 +85,6 @@ export default function MyAnalytics() {
     setIsLoading(true);
     try {
       const currentUser = await User.me();
-      setUser(currentUser);
       
       // Get only projects owned by current user
       const userProjects = await Project.filter({ owner_user_id: currentUser.id });
@@ -106,10 +102,6 @@ export default function MyAnalytics() {
   useEffect(() => {
     loadUserProjectsAndAnalytics();
   }, [loadUserProjectsAndAnalytics]); // Dependency on loadUserProjectsAndAnalytics
-
-  const pipelineData = analyticsData ? [
-    { name: 'Pipeline', ...analyticsData.pipeline }
-  ] : [];
 
   const metricsData = analyticsData ? {
     revenue: analyticsData.totalRevenue,
@@ -231,9 +223,9 @@ export default function MyAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(analyticsData?.pipeline || {}).map(([status, count]) => (
+                {Object.entries(analyticsData?.pipeline || {}).map(([status, count]: [string, unknown]) => (
                   <div key={status} className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-900">{count}</div>
+                    <div className="text-2xl font-bold text-gray-900">{String(count)}</div>
                     <div className="text-sm text-gray-600 capitalize">{status.replace('_', ' ')}</div>
                   </div>
                 ))}

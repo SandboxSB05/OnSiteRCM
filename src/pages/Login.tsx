@@ -72,8 +72,12 @@ export default function Login() {
         variant: 'success'
       });
 
-      // Redirect to dashboard
-      navigate('/Dashboard');
+      // Redirect based on user role
+      if (mockUser.role === 'client') {
+        navigate('/MyProjects');
+      } else {
+        navigate('/Dashboard');
+      }
     } catch (err) {
       setError('Login failed. Please try again.');
       console.error('Login error:', err);

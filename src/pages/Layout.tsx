@@ -15,7 +15,8 @@ import {
   Menu,
   X,
   Plus, // Added Plus icon
-  MessageSquare
+  MessageSquare,
+  RefreshCw // Added for role switcher
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +24,35 @@ import { User } from "@/api/entities";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
-const getUserNavigationItems = (isAdmin) => {
+interface LayoutProps {
+  children: React.ReactNode;
+  currentPageName?: string;
+}
+
+const getUserNavigationItems = (role: 'admin' | 'user' | 'client') => {
+  // Homeowner (client) only sees My Projects and Feature Request
+  if (role === 'client') {
+    return [
+      {
+        title: "My Projects",
+        url: createPageUrl("MyProjects"),
+        icon: FolderOpen,
+      },
+      {
+        title: "Feature Request",
+        url: createPageUrl("FeatureRequest"),
+        icon: MessageSquare,
+      },
+    ];
+  }
+
+  // Contractor (user) sees base items
   const baseItems = [
+    {
+      title: "Dashboard",
+      url: createPageUrl("Dashboard"),
+      icon: Home,
+    },
     {
       title: "My Projects",
       url: createPageUrl("MyProjects"),
@@ -40,13 +68,14 @@ const getUserNavigationItems = (isAdmin) => {
       url: createPageUrl("ClientUpdates"),
       icon: MessageSquare,
     },
-    {
-      title: "My Analytics", // Added "My Analytics"
-      url: createPageUrl("MyAnalytics"),
-      icon: BarChart3,
-    }
+    // {
+    //   title: "My Analytics", // Added "My Analytics"
+    //   url: createPageUrl("MyAnalytics"),
+    //   icon: BarChart3,
+    // }
   ];
 
+  // Admin sees everything
   const adminItems = [
     {
       title: "Admin Analytics", // Renamed "Analytics" to "Admin Analytics"
@@ -70,12 +99,12 @@ const getUserNavigationItems = (isAdmin) => {
     }
   ];
 
-  return isAdmin ? [...baseItems, ...adminItems] : baseItems;
+  return role === 'admin' ? [...baseItems, ...adminItems] : baseItems;
 };
 
-export default function Layout({ children, currentPageName }) {
+export default function Layout({ children, currentPageName }: LayoutProps) {
   const location = useLocation();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast(); // Initialize useToast
@@ -124,7 +153,44 @@ export default function Layout({ children, currentPageName }) {
     }
   };
 
-  const navigationItems = getUserNavigationItems(isAdmin);
+  // DEV ONLY: Role switcher function
+  const handleRoleSwitch = async () => {
+    if (!user) return;
+    
+    const roles: Array<'admin' | 'user' | 'client'> = ['admin', 'user', 'client'];
+    const currentIndex = roles.indexOf(user.role);
+    const nextRole = roles[(currentIndex + 1) % roles.length];
+    
+    // Update user role
+    const updatedUser = { ...user, role: nextRole };
+    
+    // Update in User entity (this will update localStorage)
+    await User.update(user.id, { role: nextRole });
+    
+    // Update local state
+    setUser(updatedUser);
+    setIsAdmin(nextRole === 'admin');
+    
+    const roleLabels: Record<'admin' | 'user' | 'client', string> = {
+      'admin': 'Admin',
+      'user': 'Contractor',
+      'client': 'Homeowner'
+    };
+    
+    toast({
+      title: "Role Switched",
+      description: `Now viewing as: ${roleLabels[nextRole]}`,
+    });
+    
+    // Navigate to appropriate page based on role
+    if (nextRole === 'client') {
+      window.location.href = '/MyProjects';
+    } else {
+      window.location.href = '/Dashboard';
+    }
+  };
+
+  const navigationItems = getUserNavigationItems(user?.role || 'user');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -191,7 +257,16 @@ export default function Layout({ children, currentPageName }) {
                   <span className="font-medium">{item.title}</span>
                 </Link>
               ))}
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-gray-200 space-y-2">
+                {/* DEV: Role Switcher Button */}
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-purple-600 border-purple-300 hover:bg-purple-50"
+                  onClick={handleRoleSwitch}
+                >
+                  <RefreshCw className="h-5 w-5 mr-3" />
+                  Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
+                </Button>
                 <Button variant="ghost" className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600" onClick={handleLogout}>
                   <LogOut className="h-5 w-5 mr-3" />
                   Logout
@@ -252,6 +327,18 @@ export default function Layout({ children, currentPageName }) {
 
               {/* User Profile */}
               <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200">
+                {/* DEV: Role Switcher Button */}
+                <div className="mb-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start text-purple-600 border-purple-300 hover:bg-purple-50"
+                    onClick={handleRoleSwitch}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
+                  </Button>
+                </div>
+                
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white font-medium text-sm">

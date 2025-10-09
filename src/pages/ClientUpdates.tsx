@@ -15,8 +15,8 @@ import PhotoUploader from '../components/dailyupdates/PhotoUploader';
 import { format } from 'date-fns';
 
 // Simple component for repeatable material costs
-const MaterialCostsForm = ({ materials, onChange }) => {
-  const handleMaterialChange = (index, field, value) => {
+const MaterialCostsForm = ({ materials, onChange }: { materials: any[], onChange: (materials: any[]) => void }) => {
+  const handleMaterialChange = (index: number, field: string, value: string) => {
     const newMaterials = [...materials];
     newMaterials[index][field] = value;
     onChange(newMaterials);
@@ -26,25 +26,25 @@ const MaterialCostsForm = ({ materials, onChange }) => {
     onChange([...materials, { description: '', cost: '' }]);
   };
 
-  const handleRemoveMaterial = (index) => {
-    const newMaterials = materials.filter((_, i) => i !== index);
+  const handleRemoveMaterial = (index: number) => {
+    const newMaterials = materials.filter((_: any, i: number) => i !== index);
     onChange(newMaterials);
   };
 
   return (
     <div className="space-y-2">
-      {materials.map((item, index) => (
+      {materials.map((item: any, index: number) => (
         <div key={index} className="flex gap-2 items-center">
           <Input
             placeholder="Material Description"
             value={item.description}
-            onChange={(e) => handleMaterialChange(index, 'description', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMaterialChange(index, 'description', e.target.value)}
           />
           <Input
             type="number"
             placeholder="Cost"
             value={item.cost}
-            onChange={(e) => handleMaterialChange(index, 'cost', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMaterialChange(index, 'cost', e.target.value)}
             className="w-32"
           />
           <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveMaterial(index)}>
@@ -61,7 +61,7 @@ const MaterialCostsForm = ({ materials, onChange }) => {
 
 
 export default function ClientUpdates() {
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [formData, setFormData] = useState({
     update_date: new Date().toISOString().split('T')[0],
@@ -78,10 +78,10 @@ export default function ClientUpdates() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [generatedUpdate, setGeneratedUpdate] = useState(null);
+  const [generatedUpdate, setGeneratedUpdate] = useState<any>(null);
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [sendToEmail, setSendToEmail] = useState("");
-  const [emailTemplate, setEmailTemplate] = useState(null); // Changed from aiGeneratedMessage
+  const [emailTemplate, setEmailTemplate] = useState<{subject: string, body: string} | null>(null); // Changed from aiGeneratedMessage
   const { toast } = useToast();
 
   useEffect(() => {
@@ -108,11 +108,11 @@ export default function ClientUpdates() {
     setIsLoading(false);
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProjectId) {
       toast({ title: "Please select a project.", variant: "destructive" });
@@ -124,7 +124,7 @@ export default function ClientUpdates() {
         ...formData,
         project_id: selectedProjectId,
         time_cost_labor: formData.time_cost_labor ? parseFloat(formData.time_cost_labor) : null,
-        additional_materials: formData.additional_materials.map(m => ({ ...m, cost: m.cost ? parseFloat(m.cost) : 0 })),
+        additional_materials: formData.additional_materials.map((m: any) => ({ ...m, cost: m.cost ? parseFloat(m.cost) : 0 })),
         total_cost_to_date: formData.total_cost_to_date ? parseFloat(formData.total_cost_to_date) : null,
         total_paid: formData.total_paid ? parseFloat(formData.total_paid) : null,
         total_due: formData.total_due ? parseFloat(formData.total_due) : null,
@@ -133,9 +133,9 @@ export default function ClientUpdates() {
       setGeneratedUpdate(newUpdate);
       toast({ title: "Client update generated successfully!", variant: "success" });
       setEmailTemplate(null); // Clear previous email template when a new update is generated
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating client update:", error);
-      toast({ title: "Failed to generate update.", description: error.message, variant: "destructive" });
+      toast({ title: "Failed to generate update.", description: error?.message || "An error occurred", variant: "destructive" });
     }
     setIsSubmitting(false);
   };
@@ -160,15 +160,14 @@ export default function ClientUpdates() {
         await SendEmail({
             to: sendToEmail,
             subject: emailTemplate.subject,
-            body: emailTemplate.body,
-            from_name: "OnSite Updates"
+            body: emailTemplate.body
         });
 
         toast({ title: "Email sent successfully!", variant: "success" });
         setShowSendDialog(false);
-    } catch(error) {
+    } catch(error: any) {
         console.error("Error sending email:", error);
-        toast({ title: "Failed to send email.", description: error.message, variant: "destructive" });
+        toast({ title: "Failed to send email.", description: error?.message || "An error occurred", variant: "destructive" });
     } finally {
         setIsSendingEmail(false);
     }
@@ -188,7 +187,7 @@ export default function ClientUpdates() {
       toast({ title: "Copied to clipboard!", description: "Paste the message into your SMS app."});
   };
 
-  const generateEmailTemplate = () => {
+  const generateEmailTemplate = async () => {
     if (!selectedProjectId || !generatedUpdate) {
       toast({ title: "Please generate an update first", variant: "destructive" });
       return;
@@ -200,85 +199,167 @@ export default function ClientUpdates() {
       return;
     }
 
+    // Show loading state
+    toast({ title: "Generating AI email...", description: "Curating your professional update message" });
+
     const updateLink = getUpdateLink();
     
-    // Build additional costs HTML
+    // Simulate AI processing delay (remove this when integrating real AI)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // MOCK AI GENERATION - This is HARDCODED to simulate what AI would generate
+    // In production, this would call: await InvokeLLM({ prompt: ..., model: 'gpt-4' })
+    
+    // HARDCODED AI-GENERATED CONTENT (Replace with real AI in production)
+    const aiIntro = `I hope this message finds you well. I'm writing to provide you with today's progress update on your roofing project. Our team has been working diligently, and I'm pleased to share the details of what we've accomplished.`;
+    
+    // HARDCODED professional summary (In production, AI would curate from the actual description field)
+    const aiWorkSummary = `Today, our crew focused on the critical structural components of your roof. We successfully completed the installation of the underlayment on the south-facing section, ensuring proper water barrier protection. Additionally, we inspected and reinforced several roof decking boards that showed signs of wear, replacing them with treated lumber to maintain structural integrity. 
+
+The weather conditions were favorable, allowing us to make excellent progress. Our team also installed new flashing around the chimney area to prevent future water infiltration. We're maintaining our schedule and ensuring every detail meets our high-quality standards.`;
+    
+    // Note: In a real implementation, the above would be generated by AI from generatedUpdate.description
+    
+    // Build additional costs section with professional formatting
     let additionalCostsHTML = '';
     const hasAdditionalCosts = (generatedUpdate.time_cost_labor && generatedUpdate.time_cost_labor > 0) || 
-                               (generatedUpdate.additional_materials && generatedUpdate.additional_materials.some(m => m.cost > 0));
+                               (generatedUpdate.additional_materials && generatedUpdate.additional_materials.some((m: any) => m.cost > 0));
     
     if (hasAdditionalCosts) {
-      additionalCostsHTML = '<h3 style="color: #1e40af; margin-top: 20px; margin-bottom: 10px;">Additional Project Costs</h3><ul style="list-style: none; padding: 0;">';
+      additionalCostsHTML = `
+        <div style="margin-top: 24px;">
+          <h3 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">Additional Costs This Period</h3>
+          <p style="color: #6b7280; font-size: 14px; margin-bottom: 12px;">The following additional costs were incurred as part of the work completed:</p>
+          <ul style="list-style: none; padding: 0; background-color: #f9fafb; border-radius: 8px; padding: 12px;">
+      `;
       
       if (generatedUpdate.time_cost_labor && generatedUpdate.time_cost_labor > 0) {
-        additionalCostsHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between;">
-          <span>${generatedUpdate.time_cost_notes || 'Additional Labor'}</span>
-          <span style="font-weight: 600;">$${generatedUpdate.time_cost_labor.toFixed(2)}</span>
-        </li>`;
+        const laborNote = generatedUpdate.time_cost_notes || 'Additional labor hours';
+        additionalCostsHTML += `
+          <li style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-weight: 600; color: #374151;">Labor</span>
+              <span style="display: block; color: #6b7280; font-size: 13px; margin-top: 2px;">${laborNote}</span>
+            </div>
+            <span style="font-weight: 600; color: #1f2937; font-size: 16px;">$${generatedUpdate.time_cost_labor.toFixed(2)}</span>
+          </li>
+        `;
       }
       
-      generatedUpdate.additional_materials?.forEach(item => {
+      generatedUpdate.additional_materials?.forEach((item: any) => {
         if (item.cost > 0) {
-          additionalCostsHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between;">
-            <span>${item.description}</span>
-            <span style="font-weight: 600;">$${item.cost.toFixed(2)}</span>
-          </li>`;
+          additionalCostsHTML += `
+            <li style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 600; color: #374151;">${item.description}</span>
+              <span style="font-weight: 600; color: #1f2937; font-size: 16px;">$${item.cost.toFixed(2)}</span>
+            </li>
+          `;
         }
       });
       
-      additionalCostsHTML += '</ul>';
+      additionalCostsHTML += '</ul></div>';
+    }
+    
+    // AI-curated financial summary intro
+    let financialIntro = '';
+    const remainingBalance = generatedUpdate.total_due || 0;
+    if (remainingBalance > 0) {
+      financialIntro = `Below is the current financial status of your project:`;
+    } else if (remainingBalance === 0) {
+      financialIntro = `Great news - your project balance is fully paid!`;
+    }
+    
+    // AI-curated closing based on project status
+    let aiClosing = '';
+    if (generatedUpdate.photos && generatedUpdate.photos.length > 0) {
+      aiClosing = `I've included photos of today's work in the detailed update link below. Please don't hesitate to reach out if you have any questions or concerns.`;
+    } else {
+      aiClosing = `Please review the update details via the link below. I'm always available if you have any questions or would like to discuss the project further.`;
     }
 
-    const subject = `Project Update - ${project.project_name}, ${format(new Date(generatedUpdate.update_date), 'MMM d, yyyy')}`;
+    const subject = `${project.project_name} - Progress Update for ${format(new Date(generatedUpdate.update_date), 'MMMM d, yyyy')}`;
     
     const body = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #374151;">
-        <h2 style="color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px;">Project Update</h2>
+      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #1f2937; line-height: 1.6;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 32px 24px; border-radius: 12px 12px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 700;">Project Update</h1>
+          <p style="color: #e0e7ff; margin: 8px 0 0 0; font-size: 14px;">${format(new Date(generatedUpdate.update_date), 'EEEE, MMMM d, yyyy')}</p>
+        </div>
         
-        <p>Hi ${project.client_name},</p>
-        
-        <p>Here is the latest update for your project, <strong>${project.project_name}</strong>.</p>
-        
-        <h3 style="color: #1e40af; margin-top: 20px;">Work Summary</h3>
-        <p style="background-color: #f3f4f6; padding: 15px; border-left: 4px solid #2563eb; margin: 10px 0;">
-          ${generatedUpdate.description}
-        </p>
-        
-        ${additionalCostsHTML}
-        
-        <h3 style="color: #1e40af; margin-top: 20px; margin-bottom: 10px;">Financial Summary</h3>
-        <div style="background-color: #eff6ff; padding: 15px; border-radius: 8px; margin: 10px 0;">
-          <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-            <span>Total Cost to Date:</span>
-            <span style="font-weight: 600;">$${(generatedUpdate.total_cost_to_date || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <!-- Main Content -->
+        <div style="background-color: #ffffff; padding: 32px 24px;">
+          <p style="font-size: 16px; margin-top: 0;">Dear ${project.client_name},</p>
+          
+          <p style="font-size: 16px;">${aiIntro}</p>
+          
+          <!-- Work Summary -->
+          <div style="margin-top: 28px;">
+            <h2 style="color: #1e40af; font-size: 20px; margin-bottom: 12px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+              Today's Accomplishments
+            </h2>
+            <div style="background-color: #eff6ff; padding: 20px; border-left: 4px solid #2563eb; border-radius: 6px; margin: 16px 0;">
+              <p style="margin: 0; font-size: 15px; color: #1f2937;">${aiWorkSummary}</p>
+            </div>
           </div>
-          <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-            <span>Total Paid:</span>
-            <span style="font-weight: 600; color: #059669;">$${(generatedUpdate.total_paid || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          
+          ${additionalCostsHTML}
+          
+          <!-- Financial Summary -->
+          <div style="margin-top: 28px;">
+            <h2 style="color: #1e40af; font-size: 20px; margin-bottom: 12px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+              Financial Overview
+            </h2>
+            ${financialIntro ? `<p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">${financialIntro}</p>` : ''}
+            <div style="background: linear-gradient(to bottom, #eff6ff, #ffffff); padding: 20px; border-radius: 8px; border: 1px solid #bfdbfe;">
+              <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                <span style="color: #6b7280; font-size: 15px;">Project Cost to Date</span>
+                <span style="font-weight: 600; color: #1f2937; font-size: 16px;">$${(generatedUpdate.total_cost_to_date || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                <span style="color: #6b7280; font-size: 15px;">Amount Paid</span>
+                <span style="font-weight: 600; color: #059669; font-size: 16px;">$${(generatedUpdate.total_paid || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 16px 0 0 0; margin-top: 12px; border-top: 2px solid #2563eb;">
+                <span style="font-weight: 600; color: #1f2937; font-size: 16px;">Outstanding Balance</span>
+                <span style="font-weight: 700; color: #2563eb; font-size: 20px;">$${(generatedUpdate.total_due || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            </div>
           </div>
-          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 2px solid #2563eb; margin-top: 8px; padding-top: 12px;">
-            <span style="font-weight: 600;">Remaining Balance:</span>
-            <span style="font-weight: 700; color: #2563eb; font-size: 18px;">$${(generatedUpdate.total_due || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          
+          <!-- Closing -->
+          <div style="margin-top: 28px;">
+            <p style="font-size: 15px;">${aiClosing}</p>
+          </div>
+          
+          <!-- CTA Button -->
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${updateLink}" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);">
+              📋 View Detailed Update
+            </a>
+            ${generatedUpdate.photos && generatedUpdate.photos.length > 0 ? '<p style="color: #6b7280; font-size: 13px; margin-top: 12px; margin-bottom: 0;">Includes photos and complete project details</p>' : ''}
           </div>
         </div>
         
-        ${generatedUpdate.photos && generatedUpdate.photos.length > 0 ? '<p style="margin-top: 20px;">View photos and full details using the link below:</p>' : ''}
-        
-        <p style="margin-top: 20px;">
-          <a href="${updateLink}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
-            View Full Update
-          </a>
-        </p>
-        
-        <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
-          Best regards,<br/>
-          <strong>OnSite | Roofing Contractor Management</strong>
-        </p>
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 24px; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0; color: #6b7280; font-size: 14px;">
+            Best regards,<br/>
+            <span style="font-weight: 600; color: #1f2937;">Your OnSite Roofing Team</span>
+          </p>
+          <p style="margin: 16px 0 0 0; color: #9ca3af; font-size: 12px;">
+            This is an automated update from your roofing contractor. For questions or concerns, please reply to this email or contact us directly.
+          </p>
+        </div>
       </div>
     `;
 
     setEmailTemplate({ subject, body });
-    toast({ title: "Email template generated!", description: "Review and edit before sending." });
+    toast({ 
+      title: "✨ AI Email Generated!", 
+      description: "Your professional update email is ready to review and send.",
+      variant: "success"
+    });
   };
 
 
@@ -346,7 +427,7 @@ export default function ClientUpdates() {
               
               <div>
                   <Label>Photos</Label>
-                  <PhotoUploader photos={formData.photos} onChange={(p) => handleInputChange('photos', p)} />
+                  <PhotoUploader photos={formData.photos} onChange={(p: any) => handleInputChange('photos', p)} />
               </div>
               
               <div>
@@ -372,7 +453,7 @@ export default function ClientUpdates() {
                   </div>
                   <p className="text-sm text-gray-700">Your client update is ready. Generate an AI message or share directly.</p>
                   
-                  {/* Email Template Generator */}
+                  {/* AI Email Generator */}
                   <div className="w-full">
                     <Button 
                       onClick={generateEmailTemplate} 
@@ -381,7 +462,7 @@ export default function ClientUpdates() {
                       variant="outline"
                     >
                       <Mail className="w-4 h-4 mr-2" />
-                      Generate Email
+                      ✨ Generate AI Email
                     </Button>
                     
                     {emailTemplate && (

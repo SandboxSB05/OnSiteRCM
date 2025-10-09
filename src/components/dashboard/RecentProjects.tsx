@@ -22,11 +22,11 @@ const statusLabels = {
   on_hold: "On Hold"
 };
 
-const isValidDate = (date) => {
+const isValidDate = (date: any) => {
   return date && !isNaN(new Date(date).getTime());
 };
 
-export default function RecentProjects({ projects, isLoading }) {
+export default function RecentProjects({ projects, isLoading }: { projects: any[], isLoading: boolean }) {
   const recentProjects = projects.slice(0, 5);
 
   return (
@@ -43,7 +43,7 @@ export default function RecentProjects({ projects, isLoading }) {
       <CardContent>
         {isLoading ? (
           <div className="space-y-4">
-            {Array(3).fill(0).map((_, i) => (
+            {Array(3).fill(0).map((_, i: number) => (
               <div key={i} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
                 <div className="space-y-2">
                   <Skeleton className="h-5 w-48" />
@@ -55,15 +55,15 @@ export default function RecentProjects({ projects, isLoading }) {
           </div>
         ) : recentProjects.length > 0 ? (
           <div className="space-y-3">
-            {recentProjects.map((project) => (
+            {recentProjects.map((project: any) => (
               <div key={project.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold text-gray-900 truncate">
                       {project.project_name}
                     </h3>
-                    <Badge className={`${statusColors[project.project_status]} border text-xs`}>
-                      {statusLabels[project.project_status]}
+                    <Badge className={`${statusColors[project.project_status as keyof typeof statusColors] || ''} border text-xs`}>
+                      {statusLabels[project.project_status as keyof typeof statusLabels] || project.project_status}
                     </Badge>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-600">
