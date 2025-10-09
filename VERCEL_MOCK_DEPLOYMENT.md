@@ -37,6 +37,7 @@ vercel --prod
 ### No Environment Variables Required!
 
 Since this is a mock version, you don't need to set any environment variables in Vercel. The app will work without:
+
 - ❌ SUPABASE_URL
 - ❌ SUPABASE_SERVICE_ROLE_KEY
 - ❌ JWT_SECRET (uses default mock secret)
@@ -49,12 +50,11 @@ You can log in with any of these pre-configured accounts:
 - **Admin User**
   - Email: `admin@onsite.com`
   - Password: Any password (accepts anything)
-  
 - **Regular User**
   - Email: `user@onsite.com`
   - Password: Any password
-  
 - **Client User**
+
   - Email: `client@example.com`
   - Password: Any password
 
@@ -65,12 +65,14 @@ You can log in with any of these pre-configured accounts:
 ## Important Notes
 
 ⚠️ **This is a DEMO/MOCK version**
+
 - No data is persisted (everything is in-memory or JWT-based)
 - No real authentication/security (any password works)
 - Not suitable for production use
 - No external API calls
 
 ✅ **For Production Deployment**
+
 - Set up a real Supabase instance
 - Add proper environment variables
 - Restore the original API code (see `*.backup` files)
@@ -95,6 +97,7 @@ You can log in with any of these pre-configured accounts:
 ## Build Configuration
 
 The `vercel.json` file is configured to:
+
 - Build the Vite React app (`npm run build`)
 - Deploy TypeScript serverless functions from `/api`
 - Route `/api/*` requests to serverless functions
@@ -103,21 +106,25 @@ The `vercel.json` file is configured to:
 ## Troubleshooting
 
 ### Build fails in Vercel
+
 - Check build logs in Vercel dashboard
 - Ensure all dependencies are in `package.json`
 - Verify TypeScript compiles locally: `npm run build`
 
 ### API endpoints return 404
+
 - Check that `vercel.json` routes are configured correctly
 - Ensure `/api` folder structure matches the routes
 
 ### Frontend loads but API fails
+
 - Check browser console for CORS errors
 - Verify API endpoints are deployed (check Vercel Functions tab)
 
 ## Support
 
 For issues with the mock version deployment, check:
+
 1. Vercel build logs
 2. Browser console errors
 3. API function logs in Vercel dashboard
