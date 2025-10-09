@@ -1,7 +1,7 @@
 
 
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Home, 
@@ -20,9 +20,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User } from "@/api/entities";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { useAuth } from "@/contexts/AuthContext";
+import { setCurrentUser } from "@/services/authService";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -104,72 +105,67 @@ const getUserNavigationItems = (role: 'admin' | 'user' | 'client') => {
 
 export default function Layout({ children, currentPageName }: LayoutProps) {
   const location = useLocation();
-  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+  const { user, logout: authLogout, setUser } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const { toast } = useToast(); // Initialize useToast
+  const { toast } = useToast();
 
+  // Debug: Log whenever user changes
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const currentUser = await User.me();
-        setUser(currentUser);
-        setIsAdmin(currentUser.role === 'admin');
-      } catch (error) {
-        console.error("Error loading user:", error);
-        toast({
-          title: "Authentication Error",
-          description: "Could not load user data. Please try logging in again.",
-          variant: "destructive",
-        });
-      }
-    };
-    loadUser();
-  }, [toast]); // Add toast to dependency array
+    console.log('👤 Layout: User changed:', {
+      role: user?.role,
+      name: user?.name,
+      id: user?.id
+    });
+  }, [user]);
 
   const handleLogout = async () => {
     try {
-      await User.logout();
-      // Clear localStorage
-      localStorage.removeItem('roof_tracker_user');
-      localStorage.removeItem('roof_tracker_remember');
+      await authLogout();
       
       toast({
         title: "Logged out successfully",
         description: "You have been signed out of your account.",
-        variant: "success",
       });
       
       // Redirect to home page after logout
       setTimeout(() => {
-        window.location.href = '/';
+        navigate('/');
       }, 500);
     } catch (error) {
       console.error("Error logging out:", error);
-      // Even if User.logout() fails, clear localStorage and redirect
-      localStorage.removeItem('roof_tracker_user');
-      localStorage.removeItem('roof_tracker_remember');
-      window.location.href = '/';
+      toast({
+        title: "Logout Error",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   // DEV ONLY: Role switcher function
-  const handleRoleSwitch = async () => {
+  const handleRoleSwitch = () => {
     if (!user) return;
     
     const roles: Array<'admin' | 'user' | 'client'> = ['admin', 'user', 'client'];
     const currentIndex = roles.indexOf(user.role);
     const nextRole = roles[(currentIndex + 1) % roles.length];
     
-    // Update user role
+    console.log('🔄 Role Switch:', {
+      currentRole: user.role,
+      nextRole,
+      currentIndex
+    });
+    
+    // Update user role (in a real app, this would call an API)
     const updatedUser = { ...user, role: nextRole };
     
-    // Update in User entity (this will update localStorage)
-    await User.update(user.id, { role: nextRole });
+    console.log('📝 Updated User:', updatedUser);
     
-    // Update local state
+    // Update localStorage directly for dev mode
+    setCurrentUser(updatedUser);
+    
+    // Update the auth context immediately
     setUser(updatedUser);
-    setIsAdmin(nextRole === 'admin');
     
     const roleLabels: Record<'admin' | 'user' | 'client', string> = {
       'admin': 'Admin',
@@ -182,15 +178,26 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
       description: `Now viewing as: ${roleLabels[nextRole]}`,
     });
     
+    console.log('🚀 Navigating to:', nextRole === 'client' ? '/MyProjects' : '/Dashboard');
+    
     // Navigate to appropriate page based on role
     if (nextRole === 'client') {
-      window.location.href = '/MyProjects';
+      navigate('/MyProjects');
     } else {
-      window.location.href = '/Dashboard';
+      navigate('/Dashboard');
     }
   };
 
-  const navigationItems = getUserNavigationItems(user?.role || 'user');
+  // Recalculate navigation items when user role changes
+  const navigationItems = useMemo(() => {
+    const items = getUserNavigationItems(user?.role || 'user');
+    console.log('📋 Navigation Items Updated:', {
+      role: user?.role,
+      itemCount: items.length,
+      items: items.map(i => i.title)
+    });
+    return items;
+  }, [user?.role]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -214,7 +221,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
             </div>
           </div>
           <div className="flex items-center gap-2"> {/* Added div for grouping */}
-            {isAdmin && <Badge variant="secondary" className="bg-purple-100 text-purple-800">Admin</Badge>}
+            {user?.role === 'admin' && <Badge variant="secondary" className="bg-purple-100 text-purple-800">Admin</Badge>}
             <Link to={`${createPageUrl("MyProjects")}?new=true`}> {/* New Project Button */}
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="w-4 h-4 mr-1" />
@@ -342,18 +349,18 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white font-medium text-sm">
-                      {user?.full_name?.[0] || 'U'}
+                      {user?.name?.[0] || 'U'}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {user?.full_name || 'User'}
+                      {user?.name || 'User'}
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-xs text-gray-500 truncate">
                         {user?.email || ''}
                       </p>
-                      {isAdmin && <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">Admin</Badge>}
+                      {user?.role === 'admin' && <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">Admin</Badge>}
                     </div>
                   </div>
                   <Button variant="ghost" size="icon" onClick={handleLogout} className="flex-shrink-0">
