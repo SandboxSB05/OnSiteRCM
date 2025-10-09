@@ -1,7 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 // import { createClient } from '@supabase/supabase-js';
 // import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 // Mock mode - no external dependencies required
 // const supabaseUrl = process.env.SUPABASE_URL!;
