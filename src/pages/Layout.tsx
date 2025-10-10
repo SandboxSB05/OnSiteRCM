@@ -266,16 +266,14 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
               ))}
               <div className="pt-4 border-t border-gray-200 space-y-2">
                 {/* DEV: Role Switcher Button */}
-                {import.meta.env.DEV && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start text-purple-600 border-purple-300 hover:bg-purple-50"
-                    onClick={handleRoleSwitch}
-                  >
-                    <RefreshCw className="h-5 w-5 mr-3" />
-                    Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
-                  </Button>
-                )}
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-purple-600 border-purple-300 hover:bg-purple-50"
+                  onClick={handleRoleSwitch}
+                >
+                  <RefreshCw className="h-5 w-5 mr-3" />
+                  Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
+                </Button>
                 <Button variant="ghost" className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600" onClick={handleLogout}>
                   <LogOut className="h-5 w-5 mr-3" />
                   Logout
@@ -337,18 +335,16 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
               {/* User Profile */}
               <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200">
                 {/* DEV: Role Switcher Button */}
-                {import.meta.env.DEV && (
-                  <div className="mb-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-purple-600 border-purple-300 hover:bg-purple-50"
-                      onClick={handleRoleSwitch}
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
-                    </Button>
-                  </div>
-                )}
+                <div className="mb-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start text-purple-600 border-purple-300 hover:bg-purple-50"
+                    onClick={handleRoleSwitch}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
+                  </Button>
+                </div>
                 
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">

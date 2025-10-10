@@ -103,16 +103,14 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4">
               {/* DEV ONLY: Quick Bypass Button */}
-              {import.meta.env.DEV && (
-                <Button
-                  onClick={handleDevBypass}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
-                  size="sm"
-                >
-                  <Zap className="w-4 h-4 mr-1" />
-                  DEV: Skip to App
-                </Button>
-              )}
+              <Button
+                onClick={handleDevBypass}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
+                size="sm"
+              >
+                <Zap className="w-4 h-4 mr-1" />
+                DEV: Skip to App
+              </Button>
               <Link to="/login">
                 <Button variant="ghost" className="text-gray-700">
                   Login
