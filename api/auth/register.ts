@@ -160,7 +160,6 @@ export default async function handler(
         company: company,
         phone: phone || null,
         role: role,
-        password_hash: '', // Empty string since Supabase Auth handles passwords
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -223,7 +222,6 @@ export default async function handler(
         phone: userProfile.phone || undefined,
       },
       session: sessionData.session,
-      token: token,
       message: 'Registration successful'
     });
 
