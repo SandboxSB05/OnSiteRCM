@@ -7,6 +7,7 @@ I've successfully created a serverless function for user registration that bypas
 ### Files Created/Modified:
 
 1. ✅ **`/api/auth/register.ts`** - Serverless function that:
+
    - Uses Supabase service role key to bypass RLS
    - Creates auth user with `supabase.auth.admin.createUser()`
    - Creates profile in `public.users` table
@@ -20,11 +21,13 @@ I've successfully created a serverless function for user registration that bypas
 ## The Local Development Issue
 
 **The Problem:**
+
 - `vercel dev` runs Vite for the frontend
 - API routes return 404 in local development
 - This is a known limitation with Vercel's local dev environment
 
 **Why It Happens:**
+
 - Vercel's serverless functions are compiled and deployed separately
 - Local `vercel dev` doesn't always properly serve TypeScript API routes
 - The functions work perfectly when deployed to Vercel
@@ -44,6 +47,7 @@ vercel
 ```
 
 Once deployed, your registration endpoint will be available at:
+
 - `https://your-app.vercel.app/api/auth/register`
 
 And the frontend registration form will work perfectly.
@@ -94,6 +98,7 @@ For local development, you have two options:
 ## Next Steps
 
 1. **Deploy to Vercel:**
+
    ```bash
    vercel
    ```
@@ -132,6 +137,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGci... (your service role key)
 4. Verify the service role key has proper permissions
 
 **If you get "Email already exists":**
+
 - Go to Supabase Dashboard > Authentication > Users
 - Delete test users if needed
 
