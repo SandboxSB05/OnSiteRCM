@@ -113,6 +113,12 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
       }),
     });
 
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`API endpoint error: ${response.status} ${response.statusText}. The serverless function may not be deployed correctly.`);
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
