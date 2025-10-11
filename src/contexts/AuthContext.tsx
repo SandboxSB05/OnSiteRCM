@@ -44,13 +44,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const storedUser = getCurrentUser();
+        // Get current user from Supabase session
+        const currentUser = await getCurrentUser();
         
-        console.log('🔐 AuthContext initialization:', storedUser);
+        console.log('🔐 AuthContext initialization:', currentUser);
         
-        if (storedUser) {
-          // For dev mode, just use the stored user directly
-          setUser(storedUser);
+        if (currentUser) {
+          setUser(currentUser);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -80,9 +80,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(verifiedUser);
     } catch (error) {
       console.error('Failed to refresh user:', error);
-      // If API fails, try to get from localStorage (for dev mode)
-      const storedUser = getCurrentUser();
-      setUser(storedUser);
+      // If session verification fails, try to get current user from session
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (getUserError) {
+        console.error('Failed to get current user:', getUserError);
+        setUser(null);
+      }
     }
   };
 

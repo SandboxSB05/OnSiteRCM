@@ -9,16 +9,19 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FolderOpen, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { register, type RegisterData } from '@/services/authService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Register() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     company: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     agreeToTerms: false
@@ -83,11 +86,15 @@ export default function Register() {
         fullName: formData.fullName,
         email: formData.email,
         company: formData.company,
+        phone: formData.phone || undefined,
         password: formData.password,
       };
 
       // Call the authentication API
       const response = await register(userData);
+
+      // Update the AuthContext with the registered user
+      setUser(response.user);
 
       toast({
         title: 'Account created successfully!',
@@ -189,6 +196,20 @@ export default function Register() {
                   disabled={isLoading}
                   autoComplete="organization"
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="(555) 123-4567"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                  autoComplete="tel"
                 />
               </div>
 

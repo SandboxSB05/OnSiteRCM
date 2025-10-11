@@ -29,6 +29,8 @@ import ClientUpdates from "./ClientUpdates";
 import ClientUpdateDetail from "./ClientUpdateDetail";
 
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 const PAGES = {
     
@@ -78,24 +80,8 @@ function _getCurrentPage(url: string) {
 // Create a wrapper component that uses useLocation inside the Router context
 function PagesContent() {
     const location = useLocation();
+    const { user, isAuthenticated } = useAuth();
     const currentPage = _getCurrentPage(location.pathname);
-    
-    // Check if user is logged in (simple check - can be enhanced)
-    const isAuthenticated = () => {
-        return localStorage.getItem('roof_tracker_user') !== null;
-    };
-    
-    // Get user role from localStorage
-    const getUserRole = () => {
-        const userStr = localStorage.getItem('roof_tracker_user');
-        if (!userStr) return null;
-        try {
-            const user = JSON.parse(userStr);
-            return user.role;
-        } catch {
-            return null;
-        }
-    };
     
     // Public routes that don't need authentication
     const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail'];
@@ -103,19 +89,9 @@ function PagesContent() {
         location.pathname.toLowerCase() === route.toLowerCase()
     );
     
-    // If not authenticated and trying to access protected route, redirect to login
-    if (!isAuthenticated() && !isPublicRoute) {
-        return (
-            <Routes>
-                <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-        );
-    }
-    
     // If authenticated and trying to access login/register, redirect based on role
-    if (isAuthenticated() && (location.pathname === '/login' || location.pathname === '/register')) {
-        const userRole = getUserRole();
-        const redirectPath = userRole === 'client' ? '/MyProjects' : '/Dashboard';
+    if (isAuthenticated && user && (location.pathname === '/login' || location.pathname === '/register')) {
+        const redirectPath = user.role === 'client' ? '/MyProjects' : '/Dashboard';
         return (
             <Routes>
                 <Route path="*" element={<Navigate to={redirectPath} replace />} />
@@ -139,27 +115,71 @@ function PagesContent() {
     return (
         <Layout currentPageName={currentPage}>
             <Routes>            
-                <Route path="/Dashboard" element={<Dashboard />} />
+                <Route path="/Dashboard" element={
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/Projects" element={<Projects />} />
+                <Route path="/Projects" element={
+                    <ProtectedRoute>
+                        <Projects />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/DailyUpdates" element={<DailyUpdates />} />
+                <Route path="/DailyUpdates" element={
+                    <ProtectedRoute>
+                        <DailyUpdates />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/Analytics" element={<Analytics />} />
+                <Route path="/Analytics" element={
+                    <ProtectedRoute>
+                        <Analytics />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/CustomerPortal" element={<CustomerPortal />} />
+                <Route path="/CustomerPortal" element={
+                    <ProtectedRoute>
+                        <CustomerPortal />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/MyProjects" element={<MyProjects />} />
+                <Route path="/MyProjects" element={
+                    <ProtectedRoute>
+                        <MyProjects />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/Users" element={<Users />} />
+                <Route path="/Users" element={
+                    <ProtectedRoute>
+                        <Users />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/Project" element={<Project />} />
+                <Route path="/Project" element={
+                    <ProtectedRoute>
+                        <Project />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/MyAnalytics" element={<MyAnalytics />} />
+                <Route path="/MyAnalytics" element={
+                    <ProtectedRoute>
+                        <MyAnalytics />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/ClientUpdates" element={<ClientUpdates />} />
+                <Route path="/ClientUpdates" element={
+                    <ProtectedRoute>
+                        <ClientUpdates />
+                    </ProtectedRoute>
+                } />
                 
-                <Route path="/ClientUpdateDetail" element={<ClientUpdateDetail />} />
+                <Route path="/ClientUpdateDetail" element={
+                    <ProtectedRoute>
+                        <ClientUpdateDetail />
+                    </ProtectedRoute>
+                } />
             </Routes>
         </Layout>
     );
@@ -168,7 +188,9 @@ function PagesContent() {
 export default function Pages() {
     return (
         <Router>
-            <PagesContent />
+            <AuthProvider>
+                <PagesContent />
+            </AuthProvider>
         </Router>
     );
 }
