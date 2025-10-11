@@ -192,7 +192,7 @@ class MockUser extends MockEntity {
           id: '2',
           full_name: 'Demo User',
           email: 'user@example.com',
-          role: 'user',
+          role: 'contractor',
           created_date: new Date().toISOString()
         }
       ];

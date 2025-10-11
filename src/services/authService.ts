@@ -22,7 +22,7 @@ export interface AuthResponse {
     id: string;
     email: string;
     name: string;
-    role: 'admin' | 'user' | 'client';
+    role: 'admin' | 'contractor' | 'client';
     company: string;
   };
   token: string;
@@ -32,7 +32,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user' | 'client';
+  role: 'admin' | 'contractor' | 'client';
   company: string;
 }
 

@@ -30,7 +30,7 @@ interface LayoutProps {
   currentPageName?: string;
 }
 
-const getUserNavigationItems = (role: 'admin' | 'user' | 'client') => {
+const getUserNavigationItems = (role: 'admin' | 'contractor' | 'client') => {
   // Homeowner (client) only sees My Projects and Feature Request
   if (role === 'client') {
     return [
@@ -146,7 +146,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
   const handleRoleSwitch = () => {
     if (!user) return;
     
-    const roles: Array<'admin' | 'user' | 'client'> = ['admin', 'user', 'client'];
+    const roles: Array<'admin' | 'contractor' | 'client'> = ['admin', 'contractor', 'client'];
     const currentIndex = roles.indexOf(user.role);
     const nextRole = roles[(currentIndex + 1) % roles.length];
     
@@ -167,10 +167,10 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
     // Update the auth context immediately
     setUser(updatedUser);
     
-    const roleLabels: Record<'admin' | 'user' | 'client', string> = {
+    const roleLabels: Record<'admin' | 'contractor' | 'client', string> = {
       'admin': 'Admin',
-      'user': 'Contractor',
-      'client': 'Homeowner'
+      'contractor': 'Contractor',
+      'client': 'Client'
     };
     
     toast({
@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
 
   // Recalculate navigation items when user role changes
   const navigationItems = useMemo(() => {
-    const items = getUserNavigationItems(user?.role || 'user');
+    const items = getUserNavigationItems(user?.role || 'contractor');
     console.log('📋 Navigation Items Updated:', {
       role: user?.role,
       itemCount: items.length,
@@ -273,7 +273,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                     onClick={handleRoleSwitch}
                   >
                     <RefreshCw className="h-5 w-5 mr-3" />
-                    Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
+                    Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'contractor' ? 'Contractor' : 'Client'})
                   </Button>
                 )}
                 <Button variant="ghost" className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600" onClick={handleLogout}>
@@ -345,7 +345,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                       onClick={handleRoleSwitch}
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'user' ? 'Contractor' : 'Homeowner'})
+                      Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'contractor' ? 'Contractor' : 'Client'})
                     </Button>
                   </div>
                 )}

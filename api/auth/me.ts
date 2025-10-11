@@ -21,7 +21,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user' | 'client';
+  role: 'admin' | 'contractor' | 'client';
   company: string;
 }
 
@@ -86,7 +86,7 @@ export default async function handler(
       id: decoded.userId,
       email: decoded.email,
       name: decoded.email.split('@')[0].replace(/[.-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      role: decoded.role as 'admin' | 'user' | 'client',
+      role: decoded.role as 'admin' | 'contractor' | 'client',
       company: decoded.company
     };
 

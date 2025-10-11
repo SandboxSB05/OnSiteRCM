@@ -23,7 +23,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user' | 'client';
+  role: 'admin' | 'contractor' | 'client';
   company: string;
   created_at: string;
 }
@@ -96,7 +96,7 @@ export default async function handler(
     // MOCK DATA - In production, this would check the database
     // For demo purposes, we accept all registrations
     const userId = 'user-' + Date.now();
-    const role = 'user'; // Default role for new users
+    const role = 'contractor'; // Default role for new users
 
     // Generate JWT token
     const tokenPayload = {

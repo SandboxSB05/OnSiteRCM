@@ -9,7 +9,7 @@ CREATE TABLE users (
   email VARCHAR(255) UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
   company VARCHAR(255) NOT NULL,
-  role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'user', 'client')),
+  role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'contractor', 'client')),
   password_hash TEXT NOT NULL,
   phone VARCHAR(50),
   avatar_url TEXT,
