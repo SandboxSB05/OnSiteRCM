@@ -1,203 +1,457 @@
--- Supabase Database Schema for OnSite Roofing Contractor Management
+-- =========================================================================
+-- OnSite RCM - MVP Database Schema
+-- =========================================================================
+-- Purpose: Minimal viable schema for roofing contractor management
+-- Auth: Supabase Auth (passwords handled by auth.users table)
+-- Users: Public users table (profiles only, no passwords)
+-- RLS: Row Level Security enabled for multi-tenant isolation
+-- =========================================================================
 
--- Enable UUID extension
+-- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+-- =========================================================================
+-- CORE TABLES
+-- =========================================================================
+
+-- -------------------------------------------------------------------------
+-- Users Table (Profile data only - auth handled by Supabase Auth)
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email VARCHAR(255) UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
   company VARCHAR(255) NOT NULL,
   role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'contractor', 'client')),
-  password_hash TEXT NOT NULL,
   phone VARCHAR(50),
   avatar_url TEXT,
-  last_login TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  payment_verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Sessions table (for JWT token management)
-CREATE TABLE sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  expires_at TIMESTAMP WITH TIME ZONE NOT NULL
-);
+COMMENT ON TABLE public.users IS 'User profiles (passwords in auth.users)';
+COMMENT ON COLUMN public.users.id IS 'Foreign key to auth.users(id)';
+COMMENT ON COLUMN public.users.role IS 'admin = full access, contractor = owns projects, client = read-only';
 
--- Projects table
-CREATE TABLE projects (
+-- -------------------------------------------------------------------------
+-- Projects Table
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
+  project_name VARCHAR(255) NOT NULL,
+  address TEXT,
+  project_status VARCHAR(50) DEFAULT 'planning' CHECK (
+    project_status IN ('planning', 'in_progress', 'on_hold', 'completed', 'cancelled')
+  ),
+  project_budget DECIMAL(12, 2),
+  owner_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   client_name VARCHAR(255),
   client_email VARCHAR(255),
   client_phone VARCHAR(50),
-  address TEXT,
-  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
   start_date DATE,
-  end_date DATE,
-  budget DECIMAL(12, 2),
-  actual_cost DECIMAL(12, 2) DEFAULT 0,
-  company VARCHAR(255) NOT NULL,
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  expected_completion_date DATE,
+  actual_completion_date DATE,
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  updated_date TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Daily Updates table
-CREATE TABLE daily_updates (
+COMMENT ON TABLE public.projects IS 'Roofing projects';
+COMMENT ON COLUMN public.projects.owner_user_id IS 'Contractor who owns this project';
+COMMENT ON COLUMN public.projects.project_status IS 'planning | in_progress | on_hold | completed | cancelled';
+
+-- -------------------------------------------------------------------------
+-- Daily Updates Table
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.daily_updates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  date DATE NOT NULL,
-  work_completed TEXT,
-  hours_worked DECIMAL(5, 2),
+  project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+  update_date DATE NOT NULL,
+  work_summary TEXT NOT NULL,
+  materials_used TEXT,
   weather_conditions VARCHAR(100),
-  notes TEXT,
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  hours_worked DECIMAL(5, 2),
+  issues_encountered TEXT,
+  ai_summary TEXT,
+  sent_to_customer BOOLEAN DEFAULT false,
+  author_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  photos TEXT[] DEFAULT '{}',
+  videos TEXT[] DEFAULT '{}',
+  created_date TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Materials Used table
-CREATE TABLE materials_used (
+COMMENT ON TABLE public.daily_updates IS 'Daily progress updates from contractors';
+COMMENT ON COLUMN public.daily_updates.photos IS 'Array of photo URLs';
+COMMENT ON COLUMN public.daily_updates.videos IS 'Array of video URLs';
+COMMENT ON COLUMN public.daily_updates.ai_summary IS 'AI-generated summary for client communication';
+
+-- -------------------------------------------------------------------------
+-- Client Updates Table (Financial updates sent to homeowners)
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.client_updates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  daily_update_id UUID NOT NULL REFERENCES daily_updates(id) ON DELETE CASCADE,
-  material_name VARCHAR(255) NOT NULL,
-  quantity DECIMAL(10, 2) NOT NULL,
-  unit VARCHAR(50),
-  cost DECIMAL(10, 2),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+  update_date DATE NOT NULL,
+  description TEXT NOT NULL,
+  time_cost_labor DECIMAL(10, 2),
+  time_cost_notes TEXT,
+  additional_materials JSONB DEFAULT '[]',
+  total_cost_to_date DECIMAL(12, 2),
+  total_paid DECIMAL(12, 2),
+  total_due DECIMAL(12, 2),
+  photos TEXT[] DEFAULT '{}',
+  videos TEXT[] DEFAULT '{}',
+  created_date TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Photos table
-CREATE TABLE photos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  daily_update_id UUID REFERENCES daily_updates(id) ON DELETE CASCADE,
-  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-  url TEXT NOT NULL,
-  filename VARCHAR(255),
-  caption TEXT,
-  uploaded_by UUID REFERENCES users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+COMMENT ON TABLE public.client_updates IS 'Professional financial updates sent to homeowners';
+COMMENT ON COLUMN public.client_updates.additional_materials IS 'Array of {description, cost} objects';
+COMMENT ON COLUMN public.client_updates.photos IS 'Array of photo URLs';
 
--- Client Updates table
-CREATE TABLE client_updates (
+-- -------------------------------------------------------------------------
+-- Update Threads Table (Comments on daily updates)
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.update_threads (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  subject VARCHAR(255) NOT NULL,
+  daily_update_id UUID NOT NULL REFERENCES public.daily_updates(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   message TEXT NOT NULL,
-  sent_to VARCHAR(255),
-  sent_at TIMESTAMP WITH TIME ZONE,
-  is_draft BOOLEAN DEFAULT true,
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_date TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Indexes for better query performance
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_company ON users(company);
-CREATE INDEX idx_sessions_token ON sessions(token);
-CREATE INDEX idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
-CREATE INDEX idx_projects_company ON projects(company);
-CREATE INDEX idx_projects_status ON projects(status);
-CREATE INDEX idx_projects_created_by ON projects(created_by);
-CREATE INDEX idx_daily_updates_project_id ON daily_updates(project_id);
-CREATE INDEX idx_daily_updates_date ON daily_updates(date);
-CREATE INDEX idx_materials_daily_update_id ON materials_used(daily_update_id);
-CREATE INDEX idx_photos_daily_update_id ON photos(daily_update_id);
-CREATE INDEX idx_photos_project_id ON photos(project_id);
-CREATE INDEX idx_client_updates_project_id ON client_updates(project_id);
+COMMENT ON TABLE public.update_threads IS 'Comments/discussion threads on daily updates';
 
--- Row Level Security (RLS) Policies
+-- -------------------------------------------------------------------------
+-- Project Collaborators Table (Multi-user projects)
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.project_collaborators (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  role VARCHAR(20) NOT NULL CHECK (role IN ('owner', 'editor', 'viewer')),
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(project_id, user_id)
+);
+
+COMMENT ON TABLE public.project_collaborators IS 'Users who can access specific projects';
+COMMENT ON COLUMN public.project_collaborators.role IS 'owner = full control, editor = can edit, viewer = read-only';
+
+-- -------------------------------------------------------------------------
+-- Costs Table (Track project expenses)
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.costs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+  category VARCHAR(50) NOT NULL CHECK (
+    category IN ('materials', 'labor', 'equipment', 'permits', 'other')
+  ),
+  description TEXT NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  date DATE NOT NULL,
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.costs IS 'Project expenses and costs';
+
+-- =========================================================================
+-- INDEXES FOR PERFORMANCE
+-- =========================================================================
+
+CREATE INDEX idx_users_email ON public.users(email);
+CREATE INDEX idx_users_company ON public.users(company);
+CREATE INDEX idx_users_role ON public.users(role);
+
+CREATE INDEX idx_projects_owner ON public.projects(owner_user_id);
+CREATE INDEX idx_projects_status ON public.projects(project_status);
+CREATE INDEX idx_projects_created_date ON public.projects(created_date);
+
+CREATE INDEX idx_daily_updates_project ON public.daily_updates(project_id);
+CREATE INDEX idx_daily_updates_date ON public.daily_updates(update_date);
+CREATE INDEX idx_daily_updates_author ON public.daily_updates(author_user_id);
+
+CREATE INDEX idx_client_updates_project ON public.client_updates(project_id);
+CREATE INDEX idx_client_updates_date ON public.client_updates(update_date);
+
+CREATE INDEX idx_update_threads_update ON public.update_threads(daily_update_id);
+CREATE INDEX idx_update_threads_user ON public.update_threads(user_id);
+
+CREATE INDEX idx_collaborators_project ON public.project_collaborators(project_id);
+CREATE INDEX idx_collaborators_user ON public.project_collaborators(user_id);
+
+CREATE INDEX idx_costs_project ON public.costs(project_id);
+CREATE INDEX idx_costs_date ON public.costs(date);
+
+-- =========================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- =========================================================================
 
 -- Enable RLS on all tables
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE daily_updates ENABLE ROW LEVEL SECURITY;
-ALTER TABLE materials_used ENABLE ROW LEVEL SECURITY;
-ALTER TABLE photos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE client_updates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_updates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.client_updates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.update_threads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.project_collaborators ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.costs ENABLE ROW LEVEL SECURITY;
 
--- Users policies
-CREATE POLICY "Users can view their own data" ON users
-  FOR SELECT USING (auth.uid()::text = id::text);
+-- -------------------------------------------------------------------------
+-- Users Policies
+-- -------------------------------------------------------------------------
+CREATE POLICY "Users can view their own profile"
+  ON public.users FOR SELECT
+  USING (auth.uid() = id);
 
-CREATE POLICY "Users can update their own data" ON users
-  FOR UPDATE USING (auth.uid()::text = id::text);
+CREATE POLICY "Users can update their own profile"
+  ON public.users FOR UPDATE
+  USING (auth.uid() = id);
 
--- Projects policies (company-based access)
-CREATE POLICY "Users can view projects in their company" ON projects
-  FOR SELECT USING (
-    company = (SELECT company FROM users WHERE id::text = auth.uid()::text)
-  );
-
-CREATE POLICY "Users can create projects in their company" ON projects
-  FOR INSERT WITH CHECK (
-    company = (SELECT company FROM users WHERE id::text = auth.uid()::text)
-  );
-
-CREATE POLICY "Users can update projects in their company" ON projects
-  FOR UPDATE USING (
-    company = (SELECT company FROM users WHERE id::text = auth.uid()::text)
-  );
-
--- Daily updates policies
-CREATE POLICY "Users can view daily updates for their company's projects" ON daily_updates
-  FOR SELECT USING (
-    project_id IN (
-      SELECT id FROM projects 
-      WHERE company = (SELECT company FROM users WHERE id::text = auth.uid()::text)
+CREATE POLICY "Admins can view all users"
+  ON public.users FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users
+      WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
-CREATE POLICY "Users can create daily updates for their company's projects" ON daily_updates
-  FOR INSERT WITH CHECK (
-    project_id IN (
-      SELECT id FROM projects 
-      WHERE company = (SELECT company FROM users WHERE id::text = auth.uid()::text)
+-- -------------------------------------------------------------------------
+-- Projects Policies
+-- -------------------------------------------------------------------------
+CREATE POLICY "Users can view their own projects"
+  ON public.projects FOR SELECT
+  USING (
+    owner_user_id = auth.uid()
+    OR
+    EXISTS (
+      SELECT 1 FROM public.project_collaborators
+      WHERE project_id = projects.id AND user_id = auth.uid()
     )
   );
 
--- Similar policies for other tables...
--- (Add more RLS policies as needed for materials_used, photos, client_updates)
+CREATE POLICY "Users can create projects"
+  ON public.projects FOR INSERT
+  WITH CHECK (owner_user_id = auth.uid());
 
--- Functions
+CREATE POLICY "Project owners can update their projects"
+  ON public.projects FOR UPDATE
+  USING (owner_user_id = auth.uid());
+
+CREATE POLICY "Project owners can delete their projects"
+  ON public.projects FOR DELETE
+  USING (owner_user_id = auth.uid());
+
+-- -------------------------------------------------------------------------
+-- Daily Updates Policies
+-- -------------------------------------------------------------------------
+CREATE POLICY "Users can view updates for their projects"
+  ON public.daily_updates FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = daily_updates.project_id
+      AND (
+        owner_user_id = auth.uid()
+        OR
+        EXISTS (
+          SELECT 1 FROM public.project_collaborators
+          WHERE project_id = projects.id AND user_id = auth.uid()
+        )
+      )
+    )
+  );
+
+CREATE POLICY "Users can create updates for their projects"
+  ON public.daily_updates FOR INSERT
+  WITH CHECK (
+    author_user_id = auth.uid()
+    AND
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = daily_updates.project_id
+      AND (
+        owner_user_id = auth.uid()
+        OR
+        EXISTS (
+          SELECT 1 FROM public.project_collaborators
+          WHERE project_id = projects.id
+          AND user_id = auth.uid()
+          AND role IN ('owner', 'editor')
+        )
+      )
+    )
+  );
+
+CREATE POLICY "Update authors can update their updates"
+  ON public.daily_updates FOR UPDATE
+  USING (author_user_id = auth.uid());
+
+CREATE POLICY "Update authors can delete their updates"
+  ON public.daily_updates FOR DELETE
+  USING (author_user_id = auth.uid());
+
+-- -------------------------------------------------------------------------
+-- Client Updates Policies
+-- -------------------------------------------------------------------------
+CREATE POLICY "Users can view client updates for their projects"
+  ON public.client_updates FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = client_updates.project_id
+      AND (
+        owner_user_id = auth.uid()
+        OR
+        EXISTS (
+          SELECT 1 FROM public.project_collaborators
+          WHERE project_id = projects.id AND user_id = auth.uid()
+        )
+      )
+    )
+  );
+
+CREATE POLICY "Users can create client updates for their projects"
+  ON public.client_updates FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = client_updates.project_id
+      AND (
+        owner_user_id = auth.uid()
+        OR
+        EXISTS (
+          SELECT 1 FROM public.project_collaborators
+          WHERE project_id = projects.id
+          AND user_id = auth.uid()
+          AND role IN ('owner', 'editor')
+        )
+      )
+    )
+  );
+
+-- -------------------------------------------------------------------------
+-- Update Threads Policies
+-- -------------------------------------------------------------------------
+CREATE POLICY "Users can view threads for accessible updates"
+  ON public.update_threads FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.daily_updates du
+      JOIN public.projects p ON p.id = du.project_id
+      WHERE du.id = update_threads.daily_update_id
+      AND (
+        p.owner_user_id = auth.uid()
+        OR
+        EXISTS (
+          SELECT 1 FROM public.project_collaborators
+          WHERE project_id = p.id AND user_id = auth.uid()
+        )
+      )
+    )
+  );
+
+CREATE POLICY "Users can create threads"
+  ON public.update_threads FOR INSERT
+  WITH CHECK (user_id = auth.uid());
+
+-- -------------------------------------------------------------------------
+-- Project Collaborators Policies
+-- -------------------------------------------------------------------------
+CREATE POLICY "Users can view collaborators for their projects"
+  ON public.project_collaborators FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = project_collaborators.project_id
+      AND owner_user_id = auth.uid()
+    )
+    OR user_id = auth.uid()
+  );
+
+CREATE POLICY "Project owners can manage collaborators"
+  ON public.project_collaborators FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = project_collaborators.project_id
+      AND owner_user_id = auth.uid()
+    )
+  );
+
+-- -------------------------------------------------------------------------
+-- Costs Policies
+-- -------------------------------------------------------------------------
+CREATE POLICY "Users can view costs for their projects"
+  ON public.costs FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = costs.project_id
+      AND (
+        owner_user_id = auth.uid()
+        OR
+        EXISTS (
+          SELECT 1 FROM public.project_collaborators
+          WHERE project_id = projects.id AND user_id = auth.uid()
+        )
+      )
+    )
+  );
+
+CREATE POLICY "Users can create costs for their projects"
+  ON public.costs FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE id = costs.project_id
+      AND (
+        owner_user_id = auth.uid()
+        OR
+        EXISTS (
+          SELECT 1 FROM public.project_collaborators
+          WHERE project_id = projects.id
+          AND user_id = auth.uid()
+          AND role IN ('owner', 'editor')
+        )
+      )
+    )
+  );
+
+-- =========================================================================
+-- FUNCTIONS & TRIGGERS
+-- =========================================================================
 
 -- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
+  NEW.updated_date = NOW();
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Triggers for updated_at
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Triggers for automatic updated_at
+CREATE TRIGGER update_users_updated_at
+  BEFORE UPDATE ON public.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_projects_updated_at
+  BEFORE UPDATE ON public.projects
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-CREATE TRIGGER update_daily_updates_updated_at BEFORE UPDATE ON daily_updates
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- =========================================================================
+-- INITIAL DATA (Optional)
+-- =========================================================================
 
-CREATE TRIGGER update_client_updates_updated_at BEFORE UPDATE ON client_updates
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Note: Users are created via /api/auth/register serverless function
+-- This bypasses RLS using service role key
 
--- Function to clean up expired sessions
-CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
-RETURNS void AS $$
-BEGIN
-  DELETE FROM sessions WHERE expires_at < NOW();
-END;
-$$ LANGUAGE plpgsql;
-
--- Note: You would set up a cron job or scheduled function to call cleanup_expired_sessions() periodically
+-- =========================================================================
+-- SCHEMA COMPLETE
+-- =========================================================================
+-- Tables: 7 (users, projects, daily_updates, client_updates, update_threads, project_collaborators, costs)
+-- Auth: Supabase Auth handles passwords, users table stores profiles
+-- RLS: All tables protected with multi-tenant policies
+-- Ready for MVP deployment
+-- =========================================================================

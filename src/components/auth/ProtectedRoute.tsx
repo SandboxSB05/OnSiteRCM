@@ -34,6 +34,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Check if user has verified payment (except for the payment-required page itself)
+  if (!user.payment_verified && location.pathname !== '/payment-required') {
+    return <Navigate to="/payment-required" replace />;
+  }
+
   // Check role-based access if roles are specified
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirect to appropriate page based on user role

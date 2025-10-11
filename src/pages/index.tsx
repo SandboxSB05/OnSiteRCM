@@ -28,6 +28,8 @@ import ClientUpdates from "./ClientUpdates";
 
 import ClientUpdateDetail from "./ClientUpdateDetail";
 
+import { PaymentRequired } from "./PaymentRequired";
+
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -84,7 +86,7 @@ function PagesContent() {
     const currentPage = _getCurrentPage(location.pathname);
     
     // Public routes that don't need authentication
-    const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail'];
+    const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail', '/payment-required'];
     const isPublicRoute = publicRoutes.some(route => 
         location.pathname.toLowerCase() === route.toLowerCase()
     );
@@ -106,6 +108,7 @@ function PagesContent() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/payment-required" element={<PaymentRequired />} />
                 <Route path="/ClientUpdateDetail" element={<ClientUpdateDetail />} />
             </Routes>
         );
