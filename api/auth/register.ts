@@ -1,6 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import * as jwt from 'jsonwebtoken';
 
 // Initialize Supabase client with service role key to bypass RLS
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
@@ -11,10 +10,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     persistSession: false
   }
 });
-
-// JWT secret for token generation
-const JWT_SECRET = process.env.JWT_SECRET || 'mock-jwt-secret-for-demo';
-const JWT_EXPIRES_IN = '24h';
 
 interface RegisterRequestBody {
   fullName: string;
@@ -216,18 +211,6 @@ export default async function handler(
         message: 'Registration successful. Please log in.'
       });
     }
-
-    // Generate JWT token for backwards compatibility
-    const tokenPayload = {
-      userId: userProfile.id,
-      email: userProfile.email,
-      role: userProfile.role,
-      company: userProfile.company
-    };
-
-    const token = jwt.sign(tokenPayload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN
-    });
 
     // Return success response
     return res.status(201).json({
