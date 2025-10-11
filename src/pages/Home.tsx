@@ -16,11 +16,12 @@ import {
   Zap
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { setAuthToken, setCurrentUser } from '@/services/authService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setUser } = useAuth();
   const features = [
     {
       icon: <FolderOpen className="w-6 h-6 text-blue-600" />,
@@ -73,12 +74,8 @@ export default function Home() {
       company: 'OnSite Development'
     };
 
-    // Create a mock token
-    const mockToken = 'dev-token-' + Date.now();
-
-    // Store user and token
-    setCurrentUser(mockUser);
-    setAuthToken(mockToken);
+    // Update auth context with mock user
+    setUser(mockUser);
 
     toast({
       title: 'DEV MODE: Bypassed Authentication',

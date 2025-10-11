@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -23,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
-import { setCurrentUser } from "@/services/authService";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -161,10 +158,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
     
     console.log('📝 Updated User:', updatedUser);
     
-    // Update localStorage directly for dev mode
-    setCurrentUser(updatedUser);
-    
-    // Update the auth context immediately
+    // Update the auth context (Supabase session will be handled separately)
     setUser(updatedUser);
     
     const roleLabels: Record<'admin' | 'contractor' | 'client', string> = {
