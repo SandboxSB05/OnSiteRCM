@@ -141,19 +141,19 @@ export default function Users() {
                         : 'bg-blue-100 text-blue-800'
                       }
                     >
-                      {user.role === 'admin' ? 'Administrator' : 'User'}
+                      {user.role === 'admin' ? 'Administrator' : 'Contractor'}
                     </Badge>
                     
                     {currentUser.id !== user.id && (
                       <Select
-                        value={user.role || 'user'}
+                        value={user.role || 'contractor'}
                         onValueChange={(value) => handleRoleChange(user.id, value)}
                       >
                         <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="contractor">Contractor</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
                         </SelectContent>
                       </Select>

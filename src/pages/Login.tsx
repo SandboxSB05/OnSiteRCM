@@ -9,10 +9,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FolderOpen, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { login, type LoginCredentials } from '@/services/authService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -56,6 +58,9 @@ export default function Login() {
 
       // Call the authentication API
       const response = await login(credentials);
+
+      // Update the AuthContext with the logged-in user
+      setUser(response.user);
 
       // Store remember me preference
       if (formData.rememberMe) {

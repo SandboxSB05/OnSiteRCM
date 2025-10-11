@@ -21,7 +21,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user' | 'client';
+  role: 'admin' | 'contractor' | 'client';
   company: string;
 }
 
@@ -85,7 +85,7 @@ export default async function handler(
         id: 'user-2',
         email: 'user@onsite.com',
         name: 'Regular User',
-        role: 'user',
+        role: 'contractor',
         company: 'OnSite Roofing'
       },
       'client@example.com': {
@@ -102,7 +102,7 @@ export default async function handler(
       id: 'user-default',
       email: email.toLowerCase(),
       name: 'Demo User',
-      role: 'user' as const,
+      role: 'contractor' as const,
       company: 'Demo Company'
     };
 
