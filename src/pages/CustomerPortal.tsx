@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Project } from "@/api/entities";
-import { DailyUpdate } from "@/api/entities";
+import { Project } from "@/api/supabaseEntities";
+import { DailyUpdate } from "@/api/supabaseEntities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, BarChart3, ArrowLeft } from "lucide-react";
@@ -9,10 +9,27 @@ import { Button } from "@/components/ui/button";
 import CustomerList from "../components/customerportal/CustomerList";
 import CustomerDetailView from "../components/customerportal/CustomerDetailView";
 
+// Define types
+interface ProjectType {
+  id: string;
+  client_name?: string;
+  client_email?: string;
+  project_budget?: number;
+  [key: string]: any;
+}
+
+interface CustomerType {
+  name: string;
+  email?: string;
+  projectIds: string[];
+  totalValue: number;
+  projectCount: number;
+}
+
 export default function CustomerPortal() {
-  const [customers, setCustomers] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [customers, setCustomers] = useState<CustomerType[]>([]);
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,22 +39,26 @@ export default function CustomerPortal() {
         const allProjects = await Project.list();
         setProjects(allProjects);
 
-        const customerMap = new Map();
-        allProjects.forEach(project => {
+        const customerMap = new Map<string, CustomerType>();
+        allProjects.forEach((project: ProjectType) => {
           const email = project.client_email || project.client_name; // Use name as fallback key
-          if (!customerMap.has(email)) {
+          if (email && !customerMap.has(email)) {
             customerMap.set(email, {
-              name: project.client_name,
+              name: project.client_name || 'Unknown Customer',
               email: project.client_email,
               projectIds: [],
               totalValue: 0,
               projectCount: 0,
             });
           }
-          const customerData = customerMap.get(email);
-          customerData.projectIds.push(project.id);
-          customerData.projectCount += 1;
-          customerData.totalValue += project.project_budget || 0;
+          if (email) {
+            const customerData = customerMap.get(email);
+            if (customerData) {
+              customerData.projectIds.push(project.id);
+              customerData.projectCount += 1;
+              customerData.totalValue += project.project_budget || 0;
+            }
+          }
         });
         
         const sortedCustomers = Array.from(customerMap.values()).sort((a, b) => b.totalValue - a.totalValue);
@@ -51,7 +72,7 @@ export default function CustomerPortal() {
     fetchProjectsAndDeriveCustomers();
   }, []);
   
-  const handleSelectCustomer = (customer) => {
+  const handleSelectCustomer = (customer: CustomerType) => {
     setSelectedCustomer(customer);
   };
   
@@ -61,7 +82,7 @@ export default function CustomerPortal() {
 
   const customerProjects = useMemo(() => {
       if (!selectedCustomer) return [];
-      return projects.filter(p => selectedCustomer.projectIds.includes(p.id));
+      return projects.filter((p: ProjectType) => selectedCustomer.projectIds.includes(p.id));
   }, [selectedCustomer, projects]);
 
   return (

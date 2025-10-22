@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { DailyUpdate } from '@/api/entities';
-import { User } from '@/api/entities';
+import { DailyUpdate } from '@/api/supabaseEntities';
+import { User } from '@/api/supabaseEntities';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +37,7 @@ const isValidDate = (date) => {
   return date && !isNaN(new Date(date).getTime());
 };
 
-export default function ProjectGrid({ projects, isLoading, onEdit }) {
+export default function ProjectGrid({ projects, isLoading, onEdit, viewOnly = false }) {
   const [projectUpdates, setProjectUpdates] = useState({});
   const [updatesLoading, setUpdatesLoading] = useState(true);
 
@@ -178,14 +178,26 @@ export default function ProjectGrid({ projects, isLoading, onEdit }) {
                     )}
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onEdit(project)}
-                  className="flex-shrink-0 ml-2"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
+                {!viewOnly && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(project)}
+                    className="flex-shrink-0 ml-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                )}
+                {viewOnly && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(project)}
+                    className="flex-shrink-0 ml-2"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </CardHeader>
             
@@ -284,11 +296,21 @@ export default function ProjectGrid({ projects, isLoading, onEdit }) {
             </CardContent>
             
             <div className="border-t p-2">
-              <Link to={createPageUrl(`Project?id=${project.id}`)} className="w-full">
-                <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-700">
+              {viewOnly ? (
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-blue-600 hover:text-blue-700"
+                  onClick={() => onEdit(project)}
+                >
                   View Details <ArrowRight className="w-4 h-4 ml-2"/>
                 </Button>
-              </Link>
+              ) : (
+                <Link to={createPageUrl(`Project?id=${project.id}`)} className="w-full">
+                  <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-700">
+                    View Details <ArrowRight className="w-4 h-4 ml-2"/>
+                  </Button>
+                </Link>
+              )}
             </div>
           </Card>
         );

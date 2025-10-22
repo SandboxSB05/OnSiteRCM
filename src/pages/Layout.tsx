@@ -57,7 +57,7 @@ const getUserNavigationItems = (role: 'admin' | 'contractor' | 'client') => {
       icon: FolderOpen,
     },
     {
-      title: "Daily Updates",
+      title: "Create Update",
       url: createPageUrl("DailyUpdates"),
       icon: Upload,
     },

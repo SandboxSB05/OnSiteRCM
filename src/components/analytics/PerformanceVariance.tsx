@@ -3,7 +3,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { differenceInDays } from 'date-fns';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 
-export default function PerformanceVariance({ data }) {
+interface ProjectData {
+  estimated_completion: string;
+  start_date: string;
+  actual_completion?: string;
+  project_budget?: number;
+}
+
+interface PerformanceVarianceData {
+  project: ProjectData;
+  totalCost: number;
+}
+
+interface PerformanceVarianceProps {
+  data: PerformanceVarianceData;
+}
+
+interface VarianceItemProps {
+  title: string;
+  planned: number;
+  actual: number;
+  variance: number;
+  unit: string;
+}
+
+export default function PerformanceVariance({ data }: PerformanceVarianceProps) {
   const { project, totalCost } = data;
 
   const plannedDays = differenceInDays(
@@ -19,7 +43,7 @@ export default function PerformanceVariance({ data }) {
   const costVariance = (project.project_budget || 0) - totalCost;
   const timeVariance = plannedDays - actualDays;
 
-  const VarianceItem = ({ title, planned, actual, variance, unit }) => {
+  const VarianceItem = ({ title, planned, actual, variance, unit }: VarianceItemProps) => {
     const isPositive = variance >= 0;
     return (
       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

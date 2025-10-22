@@ -27,7 +27,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { format } from "date-fns";
-import { DailyUpdate } from "@/api/entities";
+import { DailyUpdate } from "@/api/supabaseEntities";
 import { SendEmail } from "@/api/integrations";
 
 export default function UpdateDetailsModal({ update, project, onClose, onEdit, onUpdate }) {

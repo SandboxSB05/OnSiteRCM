@@ -141,7 +141,7 @@ function PagesContent() {
                 
                 {/* Admin & Contractor Routes */}
                 <Route path="/Analytics" element={
-                    <ProtectedRoute allowedRoles={['admin', 'contractor']}>
+                    <ProtectedRoute allowedRoles={['admin']}>
                         <Analytics />
                     </ProtectedRoute>
                 } />

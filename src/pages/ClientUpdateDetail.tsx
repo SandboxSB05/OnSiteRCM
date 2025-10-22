@@ -1,14 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { ClientUpdate, Project } from '@/api/entities';
+import { ClientUpdate, Project } from '@/api/supabaseEntities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Calendar, DollarSign, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 
+// Define types
+interface AdditionalMaterial {
+  description: string;
+  cost: number;
+  [key: string]: any;
+}
+
+interface ClientUpdateType {
+  id: string;
+  project_id: string;
+  update_date: string;
+  description: string;
+  time_cost_labor?: number;
+  time_cost_notes?: string;
+  additional_materials?: AdditionalMaterial[];
+  total_cost_to_date?: number;
+  total_paid?: number;
+  total_due?: number;
+  photos?: string[];
+  videos?: string[];
+  [key: string]: any;
+}
+
+interface ProjectType {
+  id: string;
+  project_name: string;
+  client_name?: string;
+  [key: string]: any;
+}
+
 export default function ClientUpdateDetail() {
-  const [update, setUpdate] = useState(null);
-  const [project, setProject] = useState(null);
+  const [update, setUpdate] = useState<ClientUpdateType | null>(null);
+  const [project, setProject] = useState<ProjectType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadUpdate();
@@ -28,7 +58,7 @@ export default function ClientUpdateDetail() {
       }
 
       // Load the client update
-      const clientUpdate = await ClientUpdate.findOne({ id: updateId });
+      const clientUpdate = await ClientUpdate.findOne(updateId);
       if (!clientUpdate) {
         setError('Update not found');
         setIsLoading(false);
@@ -38,7 +68,7 @@ export default function ClientUpdateDetail() {
 
       // Load the associated project
       if (clientUpdate.project_id) {
-        const projectData = await Project.findOne({ id: clientUpdate.project_id });
+        const projectData = await Project.findOne(clientUpdate.project_id);
         setProject(projectData);
       }
     } catch (err) {
@@ -117,7 +147,7 @@ export default function ClientUpdateDetail() {
                       </span>
                     </div>
                   )}
-                  {update.additional_materials?.map((item, index) => (
+                  {update.additional_materials?.map((item: AdditionalMaterial, index: number) => (
                     item.cost > 0 && (
                       <div key={index} className="flex justify-between">
                         <span className="text-gray-700">{item.description}</span>
@@ -173,7 +203,7 @@ export default function ClientUpdateDetail() {
               <div>
                 <h2 className="text-xl font-semibold mb-3">Photos</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {update.photos.map((photo, index) => (
+                  {update.photos.map((photo: string, index: number) => (
                     <div key={index} className="rounded-lg overflow-hidden shadow-md">
                       <img 
                         src={photo} 
@@ -191,7 +221,7 @@ export default function ClientUpdateDetail() {
               <div>
                 <h2 className="text-xl font-semibold mb-3">Videos</h2>
                 <div className="space-y-2">
-                  {update.videos.map((video, index) => (
+                  {update.videos.map((video: string, index: number) => (
                     <a 
                       key={index}
                       href={video}

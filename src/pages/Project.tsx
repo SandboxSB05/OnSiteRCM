@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Project } from '@/api/entities';
-import { DailyUpdate } from '@/api/entities';
-import { User } from '@/api/entities';
+import { Project } from '@/api/supabaseEntities';
+import { DailyUpdate } from '@/api/supabaseEntities';
+import { User } from '@/api/supabaseEntities';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
@@ -11,12 +11,30 @@ import ProjectTabs from '@/components/projects/details/ProjectTabs';
 import InteractiveTimeline from '@/components/projects/details/InteractiveTimeline';
 import DailyUpdatesThread from '@/components/projects/details/DailyUpdatesThread';
 
+interface ProjectType {
+  id: string;
+  [key: string]: any;
+}
+
+interface DailyUpdateType {
+  id: string;
+  update_date: string;
+  project_id: string;
+  [key: string]: any;
+}
+
+interface UserType {
+  id: string;
+  role?: string;
+  [key: string]: any;
+}
+
 export default function ProjectPage() {
-  const [project, setProject] = useState(null);
-  const [dailyUpdates, setDailyUpdates] = useState([]);
-  const [user, setUser] = useState(null);
+  const [project, setProject] = useState<ProjectType | null>(null);
+  const [dailyUpdates, setDailyUpdates] = useState<DailyUpdateType[]>([]);
+  const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('timeline');
   
   const projectId = new URLSearchParams(window.location.search).get('id');
@@ -53,12 +71,14 @@ export default function ProjectPage() {
     }
   }, [projectId]);
 
-  const handleProjectUpdate = (updatedProject) => {
-    setProject(p => ({ ...p, ...updatedProject }));
+  const handleProjectUpdate = (updatedProject: Partial<ProjectType>) => {
+    setProject(p => p ? { ...p, ...updatedProject } : null);
   };
 
-  const onUpdateCreated = (newUpdate) => {
-    setDailyUpdates(prev => [newUpdate, ...prev].sort((a, b) => new Date(b.update_date) - new Date(a.update_date)));
+  const onUpdateCreated = (newUpdate: DailyUpdateType) => {
+    setDailyUpdates(prev => [newUpdate, ...prev].sort((a, b) => 
+      new Date(b.update_date).getTime() - new Date(a.update_date).getTime()
+    ));
   };
 
   if (isLoading) {

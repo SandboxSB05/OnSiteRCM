@@ -8,8 +8,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FolderOpen, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { login, type LoginCredentials } from '@/services/authService';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Import from the actual location
+import { login, type LoginCredentials } from '../services/authService';
 
 export default function Login() {
   const navigate = useNavigate();

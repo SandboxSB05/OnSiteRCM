@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Project } from "@/api/entities";
-import { DailyUpdate } from "@/api/entities";
-import { User } from "@/api/entities";
+import { Project } from "@/api/supabaseEntities";
+import { DailyUpdate } from "@/api/supabaseEntities";
+import { User } from "@/api/supabaseEntities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -25,10 +25,31 @@ import RecentProjects from "../components/dashboard/RecentProjects";
 import RecentUpdates from "../components/dashboard/RecentUpdates";
 import UpcomingTasks from "../components/dashboard/UpcomingTasks";
 
+// Define types
+interface ProjectType {
+  id: string;
+  project_status?: string;
+  project_budget?: number;
+  owner_user_id: string;
+  [key: string]: any;
+}
+
+interface DailyUpdateType {
+  update_date: string;
+  project_id: string;
+  [key: string]: any;
+}
+
+interface UserType {
+  id: string;
+  role: string;
+  [key: string]: any;
+}
+
 export default function Dashboard() {
-  const [projects, setProjects] = useState([]);
-  const [dailyUpdates, setDailyUpdates] = useState([]);
-  const [user, setUser] = useState(null);
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [dailyUpdates, setDailyUpdates] = useState<DailyUpdateType[]>([]);
+  const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,10 +59,10 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const currentUser = await User.me();
+      const currentUser: UserType = await User.me();
       setUser(currentUser);
       
-      let projectsData, updatesData;
+      let projectsData: ProjectType[], updatesData: DailyUpdateType[];
       
       if (currentUser.role === 'admin') {
         // Admin sees all projects and updates
@@ -52,14 +73,14 @@ export default function Dashboard() {
       } else {
         // Regular user sees only their projects and updates
         projectsData = await Project.filter({ owner_user_id: currentUser.id });
-        const projectIds = projectsData.map(p => p.id);
+        const projectIds = projectsData.map((p: ProjectType) => p.id);
         
         if (projectIds.length > 0) {
-          updatesData = await Promise.all(
+          const updatesArrays = await Promise.all(
             projectIds.map(id => DailyUpdate.filter({ project_id: id }))
           );
-          updatesData = updatesData.flat().sort((a, b) => 
-            new Date(b.update_date) - new Date(a.update_date)
+          updatesData = updatesArrays.flat().sort((a: DailyUpdateType, b: DailyUpdateType) => 
+            new Date(b.update_date).getTime() - new Date(a.update_date).getTime()
           ).slice(0, 10);
         } else {
           updatesData = [];
@@ -76,10 +97,10 @@ export default function Dashboard() {
 
   const getProjectStats = () => {
     const total = projects.length;
-    const active = projects.filter(p => p.project_status === 'in_progress').length;
-    const completed = projects.filter(p => p.project_status === 'completed').length;
-    const onHold = projects.filter(p => p.project_status === 'on_hold').length;
-    const totalRevenue = projects.reduce((sum, p) => sum + (p.project_budget || 0), 0);
+    const active = projects.filter((p: ProjectType) => p.project_status === 'in_progress').length;
+    const completed = projects.filter((p: ProjectType) => p.project_status === 'completed').length;
+    const onHold = projects.filter((p: ProjectType) => p.project_status === 'on_hold').length;
+    const totalRevenue = projects.reduce((sum: number, p: ProjectType) => sum + (p.project_budget || 0), 0);
     
     return { total, active, completed, onHold, totalRevenue };
   };
@@ -126,14 +147,12 @@ export default function Dashboard() {
         <div className="lg:col-span-2 space-y-6">
           <RecentProjects 
             projects={projects} 
-            isLoading={isLoading} 
-            title={isAdmin ? "Recent Projects" : "My Recent Projects"}
+            isLoading={isLoading}
           />
           <RecentUpdates 
             dailyUpdates={dailyUpdates} 
             projects={projects} 
-            isLoading={isLoading} 
-            title="Recent Updates"
+            isLoading={isLoading}
           />
         </div>
         <div className="space-y-6">

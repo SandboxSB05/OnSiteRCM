@@ -4,10 +4,23 @@ import { Input } from "@/components/ui/input";
 import { FolderOpen, DollarSign, Mail, Search, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export default function CustomerList({ customers, onSelectCustomer }) {
+interface CustomerType {
+  name: string;
+  email?: string;
+  projectCount: number;
+  totalValue: number;
+  [key: string]: any;
+}
+
+interface CustomerListProps {
+  customers: CustomerType[];
+  onSelectCustomer: (customer: CustomerType) => void;
+}
+
+export default function CustomerList({ customers, onSelectCustomer }: CustomerListProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredCustomers = customers.filter(c => 
+  const filteredCustomers = customers.filter((c: CustomerType) => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -29,7 +42,7 @@ export default function CustomerList({ customers, onSelectCustomer }) {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCustomers.map(customer => (
+        {filteredCustomers.map((customer: CustomerType) => (
           <Card 
             key={customer.email || customer.name}
             className="hover:shadow-lg transition-shadow cursor-pointer group"

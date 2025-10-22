@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Project } from "@/api/entities";
-import { DailyUpdate } from "@/api/entities";
-import { User } from "@/api/entities";
+import { Project } from "@/api/supabaseEntities";
+import { DailyUpdate } from "@/api/supabaseEntities";
+import { User } from "@/api/supabaseEntities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, FolderOpen, DollarSign, Activity, Clock } from "lucide-react";
