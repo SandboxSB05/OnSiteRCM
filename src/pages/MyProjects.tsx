@@ -163,13 +163,14 @@ export default function MyProjects() {
   });
 
   return (
-    <div className="p-4 lg:p-8 space-y-6 bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
       {/* Client View - Detailed Project View */}
       {isClient && selectedProject && (
-        <div className="space-y-4">
+        <div className="px-6 py-8 lg:px-12 space-y-6">
           <Button 
             variant="outline" 
             onClick={() => setSelectedProject(null)}
+            className="border-2 border-[rgba(3,2,19,0.12)] hover:border-emerald-300 hover:bg-[#ececf0]"
           >
             ← Back to Projects
           </Button>
@@ -180,82 +181,102 @@ export default function MyProjects() {
       {/* Client View - Project List */}
       {isClient && !selectedProject && (
         <>
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Projects</h1>
-              <p className="text-gray-600 mt-1">View your project status and updates</p>
+          {/* Header Section */}
+          <section className="relative overflow-hidden bg-white border-b border-[rgba(0,0,0,0.06)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/40 via-transparent to-teal-50/30" />
+            <div className="relative px-6 py-10 lg:px-12">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div className="space-y-2">
+                  <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-[#030213]">
+                    My Projects
+                  </h1>
+                  <p className="text-lg text-[#717182]">View your project status and updates</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <ProjectFilters 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            updatesFilter={updatesFilter}
-            setUpdatesFilter={setUpdatesFilter}
-          />
-          
-          <ProjectGrid
-            projects={filteredProjects}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            viewOnly={true}
-          />
+          <div className="px-6 py-8 lg:px-12 space-y-6">
+            <ProjectFilters 
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              typeFilter={typeFilter}
+              setTypeFilter={setTypeFilter}
+              updatesFilter={updatesFilter}
+              setUpdatesFilter={setUpdatesFilter}
+            />
+            
+            <ProjectGrid
+              projects={filteredProjects}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              viewOnly={true}
+            />
+          </div>
         </>
       )}
 
       {/* Contractor/Admin View */}
       {!isClient && (
         <>
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Projects</h1>
-              <p className="text-gray-600 mt-1">Manage your roofing projects and daily update activity</p>
+          {/* Header Section */}
+          <section className="relative overflow-hidden bg-white border-b border-[rgba(0,0,0,0.06)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/40 via-transparent to-teal-50/30" />
+            <div className="relative px-6 py-10 lg:px-12">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div className="space-y-2">
+                  <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-[#030213]">
+                    My Projects
+                  </h1>
+                  <p className="text-lg text-[#717182]">Manage your roofing projects and daily update activity</p>
+                </div>
+                <Button 
+                  onClick={() => setShowForm(true)} 
+                  className="h-11 px-5 text-base font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-teal-700 transition-all"
+                  disabled={showForm}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Project
+                </Button>
+              </div>
             </div>
-            <Button 
-              onClick={() => setShowForm(true)} 
-              className="flex items-center gap-2"
-              disabled={showForm}
-            >
-              <Plus className="w-4 h-4" />
-              New Project
-            </Button>
+          </section>
+
+          <div className="px-6 py-8 lg:px-12 space-y-6">
+            {showForm && (
+              <ProjectForm
+                project={editingProject}
+                onSubmit={handleSubmit}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditingProject(null);
+                }}
+              />
+            )}
+
+            {!showForm && (
+              <>
+                <ProjectFilters 
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
+                  typeFilter={typeFilter}
+                  setTypeFilter={setTypeFilter}
+                  updatesFilter={updatesFilter}
+                  setUpdatesFilter={setUpdatesFilter}
+                />
+                
+                <ProjectGrid
+                  projects={filteredProjects}
+                  isLoading={isLoading}
+                  onEdit={handleEdit}
+                />
+              </>
+            )}
           </div>
-
-          {showForm && (
-            <ProjectForm
-              project={editingProject}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingProject(null);
-              }}
-            />
-          )}
-
-          {!showForm && (
-            <>
-              <ProjectFilters 
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                typeFilter={typeFilter}
-                setTypeFilter={setTypeFilter}
-                updatesFilter={updatesFilter}
-                setUpdatesFilter={setUpdatesFilter}
-              />
-              
-              <ProjectGrid
-                projects={filteredProjects}
-                isLoading={isLoading}
-                onEdit={handleEdit}
-              />
-            </>
-          )}
         </>
       )}
     </div>
