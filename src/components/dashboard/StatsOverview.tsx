@@ -42,7 +42,7 @@ export default function StatsOverview({
       value: stats.active,
       icon: Clock,
       color: "orange" as const,
-      description: "Currently in progress"
+      description: "Planning or in progress"
     },
     {
       title: "Completion Rate",

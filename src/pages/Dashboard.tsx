@@ -17,7 +17,7 @@ interface ProjectType {
   id: string;
   project_status?: string;
   project_budget?: number;
-  owner_user_id: string;
+  project_owner_id?: string;
   [key: string]: any;
 }
 
@@ -58,8 +58,10 @@ export default function Dashboard() {
           DailyUpdate.list("-update_date", 10)
         ]);
       } else {
-        // Regular user sees only their projects and updates
-        projectsData = await Project.filter({ owner_user_id: currentUser.id });
+        // Contractor sees only their projects and updates
+        console.log('Loading projects for contractor:', currentUser.id);
+        projectsData = await Project.filter({ project_owner_id: currentUser.id });
+        console.log('Contractor projects loaded:', projectsData.length);
         const projectIds = projectsData.map((p: ProjectType) => p.id);
         
         if (projectIds.length > 0) {
@@ -84,7 +86,9 @@ export default function Dashboard() {
 
   const getProjectStats = () => {
     const total = projects.length;
-    const active = projects.filter((p: ProjectType) => p.project_status === 'in_progress').length;
+    const active = projects.filter((p: ProjectType) => 
+      p.project_status === 'in_progress' || p.project_status === 'planning'
+    ).length;
     const completed = projects.filter((p: ProjectType) => p.project_status === 'completed').length;
     const onHold = projects.filter((p: ProjectType) => p.project_status === 'on_hold').length;
     const totalRevenue = projects.reduce((sum: number, p: ProjectType) => sum + (p.project_budget || 0), 0);
