@@ -275,33 +275,44 @@ export default function Dashboard() {
             </div>
             <div className="space-y-8">
               <UpcomingTasks projects={projects} isLoading={isLoading} variant="contractor" />
-              <div className="rounded-3xl border border-[rgba(0,0,0,0.1)] bg-white p-8 shadow-sm transition-all hover:shadow-xl">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[1.5rem] font-semibold tracking-tight text-[#030213]">
-                    Quick Actions
-                  </h3>
-                  <Badge className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
-                    Recommended
-                  </Badge>
+              <div className="overflow-hidden rounded-3xl border border-emerald-100/80 bg-gradient-to-br from-emerald-500 via-teal-500 to-teal-600 text-white shadow-2xl">
+                <div className="relative p-8">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.25),transparent_55%)]" />
+                  <div className="relative flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.35em] text-white/70">
+                        Quick Actions
+                      </p>
+                      <h3 className="mt-3 text-2xl font-semibold leading-tight">
+                        Keep momentum across every job
+                      </h3>
+                      <p className="mt-2 text-sm text-white/80">
+                        Shortcuts to the work you update most often.
+                      </p>
+                    </div>
+                    <Badge className="rounded-full bg-white/15 px-3 py-1 text-xs text-white/90 backdrop-blur">
+                      Recommended
+                    </Badge>
+                  </div>
                 </div>
-                <div className="mt-8 space-y-4">
+                <div className="space-y-3 bg-white/10 px-6 pb-6 pt-4 backdrop-blur">
                   {quickActions.map((action) => (
                     <Link key={action.title} to={action.to} className="block">
-                      <div className="group flex items-center justify-between rounded-2xl border border-[rgba(3,2,19,0.08)] bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-xl">
+                      <div className="group flex items-center justify-between rounded-2xl border border-white/20 bg-white/10 px-4 py-4 text-white transition-all hover:border-white/40 hover:bg-white/15">
                         <div className="flex items-center gap-4">
                           <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${action.accent} text-white shadow-lg`}>
                             <action.icon className="h-6 w-6" />
                           </div>
                           <div>
-                            <p className="text-base font-semibold text-[#030213]">
+                            <p className="text-base font-semibold text-white">
                               {action.title}
                             </p>
-                            <p className="text-sm text-[#717182]">
+                            <p className="text-sm text-white/80">
                               {action.description}
                             </p>
                           </div>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-[#717182] transition-transform group-hover:translate-x-1" />
+                        <ArrowRight className="h-5 w-5 text-white/60 transition-transform group-hover:translate-x-1 group-hover:text-white" />
                       </div>
                     </Link>
                   ))}
