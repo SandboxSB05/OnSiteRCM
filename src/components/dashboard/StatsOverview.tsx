@@ -105,7 +105,7 @@ export default function StatsOverview({
 
   const overlayClass =
     variant === "contractor"
-      ? "absolute inset-0 bg-gradient-to-br from-emerald-100/50 via-white to-teal-100/40 opacity-70"
+      ? "absolute inset-0 bg-gradient-to-br from-emerald-100/20 via-transparent to-teal-100/10 pointer-events-none"
       : "absolute top-0 right-0 h-20 w-20 rounded-full bg-gradient-to-br opacity-10";
 
   const overlayPositionClass =

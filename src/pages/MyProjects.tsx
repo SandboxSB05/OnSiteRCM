@@ -152,9 +152,11 @@ export default function MyProjects() {
   };
 
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.project_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (project.address_line1 && project.address_line1.toLowerCase().includes(searchTerm.toLowerCase()));
+    // If no search term, match all projects
+    const matchesSearch = !searchTerm || 
+      (project.project_name && project.project_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (project.client_name && project.client_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (project.address_line1 && project.address_line1.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = statusFilter === "all" || project.project_status === statusFilter;
     const matchesType = typeFilter === "all" || project.project_type === typeFilter;

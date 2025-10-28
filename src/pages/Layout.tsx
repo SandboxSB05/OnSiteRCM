@@ -62,11 +62,6 @@ const getUserNavigationItems = (role: 'admin' | 'contractor' | 'client') => {
       url: createPageUrl("DailyUpdates"),
       icon: Upload,
     },
-    {
-      title: "Client Updates",
-      url: createPageUrl("ClientUpdates"),
-      icon: MessageSquare,
-    },
     // {
     //   title: "My Analytics", // Added "My Analytics"
     //   url: createPageUrl("MyAnalytics"),
