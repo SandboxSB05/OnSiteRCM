@@ -157,92 +157,70 @@ export default function Dashboard() {
     ];
 
     return (
-      <div className="min-h-screen bg-white">
-        <section className="relative isolate overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-teal-50">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute left-[-10%] top-[-10%] h-64 w-64 rounded-full bg-emerald-200/40 blur-3xl" />
-            <div className="absolute right-[-10%] top-1/4 h-72 w-72 rounded-full bg-teal-200/40 blur-3xl" />
-            <div className="absolute bottom-[-20%] right-0 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl" />
-          </div>
-          <div className="relative mx-auto max-w-7xl px-4 pt-32 pb-20 sm:px-6 lg:px-8">
-            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-              <div className="space-y-8">
-                <Badge className="w-fit rounded-full bg-emerald-100 px-4 py-1 text-emerald-700">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+        {/* Compact Hero Header */}
+        <section className="relative overflow-hidden bg-white border-b border-[rgba(0,0,0,0.06)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/40 via-transparent to-teal-50/30" />
+          <div className="relative px-6 py-10 lg:px-12">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              {/* Left: Title & Description */}
+              <div className="space-y-4 flex-1">
+                <Badge className="w-fit rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700 font-medium">
                   Contractor Dashboard
                 </Badge>
-                <h1 className="text-[3.5rem] font-bold leading-tight tracking-tight text-[#030213]">
-                  Stay on top of every roof without leaving the job site
+                <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-[#030213]">
+                  Your Command Center
                 </h1>
-                <p className="text-[1.125rem] leading-relaxed text-[#717182]">
-                  Your projects, updates, and customer touchpoints—all in one command center built
-                  to keep crews efficient and clients impressed.
+                <p className="text-lg leading-relaxed text-[#717182] max-w-2xl">
+                  Track projects, log updates, and keep clients informed—all from one place.
                 </p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {featureHighlights.map((feature) => (
-                    <div key={feature} className="flex items-start gap-3">
-                      <span className="mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100">
-                        <span className="h-2 w-2 rounded-full bg-emerald-600" />
-                      </span>
-                      <p className="text-sm text-[#030213]">{feature}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex flex-wrap gap-3 pt-2">
                   <Link to={createPageUrl("DailyUpdates")}>
-                    <Button className="h-12 px-6 text-base font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-xl hover:from-emerald-600 hover:to-teal-700">
+                    <Button className="h-11 px-5 text-base font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-teal-700 transition-all">
+                      <Clock className="w-4 h-4 mr-2" />
                       Log Daily Update
                     </Button>
                   </Link>
                   <Link to={createPageUrl("MyProjects")}>
                     <Button
                       variant="outline"
-                      className="h-12 px-6 text-base font-semibold border border-[rgba(3,2,19,0.12)] bg-white text-[#030213] hover:bg-[#ececf0]"
+                      className="h-11 px-5 text-base font-semibold border-2 border-[rgba(3,2,19,0.12)] bg-white text-[#030213] hover:bg-[#ececf0] hover:border-emerald-300 transition-all"
                     >
-                      View My Projects
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      View All Projects
                     </Button>
                   </Link>
                 </div>
               </div>
-              <div className="relative">
-                <div className="relative overflow-hidden rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-500 to-teal-600 p-8 text-white shadow-2xl">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.35),transparent_60%)]" />
-                  <div className="relative space-y-8">
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.2em] text-white/70">
-                        At a glance
+
+              {/* Right: Compact Metrics Card */}
+              <div className="lg:w-[360px] xl:w-[400px]">
+                <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-xl">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.3),transparent_50%)]" />
+                  <div className="relative space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs uppercase tracking-[0.2em] text-white/80 font-semibold">
+                        At a Glance
                       </p>
-                      <div className="mt-6 space-y-6">
-                        {heroMetrics.map((metric) => (
-                          <div
-                            key={metric.label}
-                            className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm"
-                          >
-                            <span className="text-sm text-white/80">{metric.label}</span>
-                            <span className="text-2xl font-semibold">
-                              {metric.value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-                      <p className="text-xs uppercase tracking-[0.3em] text-white/60">
-                        Latest update
-                      </p>
-                      <p className="mt-2 text-lg font-semibold">
-                        {latestUpdate
-                          ? format(new Date(latestUpdate.update_date), "MMM d, yyyy")
-                          : "No updates yet"}
-                      </p>
-                      {latestUpdateSummary ? (
-                        <p className="mt-3 text-sm text-white/85 line-clamp-3">
-                          {latestUpdateSummary}
-                        </p>
-                      ) : (
-                        <p className="mt-3 text-sm text-white/70">
-                          Log your next update to keep your customers informed.
-                        </p>
+                      {latestUpdate && (
+                        <Badge className="bg-white/20 text-white border-0 text-xs backdrop-blur">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Updated {format(new Date(latestUpdate.update_date), "MMM d")}
+                        </Badge>
                       )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {heroMetrics.map((metric) => (
+                        <div
+                          key={metric.label}
+                          className="rounded-xl border border-white/20 bg-white/10 px-3 py-3 backdrop-blur-sm"
+                        >
+                          <div className="text-xs text-white/70 mb-1">{metric.label}</div>
+                          <div className="text-xl font-bold">
+                            {metric.value}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -251,15 +229,16 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="relative z-10 -mt-16 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <StatsOverview stats={stats} isLoading={isLoading} variant="contractor" />
-          </div>
+        {/* Stats Overview */}
+        <section className="px-6 py-8 lg:px-12">
+          <StatsOverview stats={stats} isLoading={isLoading} variant="contractor" />
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 pb-24 pt-24 sm:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-            <div className="space-y-12">
+        {/* Main Content Grid */}
+        <section className="px-6 pb-12 lg:px-12">
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Left Column - 2/3 width - Projects & Updates */}
+            <div className="lg:col-span-2 space-y-6">
               <RecentProjects
                 projects={projects}
                 isLoading={isLoading}
@@ -273,46 +252,47 @@ export default function Dashboard() {
                 variant="contractor"
               />
             </div>
-            <div className="space-y-8">
+
+            {/* Right Column - 1/3 width - Tasks & Quick Actions */}
+            <div className="space-y-6">
               <UpcomingTasks projects={projects} isLoading={isLoading} variant="contractor" />
-              <div className="overflow-hidden rounded-3xl border border-emerald-100/80 bg-gradient-to-br from-emerald-500 via-teal-500 to-teal-600 text-white shadow-2xl">
-                <div className="relative p-8">
+              
+              {/* Quick Actions Card */}
+              <div className="overflow-hidden rounded-3xl border border-emerald-100/80 bg-gradient-to-br from-emerald-500 via-teal-500 to-teal-600 text-white shadow-xl">
+                <div className="relative p-6">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.25),transparent_55%)]" />
-                  <div className="relative flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.35em] text-white/70">
-                        Quick Actions
-                      </p>
-                      <h3 className="mt-3 text-2xl font-semibold leading-tight">
-                        Keep momentum across every job
-                      </h3>
-                      <p className="mt-2 text-sm text-white/80">
-                        Shortcuts to the work you update most often.
-                      </p>
+                  <div className="relative">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.35em] text-white/80 font-semibold mb-2">
+                          Quick Actions
+                        </p>
+                        <h3 className="text-xl font-semibold leading-tight">
+                          Keep momentum going
+                        </h3>
+                      </div>
+                      <Badge className="rounded-full bg-white/20 px-3 py-1 text-xs text-white border-0 backdrop-blur shrink-0">
+                        Popular
+                      </Badge>
                     </div>
-                    <Badge className="rounded-full bg-white/15 px-3 py-1 text-xs text-white/90 backdrop-blur">
-                      Recommended
-                    </Badge>
                   </div>
                 </div>
-                <div className="space-y-3 bg-white/10 px-6 pb-6 pt-4 backdrop-blur">
+                <div className="space-y-2 bg-white/10 px-4 pb-4 pt-3 backdrop-blur">
                   {quickActions.map((action) => (
                     <Link key={action.title} to={action.to} className="block">
-                      <div className="group flex items-center justify-between rounded-2xl border border-white/20 bg-white/10 px-4 py-4 text-white transition-all hover:border-white/40 hover:bg-white/15">
-                        <div className="flex items-center gap-4">
-                          <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${action.accent} text-white shadow-lg`}>
-                            <action.icon className="h-6 w-6" />
-                          </div>
-                          <div>
-                            <p className="text-base font-semibold text-white">
-                              {action.title}
-                            </p>
-                            <p className="text-sm text-white/80">
-                              {action.description}
-                            </p>
-                          </div>
+                      <div className="group flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white transition-all hover:border-white/40 hover:bg-white/20 hover:scale-[1.02]">
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${action.accent} text-white shadow-md`}>
+                          <action.icon className="h-5 w-5" />
                         </div>
-                        <ArrowRight className="h-5 w-5 text-white/60 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white">
+                            {action.title}
+                          </p>
+                          <p className="text-xs text-white/75 line-clamp-1">
+                            {action.description}
+                          </p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-white/60 transition-transform group-hover:translate-x-1 group-hover:text-white" />
                       </div>
                     </Link>
                   ))}

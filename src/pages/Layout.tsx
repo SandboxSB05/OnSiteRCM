@@ -198,7 +198,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
 
   if (isContractorLayout) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+      <div className="min-h-screen bg-white">
         <Toaster />
         <div className="sticky top-0 z-40 border-b border-[rgba(0,0,0,0.08)] bg-white/80 px-4 py-3 backdrop-blur-md lg:hidden">
           <div className="flex items-center justify-between gap-3">
@@ -312,102 +312,86 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
           </div>
         )}
 
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-16 pt-14 sm:px-6 lg:flex-row lg:items-start lg:gap-12 lg:px-8">
-          <aside className="hidden w-72 shrink-0 lg:block">
-            <div className="sticky top-8 flex h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-3xl border border-[rgba(0,0,0,0.08)] bg-white/90 shadow-2xl backdrop-blur">
-              <div className="space-y-5 border-b border-[rgba(0,0,0,0.08)] p-6">
-                <div className="rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 p-5 text-white shadow-2xl">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
-                      <Home className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.3em] text-white/70">
-                        OnSite
-                      </p>
-                      <h2 className="text-2xl font-semibold">Contractor Hub</h2>
-                    </div>
+        <div className="flex w-full">
+          <aside className="hidden w-64 shrink-0 lg:block border-r border-[rgba(0,0,0,0.06)] bg-white">
+            <div className="sticky top-0 flex h-screen flex-col overflow-hidden">
+              {/* Compact Header */}
+              <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 p-4 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
+                    <Home className="h-5 w-5" />
                   </div>
-                  <p className="mt-5 text-sm text-white/80">
-                    Streamline your projects and keep clients informed every day.
-                  </p>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-white/70 font-medium">
+                      OnSite
+                    </p>
+                    <h2 className="text-lg font-bold">Contractor Hub</h2>
+                  </div>
                 </div>
-
                 <Link to={`${createPageUrl("MyProjects")}?new=true`}>
-                  <Button className="h-11 w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-base font-semibold text-white shadow-xl hover:from-emerald-600 hover:to-teal-700">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create New Project
+                  <Button className="h-9 w-full bg-white/20 text-sm font-semibold text-white border border-white/30 hover:bg-white/30 backdrop-blur transition-all">
+                    <Plus className="mr-2 h-3.5 w-3.5" />
+                    New Project
                   </Button>
                 </Link>
               </div>
 
-              <nav className="flex-1 space-y-2.5 overflow-y-auto px-6 pb-6 pt-6">
+              {/* Navigation */}
+              <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
                 {navigationItems.map((item) => {
                   const isActive = location.pathname === item.url;
                   return (
                     <Link
                       key={item.title}
                       to={item.url}
-                      className={`group flex items-center justify-between rounded-2xl border px-4 py-3 transition-all ${
+                      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
                         isActive
-                          ? 'border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 text-[#030213] shadow-xl'
-                          : 'border-transparent text-[#717182] hover:border-[rgba(0,0,0,0.08)] hover:bg-[#f9fafb] hover:text-[#030213]'
+                          ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-[#030213] shadow-sm border border-emerald-200'
+                          : 'text-[#717182] hover:bg-[#f9fafb] hover:text-[#030213]'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all ${
-                            isActive
-                              ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow'
-                              : 'bg-[#ececf0] text-[#030213] group-hover:bg-gradient-to-r group-hover:from-emerald-500 group-hover:to-teal-600 group-hover:text-white'
-                          }`}
-                        >
-                          <item.icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-base font-semibold">{item.title}</p>
-                          {isActive ? (
-                            <span className="text-xs font-medium uppercase tracking-[0.12em] text-emerald-600">
-                              Active
-                            </span>
-                          ) : (
-                            <span className="text-xs text-[#9b9bac]">Open section</span>
-                          )}
-                        </div>
-                      </div>
-                      <ArrowRight
-                        className={`h-5 w-5 transition-transform ${
-                          isActive ? 'text-emerald-600' : 'text-[#c2c2d3] group-hover:translate-x-1 group-hover:text-emerald-600'
+                      <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all ${
+                          isActive
+                            ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md'
+                            : 'bg-[#ececf0] text-[#030213] group-hover:bg-gradient-to-r group-hover:from-emerald-400 group-hover:to-teal-500 group-hover:text-white'
                         }`}
-                      />
+                      >
+                        <item.icon className="h-4 w-4" />
+                      </div>
+                      <span className={`text-sm font-semibold ${isActive ? 'text-[#030213]' : ''}`}>
+                        {item.title}
+                      </span>
                     </Link>
                   );
                 })}
               </nav>
 
-              <div className="space-y-4 border-t border-[rgba(0,0,0,0.06)] p-6">
+              {/* Footer */}
+              <div className="border-t border-[rgba(0,0,0,0.06)] p-3 space-y-2 bg-[#fafafa]">
                 {import.meta.env.DEV && (
                   <Button
                     variant="outline"
-                    className="w-full justify-start border-[rgba(130,71,229,0.2)] text-[#7c3aed] hover:bg-[#f3e8ff]"
+                    size="sm"
+                    className="w-full justify-start text-xs border-[rgba(130,71,229,0.2)] text-[#7c3aed] hover:bg-[#f3e8ff]"
                     onClick={handleRoleSwitch}
                   >
-                    <RefreshCw className="mr-3 h-5 w-5" />
-                    Switch Role ({user?.role === 'admin' ? 'Admin' : user?.role === 'contractor' ? 'Contractor' : 'Client'})
+                    <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                    Switch Role
                   </Button>
                 )}
 
-                <div className="flex items-center gap-3 rounded-2xl border border-[rgba(0,0,0,0.08)] bg-[#f9fafb] p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-                    <span className="text-lg font-semibold">
+                <div className="flex items-center gap-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white p-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                    <span className="text-sm font-semibold">
                       {user?.name?.[0] || 'U'}
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-[#030213] truncate">
+                    <p className="text-xs font-semibold text-[#030213] truncate">
                       {user?.name || 'User'}
                     </p>
-                    <p className="text-xs text-[#717182] truncate">
+                    <p className="text-[10px] text-[#717182] truncate">
                       {user?.email || ''}
                     </p>
                   </div>
@@ -415,16 +399,16 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                     variant="ghost"
                     size="icon"
                     onClick={handleLogout}
-                    className="text-[#717182] hover:bg-[#ececf0]"
+                    className="h-8 w-8 shrink-0 text-[#717182] hover:bg-red-50 hover:text-red-600"
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
             </div>
           </aside>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <main className="flex-1">{children}</main>
           </div>
         </div>
