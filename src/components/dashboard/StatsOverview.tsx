@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FolderOpen, Clock, DollarSign, TrendingUp } from "lucide-react";
+import { FolderOpen, Clock, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type StatsOverviewVariant = "default" | "contractor";
@@ -34,28 +34,21 @@ export default function StatsOverview({
       title: "Total Projects",
       value: stats.total,
       icon: FolderOpen,
-      color: "blue",
+      color: "blue" as const,
       description: `${stats.active} active, ${stats.completed} completed`
     },
     {
       title: "Active Projects",
       value: stats.active,
       icon: Clock,
-      color: "orange",
+      color: "orange" as const,
       description: "Currently in progress"
-    },
-    {
-      title: "Total Revenue",
-      value: `$${stats.totalRevenue.toLocaleString()}`,
-      icon: DollarSign,
-      color: "green",
-      description: "Across all projects"
     },
     {
       title: "Completion Rate",
       value: stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : "0%",
       icon: TrendingUp,
-      color: "purple",
+      color: "purple" as const,
       description: "Projects completed on time"
     }
   ];
@@ -63,15 +56,13 @@ export default function StatsOverview({
   const colorClasses =
     variant === "contractor"
       ? {
-          blue: "from-emerald-500 to-teal-600 text-white",
+          blue: "from-rose-500 to-pink-600 text-white",
           orange: "from-amber-500 to-orange-600 text-white",
-          green: "from-emerald-500 to-teal-600 text-white",
-          purple: "from-blue-500 to-indigo-600 text-white",
+          purple: "from-indigo-500 to-purple-600 text-white",
         }
       : {
           blue: "from-blue-500 to-blue-600 text-white",
           orange: "from-orange-500 to-orange-600 text-white",
-          green: "from-green-500 to-green-600 text-white",
           purple: "from-purple-500 to-purple-600 text-white",
         };
 
@@ -123,8 +114,8 @@ export default function StatsOverview({
     <div
       className={
         variant === "contractor"
-          ? "grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
-          : "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+          ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          : "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
       }
     >
       {statsCards.map((stat, index) => (
