@@ -107,6 +107,212 @@ export default function Dashboard() {
 
   const stats = getProjectStats();
   const isAdmin = user?.role === 'admin';
+  const latestUpdate = dailyUpdates[0];
+  const latestUpdateSummary = latestUpdate?.ai_summary || latestUpdate?.pm_description;
+
+  if (!isAdmin) {
+    const heroMetrics = [
+      {
+        label: "Active Projects",
+        value: isLoading ? "—" : stats.active,
+      },
+      {
+        label: "Completed Projects",
+        value: isLoading ? "—" : stats.completed,
+      },
+      {
+        label: "Revenue Tracked",
+        value: isLoading ? "—" : `$${stats.totalRevenue.toLocaleString()}`,
+      },
+    ];
+
+    const featureHighlights = [
+      "AI-ready daily updates keep clients in the loop automatically.",
+      "Live project health snapshots help you prioritize the right jobs.",
+      "Photo logs and task reminders keep crews aligned in the field.",
+    ];
+
+    const quickActions = [
+      {
+        title: "Log Daily Update",
+        description: "Capture progress with notes, photos, and AI summaries.",
+        icon: Clock,
+        to: createPageUrl("DailyUpdates"),
+        accent: "from-emerald-500 to-teal-600",
+      },
+      {
+        title: "Review My Projects",
+        description: "Check budgets, milestones, and customer visibility.",
+        icon: FolderOpen,
+        to: createPageUrl("MyProjects"),
+        accent: "from-teal-500 to-cyan-600",
+      },
+      {
+        title: "Share Customer Portal",
+        description: "Invite homeowners to follow progress in real-time.",
+        icon: Users,
+        to: createPageUrl("CustomerPortal"),
+        accent: "from-blue-500 to-indigo-600",
+      },
+    ];
+
+    return (
+      <div className="min-h-screen bg-white">
+        <section className="relative isolate overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute left-[-10%] top-[-10%] h-64 w-64 rounded-full bg-emerald-200/40 blur-3xl" />
+            <div className="absolute right-[-10%] top-1/4 h-72 w-72 rounded-full bg-teal-200/40 blur-3xl" />
+            <div className="absolute bottom-[-20%] right-0 h-80 w-80 rounded-full bg-cyan-200/30 blur-3xl" />
+          </div>
+          <div className="relative mx-auto max-w-7xl px-4 pt-32 pb-20 sm:px-6 lg:px-8">
+            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+              <div className="space-y-8">
+                <Badge className="w-fit rounded-full bg-emerald-100 px-4 py-1 text-emerald-700">
+                  Contractor Dashboard
+                </Badge>
+                <h1 className="text-[3.5rem] font-bold leading-tight tracking-tight text-[#030213]">
+                  Stay on top of every roof without leaving the job site
+                </h1>
+                <p className="text-[1.125rem] leading-relaxed text-[#717182]">
+                  Your projects, updates, and customer touchpoints—all in one command center built
+                  to keep crews efficient and clients impressed.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {featureHighlights.map((feature) => (
+                    <div key={feature} className="flex items-start gap-3">
+                      <span className="mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100">
+                        <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                      </span>
+                      <p className="text-sm text-[#030213]">{feature}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link to={createPageUrl("DailyUpdates")}>
+                    <Button className="h-12 px-6 text-base font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-xl hover:from-emerald-600 hover:to-teal-700">
+                      Log Daily Update
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl("MyProjects")}>
+                    <Button
+                      variant="outline"
+                      className="h-12 px-6 text-base font-semibold border border-[rgba(3,2,19,0.12)] bg-white text-[#030213] hover:bg-[#ececf0]"
+                    >
+                      View My Projects
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="relative overflow-hidden rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-500 to-teal-600 p-8 text-white shadow-2xl">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.35),transparent_60%)]" />
+                  <div className="relative space-y-8">
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.2em] text-white/70">
+                        At a glance
+                      </p>
+                      <div className="mt-6 space-y-6">
+                        {heroMetrics.map((metric) => (
+                          <div
+                            key={metric.label}
+                            className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm"
+                          >
+                            <span className="text-sm text-white/80">{metric.label}</span>
+                            <span className="text-2xl font-semibold">
+                              {metric.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                      <p className="text-xs uppercase tracking-[0.3em] text-white/60">
+                        Latest update
+                      </p>
+                      <p className="mt-2 text-lg font-semibold">
+                        {latestUpdate
+                          ? format(new Date(latestUpdate.update_date), "MMM d, yyyy")
+                          : "No updates yet"}
+                      </p>
+                      {latestUpdateSummary ? (
+                        <p className="mt-3 text-sm text-white/85 line-clamp-3">
+                          {latestUpdateSummary}
+                        </p>
+                      ) : (
+                        <p className="mt-3 text-sm text-white/70">
+                          Log your next update to keep your customers informed.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative z-10 -mt-16 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <StatsOverview stats={stats} isLoading={isLoading} variant="contractor" />
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 pb-24 pt-24 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
+            <div className="space-y-12">
+              <RecentProjects
+                projects={projects}
+                isLoading={isLoading}
+                variant="contractor"
+                projectsPage="MyProjects"
+              />
+              <RecentUpdates
+                dailyUpdates={dailyUpdates}
+                projects={projects}
+                isLoading={isLoading}
+                variant="contractor"
+              />
+            </div>
+            <div className="space-y-8">
+              <UpcomingTasks projects={projects} isLoading={isLoading} variant="contractor" />
+              <div className="rounded-3xl border border-[rgba(0,0,0,0.1)] bg-white p-8 shadow-sm transition-all hover:shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[1.5rem] font-semibold tracking-tight text-[#030213]">
+                    Quick Actions
+                  </h3>
+                  <Badge className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
+                    Recommended
+                  </Badge>
+                </div>
+                <div className="mt-8 space-y-4">
+                  {quickActions.map((action) => (
+                    <Link key={action.title} to={action.to} className="block">
+                      <div className="group flex items-center justify-between rounded-2xl border border-[rgba(3,2,19,0.08)] bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-xl">
+                        <div className="flex items-center gap-4">
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${action.accent} text-white shadow-lg`}>
+                            <action.icon className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="text-base font-semibold text-[#030213]">
+                              {action.title}
+                            </p>
+                            <p className="text-sm text-[#717182]">
+                              {action.description}
+                            </p>
+                          </div>
+                        </div>
+                        <ArrowRight className="h-5 w-5 text-[#717182] transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-8 space-y-8 bg-gray-50 min-h-screen">

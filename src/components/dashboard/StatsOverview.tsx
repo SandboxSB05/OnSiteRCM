@@ -1,9 +1,34 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { FolderOpen, Clock, DollarSign, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function StatsOverview({ stats, isLoading }) {
+type StatsOverviewVariant = "default" | "contractor";
+
+interface StatsData {
+  total: number;
+  active: number;
+  completed: number;
+  onHold: number;
+  totalRevenue: number;
+}
+
+interface StatsOverviewProps {
+  stats: StatsData;
+  isLoading: boolean;
+  variant?: StatsOverviewVariant;
+}
+
+export default function StatsOverview({
+  stats,
+  isLoading,
+  variant = "default",
+}: StatsOverviewProps) {
   const statsCards = [
     {
       title: "Total Projects",
@@ -35,37 +60,89 @@ export default function StatsOverview({ stats, isLoading }) {
     }
   ];
 
-  const colorClasses = {
-    blue: "from-blue-500 to-blue-600 text-white",
-    orange: "from-orange-500 to-orange-600 text-white",
-    green: "from-green-500 to-green-600 text-white",
-    purple: "from-purple-500 to-purple-600 text-white"
-  };
+  const colorClasses =
+    variant === "contractor"
+      ? {
+          blue: "from-emerald-500 to-teal-600 text-white",
+          orange: "from-amber-500 to-orange-600 text-white",
+          green: "from-emerald-500 to-teal-600 text-white",
+          purple: "from-blue-500 to-indigo-600 text-white",
+        }
+      : {
+          blue: "from-blue-500 to-blue-600 text-white",
+          orange: "from-orange-500 to-orange-600 text-white",
+          green: "from-green-500 to-green-600 text-white",
+          purple: "from-purple-500 to-purple-600 text-white",
+        };
+
+  const cardClassName =
+    variant === "contractor"
+      ? "relative overflow-hidden rounded-3xl border border-[rgba(0,0,0,0.1)] bg-white shadow-sm transition-all hover:border-emerald-200 hover:shadow-xl"
+      : "relative overflow-hidden border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl";
+
+  const iconWrapperClass =
+    variant === "contractor"
+      ? "flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r"
+      : "rounded-lg bg-gradient-to-br p-2";
+
+  const titleClass =
+    variant === "contractor"
+      ? "text-sm font-medium text-[#717182]"
+      : "text-sm font-medium text-gray-600";
+
+  const valueClass =
+    variant === "contractor"
+      ? "text-3xl font-semibold tracking-tight text-[#030213]"
+      : "text-2xl font-bold text-gray-900";
+
+  const descriptionClass =
+    variant === "contractor"
+      ? "mt-3 text-sm text-[#717182]"
+      : "mt-1 text-xs text-gray-500";
+
+  const skeletonClass =
+    variant === "contractor" ? "h-9 w-24" : "h-8 w-20";
+
+  const overlayClass =
+    variant === "contractor"
+      ? "absolute inset-0 bg-gradient-to-br from-emerald-100/50 via-white to-teal-100/40 opacity-70"
+      : "absolute top-0 right-0 h-20 w-20 rounded-full bg-gradient-to-br opacity-10";
+
+  const overlayPositionClass =
+    variant === "contractor" ? "" : "transform translate-x-6 -translate-y-6";
+
+  const headerClass =
+    variant === "contractor"
+      ? "flex flex-row items-center justify-between space-y-0 p-8 pb-4"
+      : "flex flex-row items-center justify-between space-y-0 pb-2";
+
+  const contentClass =
+    variant === "contractor" ? "p-8 pt-0" : undefined;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div
+      className={
+        variant === "contractor"
+          ? "grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
+          : "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+      }
+    >
       {statsCards.map((stat, index) => (
-        <Card key={index} className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${colorClasses[stat.color]} opacity-10 rounded-full transform translate-x-6 -translate-y-6`} />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              {stat.title}
-            </CardTitle>
-            <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[stat.color]}`}>
-              <stat.icon className="h-4 w-4" />
+        <Card key={index} className={cardClassName}>
+          <div className={`${overlayClass} ${overlayPositionClass}`} />
+          <CardHeader className={headerClass}>
+            <CardTitle className={titleClass}>{stat.title}</CardTitle>
+            <div className={`${iconWrapperClass} ${colorClasses[stat.color]}`}>
+              <stat.icon className={variant === "contractor" ? "h-5 w-5" : "h-4 w-4"} />
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className={contentClass}>
             {isLoading ? (
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className={skeletonClass} />
             ) : (
-              <div className="text-2xl font-bold text-gray-900">
-                {stat.value}
-              </div>
+              <div className={valueClass}>{stat.value}</div>
             )}
-            <p className="text-xs text-gray-500 mt-1">
-              {stat.description}
-            </p>
+            <p className={descriptionClass}>{stat.description}</p>
           </CardContent>
         </Card>
       ))}
