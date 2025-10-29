@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 import { Project } from "@/api/supabaseEntities";
 import { User } from "@/api/supabaseEntities";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 import ProjectForm from "../components/projects/ProjectForm";
 import ProjectFilters from "../components/projects/ProjectFilters";
@@ -227,21 +226,11 @@ export default function MyProjects() {
           <section className="relative overflow-hidden bg-white border-b border-[rgba(0,0,0,0.06)]">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/40 via-transparent to-teal-50/30" />
             <div className="relative px-6 py-10 lg:px-12">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div className="space-y-2">
-                  <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-[#030213]">
-                    My Projects
-                  </h1>
-                  <p className="text-lg text-[#717182]">Manage your roofing projects and daily update activity</p>
-                </div>
-                <Button 
-                  onClick={() => setShowForm(true)} 
-                  className="h-11 px-5 text-base font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-teal-700 transition-all"
-                  disabled={showForm}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Project
-                </Button>
+              <div className="space-y-2">
+                <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-[#030213]">
+                  My Projects
+                </h1>
+                <p className="text-lg text-[#717182]">Manage your roofing projects and daily update activity</p>
               </div>
             </div>
           </section>

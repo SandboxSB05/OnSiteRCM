@@ -18,6 +18,8 @@ interface ProjectType {
   project_status?: string;
   project_budget?: number;
   project_owner_id?: string;
+  estimated_end_date?: string;
+  estimated_completion_date?: string;
   [key: string]: any;
 }
 
@@ -93,7 +95,27 @@ export default function Dashboard() {
     const onHold = projects.filter((p: ProjectType) => p.project_status === 'on_hold').length;
     const totalRevenue = projects.reduce((sum: number, p: ProjectType) => sum + (p.project_budget || 0), 0);
     
-    return { total, active, completed, onHold, totalRevenue };
+    // Calculate on-time completion rate
+    // Completed projects are always on-time
+    // Incomplete projects past due date are counted as late
+    const today = new Date();
+    const completedProjects = projects.filter((p: ProjectType) => p.project_status === 'completed').length;
+    
+    const lateProjects = projects.filter((p: ProjectType) => {
+      // Skip if already completed (those are counted as on-time)
+      if (p.project_status === 'completed') return false;
+      // Check if project has a due date and it has passed
+      if (!p.estimated_end_date && !p.estimated_completion_date) return false;
+      const endDate = new Date(p.estimated_end_date || p.estimated_completion_date || '');
+      return endDate < today;
+    }).length;
+    
+    const totalRelevantProjects = completedProjects + lateProjects;
+    const completionRate = totalRelevantProjects > 0 
+      ? Math.round((completedProjects / totalRelevantProjects) * 100)
+      : 0;
+    
+    return { total, active, completed, onHold, totalRevenue, completionRate };
   };
 
   const stats = getProjectStats();

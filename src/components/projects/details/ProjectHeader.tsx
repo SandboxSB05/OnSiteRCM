@@ -4,9 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, User, Building } from 'lucide-react';
 
 const statusColors = {
-  planning: "bg-yellow-100 text-yellow-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  completed: "bg-green-100 text-green-800",
+  planning: "bg-amber-100 text-amber-800",
+  in_progress: "bg-emerald-100 text-emerald-800",
+  completed: "bg-blue-100 text-blue-800",
   on_hold: "bg-red-100 text-red-800"
 };
 

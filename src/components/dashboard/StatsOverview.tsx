@@ -16,6 +16,7 @@ interface StatsData {
   completed: number;
   onHold: number;
   totalRevenue: number;
+  completionRate: number;
 }
 
 interface StatsOverviewProps {
@@ -45,11 +46,11 @@ export default function StatsOverview({
       description: "Planning or in progress"
     },
     {
-      title: "Completion Rate",
-      value: stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : "0%",
+      title: "On-Time Rate",
+      value: `${stats.completionRate}%`,
       icon: TrendingUp,
       color: "purple" as const,
-      description: "Projects completed on time"
+      description: "Completed vs overdue projects"
     }
   ];
 

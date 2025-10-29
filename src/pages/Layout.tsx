@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
-  Home, 
+  Home,
   FolderOpen, 
   Upload, 
   BarChart3, 
@@ -12,7 +12,6 @@ import {
   LogOut,
   Menu,
   X,
-  Plus, // Added Plus icon
   MessageSquare,
   ArrowRight,
   RefreshCw // Added for role switcher
@@ -22,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/onsite-logo.png";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -207,8 +207,8 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                 <Menu className="h-6 w-6" />
               </Button>
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
-                  <Home className="h-5 w-5" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg p-1">
+                  <img src={logo} alt="OnSite Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-[#717182]">OnSite</p>
@@ -216,12 +216,6 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                 </div>
               </div>
             </div>
-            <Link to={`${createPageUrl("MyProjects")}?new=true`}>
-              <Button className="h-10 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg hover:from-emerald-600 hover:to-teal-700">
-                <Plus className="mr-2 h-4 w-4" />
-                New Project
-              </Button>
-            </Link>
           </div>
         </div>
 
@@ -313,8 +307,8 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
               {/* Compact Header */}
               <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 p-4 text-white">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
-                    <Home className="h-5 w-5" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg p-1">
+                    <img src={logo} alt="OnSite Logo" className="w-full h-full object-contain" />
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wider text-white/70 font-medium">
@@ -323,12 +317,6 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                     <h2 className="text-lg font-bold">Contractor Hub</h2>
                   </div>
                 </div>
-                <Link to={`${createPageUrl("MyProjects")}?new=true`}>
-                  <Button className="h-9 w-full bg-white/20 text-sm font-semibold text-white border border-white/30 hover:bg-white/30 backdrop-blur transition-all">
-                    <Plus className="mr-2 h-3.5 w-3.5" />
-                    New Project
-                  </Button>
-                </Link>
               </div>
 
               {/* Navigation */}
@@ -531,8 +519,8 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
             {/* Compact Header */}
             <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 p-4 text-white">
               <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
-                  <Home className="h-5 w-5" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg p-1">
+                  <img src={logo} alt="OnSite Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wider text-white/70 font-medium">
@@ -543,14 +531,6 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                   </h2>
                 </div>
               </div>
-              {user?.role === 'admin' && (
-                <Link to={`${createPageUrl("MyProjects")}?new=true`}>
-                  <Button className="h-9 w-full bg-white/20 text-sm font-semibold text-white border border-white/30 hover:bg-white/30 backdrop-blur transition-all">
-                    <Plus className="mr-2 h-3.5 w-3.5" />
-                    New Project
-                  </Button>
-                </Link>
-              )}
             </div>
 
             {/* Navigation */}
