@@ -18,8 +18,8 @@ import {
   Clock
 } from "lucide-react";
 import { format, parseISO, isSameDay } from 'date-fns';
-import { DailyUpdate } from '@/api/entities';
-import { User as UserEntity } from '@/api/entities';
+import { DailyUpdate } from '@/api/supabaseEntities';
+import { User as UserEntity } from '@/api/supabaseEntities';
 import { SendEmail } from '@/api/integrations';
 
 export default function DailyUpdatesThread({ project, initialUpdates, currentUser, onUpdateCreated }) {

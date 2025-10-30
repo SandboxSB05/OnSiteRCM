@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Project } from "@/api/entities";
-import { DailyUpdate } from "@/api/entities";
+import { Project } from "@/api/supabaseEntities";
+import { DailyUpdate } from "@/api/supabaseEntities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, AlertCircle } from "lucide-react";
@@ -15,8 +15,48 @@ import AiInsights from "../components/analytics/AiInsights";
 
 const LABOR_RATE_PER_HOUR = 50; // Assumption for labor cost calculation
 
+// Define types
+interface ProjectType {
+  id: string;
+  project_name: string;
+  project_budget?: number;
+  project_status?: string;
+  [key: string]: any;
+}
+
+interface MaterialUsed {
+  material_name?: string;
+  cost?: number;
+  [key: string]: any;
+}
+
+interface DailyUpdateType {
+  hours_worked?: number;
+  materials_used?: MaterialUsed[];
+  [key: string]: any;
+}
+
+interface CostBreakdownItem {
+  name: string;
+  value: number;
+}
+
+interface AnalyticsDataType {
+  project: ProjectType;
+  revenue: number;
+  totalCost: number;
+  netProfit: number;
+  roi: number;
+  profitMargin: number;
+  costBreakdown: CostBreakdownItem[];
+  performance: {
+    project: ProjectType;
+    totalCost: number;
+  };
+}
+
 // Moved outside component to be a stable function
-const categorizeMaterial = (name) => {
+const categorizeMaterial = (name: string) => {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('shingle')) return 'Shingles';
     if (lowerName.includes('underlay')) return 'Underlayment';
@@ -26,9 +66,9 @@ const categorizeMaterial = (name) => {
 };
 
 export default function Analytics() {
-  const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [analyticsData, setAnalyticsData] = useState(null);
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsDataType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCalculating, setIsCalculating] = useState(false);
 
@@ -46,7 +86,7 @@ export default function Analytics() {
     fetchProjects();
   }, []);
 
-  const calculateAnalytics = useCallback(async (projectId) => {
+  const calculateAnalytics = useCallback(async (projectId: string) => {
     setIsCalculating(true);
     setAnalyticsData(null);
     try {
@@ -58,7 +98,7 @@ export default function Analytics() {
         return;
       }
 
-      const updates = await DailyUpdate.filter({ project_id: projectId });
+      const updates: DailyUpdateType[] = await DailyUpdate.filter({ project_id: projectId });
 
       const totalLaborHours = updates.reduce((sum, u) => sum + (u.hours_worked || 0), 0);
       const laborCost = totalLaborHours * LABOR_RATE_PER_HOUR;
@@ -73,14 +113,14 @@ export default function Analytics() {
       const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
       
       // Cost Breakdown
-      const costBreakdown = materialCosts.reduce((acc, item) => {
-          const category = categorizeMaterial(item.material_name); // categorizeMaterial is now stable
+      const costBreakdownMap: { [key: string]: number } = materialCosts.reduce((acc, item) => {
+          const category = categorizeMaterial(item.material_name || 'Unknown'); // categorizeMaterial is now stable
           acc[category] = (acc[category] || 0) + (item.cost || 0);
           return acc;
-      }, {});
-      costBreakdown['Labor'] = laborCost;
+      }, {} as { [key: string]: number });
+      costBreakdownMap['Labor'] = laborCost;
 
-      const formattedBreakdown = Object.entries(costBreakdown).map(([name, value]) => ({ name, value }));
+      const formattedBreakdown: CostBreakdownItem[] = Object.entries(costBreakdownMap).map(([name, value]) => ({ name, value }));
       
       setAnalyticsData({
         project,

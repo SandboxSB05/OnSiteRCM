@@ -26,6 +26,7 @@ export interface AuthResponse {
     role: 'admin' | 'contractor' | 'client';
     company: string;
     phone?: string;
+    payment_verified?: boolean;
   };
   session: any;
 }
@@ -37,6 +38,7 @@ export interface User {
   role: 'admin' | 'contractor' | 'client';
   company: string;
   phone?: string;
+  payment_verified?: boolean;
 }
 
 /**
@@ -83,6 +85,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
         role: userData.role,
         company: userData.company || '',
         phone: userData.phone || undefined,
+        payment_verified: userData.payment_verified || false,
       },
       session: authData.session,
     };
@@ -135,6 +138,7 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
         role: data.user.role,
         company: data.user.company,
         phone: data.user.phone,
+        payment_verified: data.user.payment_verified || false,
       },
       session: data.session,
     };
@@ -187,6 +191,7 @@ export const verifySession = async (): Promise<User> => {
       role: userData.role,
       company: userData.company || '',
       phone: userData.phone || undefined,
+      payment_verified: userData.payment_verified || false,
     };
   } catch (error: any) {
     throw new Error(error.message || 'Session verification failed');
@@ -217,6 +222,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
       role: userData.role,
       company: userData.company || '',
       phone: userData.phone || undefined,
+      payment_verified: userData.payment_verified || false,
     };
   } catch (error) {
     console.error('Error getting current user:', error);

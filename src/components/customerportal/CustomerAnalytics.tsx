@@ -4,7 +4,25 @@ import RevenueCostChart from '../analytics/RevenueCostChart';
 import CostBreakdownChart from '../analytics/CostBreakdownChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function CustomerAnalytics({ data }) {
+interface CostBreakdownItem {
+  name: string;
+  value: number;
+}
+
+interface CustomerAnalyticsData {
+  roi: number;
+  profitMargin: number;
+  revenue: number;
+  totalCost: number;
+  costBreakdown: CostBreakdownItem[];
+  [key: string]: any;
+}
+
+interface CustomerAnalyticsProps {
+  data: CustomerAnalyticsData;
+}
+
+export default function CustomerAnalytics({ data }: CustomerAnalyticsProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader>

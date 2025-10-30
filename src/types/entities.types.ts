@@ -1,45 +1,69 @@
 // Core Entity Types
 export interface User {
   id: string;
-  full_name: string;
   email: string;
+  name: string;
+  company?: string;
   role: 'admin' | 'contractor' | 'client';
+  phone?: string;
+  avatar_url?: string;
+  last_login?: string;
   created_date: string;
+  updated_date?: string;
+  payment_verified: boolean;
 }
 
 export interface Project {
   id: string;
   project_name: string;
-  address?: string;
+  project_type: ProjectType;
   project_status: ProjectStatus;
-  project_budget?: number;
-  owner_user_id: string;
-  client_name?: string;
+  
+  // Client Information
+  client_name: string;
   client_email?: string;
-  start_date: string;
+  client_phone?: string;
+  
+  // Address (structured)
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  state: string;
+  zip_code?: string;
+  
+  // Financial
+  estimated_subtotal?: number;
+  square_footage?: number;
+  
+  // Dates
+  estimated_start_date?: string;
+  actual_start_date?: string;
+  estimated_completion_date?: string;
   actual_completion_date?: string;
+  
+  // Project Management
+  project_manager?: string;
+  owner_user_id: string;
+  
+  // Metadata
   created_date: string;
   updated_date?: string;
 }
 
 export type ProjectStatus = 'planning' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled';
 
+export type ProjectType = 'residential_replacement' | 'residential_repair' | 'commercial_replacement' | 'commercial_repair' | 'new_construction';
+
 export interface DailyUpdate {
   id: string;
   project_id: string;
   update_date: string;
-  work_summary: string;
-  materials_used?: string;
-  weather_conditions?: string;
-  hours_worked?: number;
-  issues_encountered?: string;
+  work_description: string;
   ai_summary?: string;
-  sent_to_customer: boolean;
-  author_user_id: string;
-  created_by: string;
   photos: string[];
-  videos?: string[];
+  author_user_id: string;
   created_date: string;
+  updated_date?: string;
 }
 
 export interface ClientUpdate {
@@ -65,24 +89,16 @@ export interface AdditionalMaterial {
   total_cost?: number;
 }
 
-export interface ProjectCollaborator {
-  id: string;
-  project_id: string;
-  user_id: string;
-  role: CollaboratorRole;
-  created_date: string;
-}
-
-export type CollaboratorRole = 'owner' | 'editor' | 'viewer';
-
 export interface Cost {
   id: string;
   project_id: string;
   category: CostCategory;
   description: string;
   amount: number;
+  isExpected: boolean;
   date: string;
   created_date: string;
+  updated_date?: string;
 }
 
 export type CostCategory = 'materials' | 'labor' | 'equipment' | 'permits' | 'other';

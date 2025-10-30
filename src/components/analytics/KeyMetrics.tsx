@@ -2,7 +2,18 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Percent, DollarSign, Activity } from "lucide-react";
 
-export default function KeyMetrics({ data }) {
+interface KeyMetricsData {
+  roi: number;
+  profitMargin: number;
+  revenue: number;
+  totalCost: number;
+}
+
+interface KeyMetricsProps {
+  data: KeyMetricsData;
+}
+
+export default function KeyMetrics({ data }: KeyMetricsProps) {
   const metrics = [
     { 
       title: "ROI", 

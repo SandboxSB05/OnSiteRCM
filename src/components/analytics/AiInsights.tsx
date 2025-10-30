@@ -5,8 +5,29 @@ import { InvokeLLM } from "@/api/integrations";
 import { Sparkles, Loader2, Lightbulb } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function AiInsights({ analyticsData }) {
-  const [insights, setInsights] = useState([]);
+interface CostBreakdownItem {
+  name: string;
+  value: number;
+}
+
+interface AnalyticsData {
+  project: {
+    project_name: string;
+  };
+  revenue: number;
+  totalCost: number;
+  netProfit: number;
+  roi: number;
+  profitMargin: number;
+  costBreakdown: CostBreakdownItem[];
+}
+
+interface AiInsightsProps {
+  analyticsData: AnalyticsData | null;
+}
+
+export default function AiInsights({ analyticsData }: AiInsightsProps) {
+  const [insights, setInsights] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const generateInsights = useCallback(async () => {
@@ -27,7 +48,7 @@ export default function AiInsights({ analyticsData }) {
       Net Profit: $${analyticsData.netProfit.toFixed(2)},
       ROI: ${analyticsData.roi.toFixed(1)}%,
       Profit Margin: ${analyticsData.profitMargin.toFixed(1)}%,
-      Cost Breakdown: ${analyticsData.costBreakdown.map(d => `${d.name} $${d.value.toFixed(2)}`).join(', ')}
+      Cost Breakdown: ${analyticsData.costBreakdown.map((d: CostBreakdownItem) => `${d.name} $${d.value.toFixed(2)}`).join(', ')}
     `;
 
     const prompt = `You are a business analyst for a roofing company. Based on this project's financial data, generate 2-3 short, insightful bullet points. Focus on profitability, cost drivers, and overall performance.
@@ -46,7 +67,8 @@ export default function AiInsights({ analyticsData }) {
         prompt: prompt,
       });
       // Filter out empty strings that might result from split if prompt ends with '- '
-      setInsights(response.split('- ').filter(item => item.trim() !== ''));
+      const responseText = typeof response === 'string' ? response : (response as any).text || '';
+      setInsights(responseText.split('- ').filter((item: string) => item.trim() !== ''));
     } catch (error) {
       console.error("Error generating insights:", error);
       setInsights(["Could not generate insights at this time."]);

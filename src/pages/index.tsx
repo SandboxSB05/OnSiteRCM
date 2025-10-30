@@ -28,6 +28,8 @@ import ClientUpdates from "./ClientUpdates";
 
 import ClientUpdateDetail from "./ClientUpdateDetail";
 
+import { PaymentRequired } from "./PaymentRequired";
+
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -84,7 +86,7 @@ function PagesContent() {
     const currentPage = _getCurrentPage(location.pathname);
     
     // Public routes that don't need authentication
-    const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail'];
+    const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail', '/payment-required'];
     const isPublicRoute = publicRoutes.some(route => 
         location.pathname.toLowerCase() === route.toLowerCase()
     );
@@ -106,6 +108,7 @@ function PagesContent() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/payment-required" element={<PaymentRequired />} />
                 <Route path="/ClientUpdateDetail" element={<ClientUpdateDetail />} />
             </Routes>
         );
@@ -115,68 +118,79 @@ function PagesContent() {
     return (
         <Layout currentPageName={currentPage}>
             <Routes>            
+                {/* Admin & Contractor Routes */}
                 <Route path="/Dashboard" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor']}>
                         <Dashboard />
                     </ProtectedRoute>
                 } />
                 
+                {/* Admin & Contractor Routes */}
                 <Route path="/Projects" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor']}>
                         <Projects />
                     </ProtectedRoute>
                 } />
                 
+                {/* Admin & Contractor Routes */}
                 <Route path="/DailyUpdates" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor']}>
                         <DailyUpdates />
                     </ProtectedRoute>
                 } />
                 
+                {/* Admin & Contractor Routes */}
                 <Route path="/Analytics" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin']}>
                         <Analytics />
                     </ProtectedRoute>
                 } />
                 
+                {/* Admin & Contractor Routes */}
                 <Route path="/CustomerPortal" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor']}>
                         <CustomerPortal />
                     </ProtectedRoute>
                 } />
                 
+                {/* Client Routes (also accessible by admin/contractor) */}
                 <Route path="/MyProjects" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor', 'client']}>
                         <MyProjects />
                     </ProtectedRoute>
                 } />
                 
+                {/* Admin Only Route */}
                 <Route path="/Users" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin']}>
                         <Users />
                     </ProtectedRoute>
                 } />
                 
+                {/* Admin & Contractor Routes */}
                 <Route path="/Project" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor']}>
                         <Project />
                     </ProtectedRoute>
                 } />
                 
+                {/* Client Routes (also accessible by admin/contractor) */}
                 <Route path="/MyAnalytics" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor', 'client']}>
                         <MyAnalytics />
                     </ProtectedRoute>
                 } />
                 
+                {/* Admin & Contractor Routes */}
                 <Route path="/ClientUpdates" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor']}>
                         <ClientUpdates />
                     </ProtectedRoute>
                 } />
                 
+                {/* All authenticated users can view client update details */}
                 <Route path="/ClientUpdateDetail" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin', 'contractor', 'client']}>
                         <ClientUpdateDetail />
                     </ProtectedRoute>
                 } />

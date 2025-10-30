@@ -1,12 +1,46 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { DailyUpdate } from "@/api/entities";
+import { DailyUpdate } from "@/api/supabaseEntities";
 import { Loader2 } from "lucide-react";
 import CustomerAnalytics from "./CustomerAnalytics";
 import CustomerProjectList from "./CustomerProjectList";
 
 const LABOR_RATE_PER_HOUR = 50; // Assumption for labor cost calculation
 
-const categorizeMaterial = (name) => {
+interface MaterialUsed {
+  material_name: string;
+  cost?: number;
+}
+
+interface DailyUpdateType {
+  id: string;
+  project_id: string;
+  hours_worked?: number;
+  materials_used?: MaterialUsed[];
+  [key: string]: any;
+}
+
+interface ProjectType {
+  id: string;
+  project_name: string;
+  project_address: string;
+  project_status: string;
+  start_date: string;
+  project_budget?: number;
+  [key: string]: any;
+}
+
+interface CustomerType {
+  id: string;
+  projectIds: string[];
+  [key: string]: any;
+}
+
+interface CustomerDetailViewProps {
+  customer: CustomerType;
+  projects: ProjectType[];
+}
+
+const categorizeMaterial = (name: string): string => {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('shingle')) return 'Shingles';
     if (lowerName.includes('underlay')) return 'Underlayment';
@@ -15,8 +49,8 @@ const categorizeMaterial = (name) => {
     return 'Miscellaneous';
 };
 
-export default function CustomerDetailView({ customer, projects }) {
-  const [updates, setUpdates] = useState([]);
+export default function CustomerDetailView({ customer, projects }: CustomerDetailViewProps) {
+  const [updates, setUpdates] = useState<DailyUpdateType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,19 +75,19 @@ export default function CustomerDetailView({ customer, projects }) {
   const analyticsData = useMemo(() => {
     if (isLoading) return null;
     
-    const totalRevenue = projects.reduce((sum, p) => sum + (p.project_budget || 0), 0);
-    const totalLaborHours = updates.reduce((sum, u) => sum + (u.hours_worked || 0), 0);
+    const totalRevenue = projects.reduce((sum: number, p: ProjectType) => sum + (p.project_budget || 0), 0);
+    const totalLaborHours = updates.reduce((sum: number, u: DailyUpdateType) => sum + (u.hours_worked || 0), 0);
     const laborCost = totalLaborHours * LABOR_RATE_PER_HOUR;
 
-    const materialCosts = updates.flatMap(u => u.materials_used || []);
-    const totalMaterialCost = materialCosts.reduce((sum, m) => sum + (m.cost || 0), 0);
+    const materialCosts = updates.flatMap((u: DailyUpdateType) => u.materials_used || []);
+    const totalMaterialCost = materialCosts.reduce((sum: number, m: MaterialUsed) => sum + (m.cost || 0), 0);
     
     const totalCost = laborCost + totalMaterialCost;
     const netProfit = totalRevenue - totalCost;
     const roi = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
     const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
-    const costBreakdownMap = materialCosts.reduce((acc, item) => {
+    const costBreakdownMap = materialCosts.reduce((acc: Record<string, number>, item: MaterialUsed) => {
         const category = categorizeMaterial(item.material_name);
         acc[category] = (acc[category] || 0) + (item.cost || 0);
         return acc;

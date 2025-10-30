@@ -1,34 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { Project } from "@/api/entities";
-import { DailyUpdate } from "@/api/entities";
-import { User } from "@/api/entities";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Project } from "@/api/supabaseEntities";
+import { DailyUpdate } from "@/api/supabaseEntities";
+import { User } from "@/api/supabaseEntities";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   FolderOpen, 
-  Clock, 
-  DollarSign, 
-  TrendingUp,
-  Users,
-  Calendar,
-  AlertCircle,
-  ArrowRight,
-  CheckCircle
+  Clock
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 
 import StatsOverview from "../components/dashboard/StatsOverview";
-import RecentProjects from "../components/dashboard/RecentProjects";
-import RecentUpdates from "../components/dashboard/RecentUpdates";
-import UpcomingTasks from "../components/dashboard/UpcomingTasks";
+
+// Define types
+interface ProjectType {
+  id: string;
+  project_status?: string;
+  project_budget?: number;
+  project_owner_id?: string;
+  estimated_end_date?: string;
+  estimated_completion_date?: string;
+  [key: string]: any;
+}
+
+interface DailyUpdateType {
+  update_date: string;
+  project_id: string;
+  [key: string]: any;
+}
+
+interface UserType {
+  id: string;
+  role: string;
+  [key: string]: any;
+}
 
 export default function Dashboard() {
-  const [projects, setProjects] = useState([]);
-  const [dailyUpdates, setDailyUpdates] = useState([]);
-  const [user, setUser] = useState(null);
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [dailyUpdates, setDailyUpdates] = useState<DailyUpdateType[]>([]);
+  const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,10 +48,10 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const currentUser = await User.me();
+      const currentUser: UserType = await User.me();
       setUser(currentUser);
       
-      let projectsData, updatesData;
+      let projectsData: ProjectType[], updatesData: DailyUpdateType[];
       
       if (currentUser.role === 'admin') {
         // Admin sees all projects and updates
@@ -50,16 +60,18 @@ export default function Dashboard() {
           DailyUpdate.list("-update_date", 10)
         ]);
       } else {
-        // Regular user sees only their projects and updates
-        projectsData = await Project.filter({ owner_user_id: currentUser.id });
-        const projectIds = projectsData.map(p => p.id);
+        // Contractor sees only their projects and updates
+        console.log('Loading projects for contractor:', currentUser.id);
+        projectsData = await Project.filter({ project_owner_id: currentUser.id });
+        console.log('Contractor projects loaded:', projectsData.length);
+        const projectIds = projectsData.map((p: ProjectType) => p.id);
         
         if (projectIds.length > 0) {
-          updatesData = await Promise.all(
+          const updatesArrays = await Promise.all(
             projectIds.map(id => DailyUpdate.filter({ project_id: id }))
           );
-          updatesData = updatesData.flat().sort((a, b) => 
-            new Date(b.update_date) - new Date(a.update_date)
+          updatesData = updatesArrays.flat().sort((a: DailyUpdateType, b: DailyUpdateType) => 
+            new Date(b.update_date).getTime() - new Date(a.update_date).getTime()
           ).slice(0, 10);
         } else {
           updatesData = [];
@@ -76,16 +88,81 @@ export default function Dashboard() {
 
   const getProjectStats = () => {
     const total = projects.length;
-    const active = projects.filter(p => p.project_status === 'in_progress').length;
-    const completed = projects.filter(p => p.project_status === 'completed').length;
-    const onHold = projects.filter(p => p.project_status === 'on_hold').length;
-    const totalRevenue = projects.reduce((sum, p) => sum + (p.project_budget || 0), 0);
+    const active = projects.filter((p: ProjectType) => 
+      p.project_status === 'in_progress' || p.project_status === 'planning'
+    ).length;
+    const completed = projects.filter((p: ProjectType) => p.project_status === 'completed').length;
+    const onHold = projects.filter((p: ProjectType) => p.project_status === 'on_hold').length;
+    const totalRevenue = projects.reduce((sum: number, p: ProjectType) => sum + (p.project_budget || 0), 0);
     
-    return { total, active, completed, onHold, totalRevenue };
+    // Calculate on-time completion rate
+    // Completed projects are always on-time
+    // Incomplete projects past due date are counted as late
+    const today = new Date();
+    const completedProjects = projects.filter((p: ProjectType) => p.project_status === 'completed').length;
+    
+    const lateProjects = projects.filter((p: ProjectType) => {
+      // Skip if already completed (those are counted as on-time)
+      if (p.project_status === 'completed') return false;
+      // Check if project has a due date and it has passed
+      if (!p.estimated_end_date && !p.estimated_completion_date) return false;
+      const endDate = new Date(p.estimated_end_date || p.estimated_completion_date || '');
+      return endDate < today;
+    }).length;
+    
+    const totalRelevantProjects = completedProjects + lateProjects;
+    const completionRate = totalRelevantProjects > 0 
+      ? Math.round((completedProjects / totalRelevantProjects) * 100)
+      : 0;
+    
+    return { total, active, completed, onHold, totalRevenue, completionRate };
   };
 
   const stats = getProjectStats();
   const isAdmin = user?.role === 'admin';
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+        {/* Compact Hero Header */}
+        <section className="relative overflow-hidden bg-white border-b border-[rgba(0,0,0,0.06)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/40 via-transparent to-teal-50/30" />
+          <div className="relative px-6 py-10 lg:px-12">
+            <div className="max-w-4xl mx-auto text-center space-y-4">
+              <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-[#030213]">
+                Your Command Center
+              </h1>
+              <p className="text-lg leading-relaxed text-[#717182] mx-auto">
+                Track projects, log updates, and keep clients informed—all from one place.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 pt-2">
+                <Link to={createPageUrl("DailyUpdates")}>
+                  <Button className="h-11 px-5 text-base font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-teal-700 transition-all">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Log Daily Update
+                  </Button>
+                </Link>
+                <Link to={createPageUrl("MyProjects")}>
+                  <Button
+                    variant="outline"
+                    className="h-11 px-5 text-base font-semibold border-2 border-[rgba(3,2,19,0.12)] bg-white text-[#030213] hover:bg-[#ececf0] hover:border-emerald-300 transition-all"
+                  >
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    View All Projects
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats Overview */}
+        <section className="px-6 py-8 lg:px-12">
+          <StatsOverview stats={stats} isLoading={isLoading} variant="contractor" />
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-8 space-y-8 bg-gray-50 min-h-screen">
@@ -120,78 +197,6 @@ export default function Dashboard() {
 
       {/* Stats Overview */}
       <StatsOverview stats={stats} isLoading={isLoading} />
-
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <RecentProjects 
-            projects={projects} 
-            isLoading={isLoading} 
-            title={isAdmin ? "Recent Projects" : "My Recent Projects"}
-          />
-          <RecentUpdates 
-            dailyUpdates={dailyUpdates} 
-            projects={projects} 
-            isLoading={isLoading} 
-            title="Recent Updates"
-          />
-        </div>
-        <div className="space-y-6">
-          <UpcomingTasks projects={projects} isLoading={isLoading} />
-          
-          {/* Quick Actions */}
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-blue-900">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Link to={`${createPageUrl(isAdmin ? "Projects" : "MyProjects")}?new=true`} className="block">
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <FolderOpen className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium">New Project</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-gray-400" />
-                </div>
-              </Link>
-              
-              {isAdmin && (
-                <>
-                  <Link to={createPageUrl("Analytics")} className="block">
-                    <div className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <TrendingUp className="w-5 h-5 text-green-600" />
-                        <span className="font-medium">View Analytics</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </div>
-                  </Link>
-                  
-                  <Link to={createPageUrl("Users")} className="block">
-                    <div className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <Users className="w-5 h-5 text-purple-600" />
-                        <span className="font-medium">Manage Users</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </div>
-                  </Link>
-                </>
-              )}
-              
-              <Link to={createPageUrl("CustomerPortal")} className="block">
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-5 h-5 text-purple-600" />
-                    <span className="font-medium">Customer Portal</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-gray-400" />
-                </div>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
     </div>
   );
 }

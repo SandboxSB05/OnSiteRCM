@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Project } from "@/api/entities";
-import { DailyUpdate } from "@/api/entities";
+import { Project } from "@/api/supabaseEntities";
+import { DailyUpdate } from "@/api/supabaseEntities";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 import ProjectForm from "../components/projects/ProjectForm";
 import ProjectGrid from "../components/projects/ProjectGrid";
 import ProjectFilters from "../components/projects/ProjectFilters";
 
+interface ProjectType {
+  id: string;
+  project_name: string;
+  client_name: string;
+  address_line1?: string;
+  project_status: string;
+  project_type: string;
+  [key: string]: any;
+}
+
 export default function Projects() {
   const location = useLocation();
-  const [projects, setProjects] = useState([]);
+  const { user } = useAuth();
+  const [projects, setProjects] = useState<ProjectType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editingProject, setEditingProject] = useState(null);
+  const [editingProject, setEditingProject] = useState<ProjectType | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -45,12 +57,59 @@ export default function Projects() {
     setIsLoading(false);
   };
 
-  const handleSubmit = async (projectData) => {
+  const handleSubmit = async (projectData: any) => {
     try {
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Extract only valid schema fields for projects table
+      const {
+        project_name,
+        project_type,
+        project_status,
+        client_id,
+        address_line1,
+        address_line2,
+        city,
+        state,
+        zip_code,
+        estimated_subtotal,
+        square_footage,
+        estimated_start_date,
+        actual_start_date,
+        estimated_completion_date,
+        actual_completion_date,
+      } = projectData;
+
+      const validProjectData = {
+        project_name,
+        project_type,
+        project_status,
+        client_id,
+        address_line1,
+        address_line2,
+        city,
+        state,
+        zip_code,
+        estimated_subtotal,
+        square_footage,
+        estimated_start_date,
+        actual_start_date,
+        estimated_completion_date,
+        actual_completion_date,
+      };
+
       if (editingProject) {
-        await Project.update(editingProject.id, projectData);
+        await Project.update(editingProject.id, validProjectData);
       } else {
-        await Project.create(projectData);
+        // Add project_owner_id when creating new project
+        const projectWithOwner = {
+          ...validProjectData,
+          project_owner_id: user.id
+        };
+        await Project.create(projectWithOwner);
       }
       setShowForm(false);
       setEditingProject(null);
@@ -60,7 +119,7 @@ export default function Projects() {
     }
   };
 
-  const handleEdit = (project) => {
+  const handleEdit = (project: ProjectType) => {
     setEditingProject(project);
     setShowForm(true);
   };

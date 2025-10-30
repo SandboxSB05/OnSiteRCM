@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User } from "@/api/entities";
+import { User } from "@/api/supabaseEntities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Search, Shield, User as UserIcon, Mail, Calendar, Edit } from "lucide-react";
 import { format } from "date-fns";
 
+interface UserType {
+  id: string;
+  full_name?: string;
+  email: string;
+  role?: string;
+  created_date?: string;
+  [key: string]: any;
+}
+
 export default function Users() {
-  const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -40,7 +49,7 @@ export default function Users() {
     setIsLoading(false);
   };
 
-  const handleRoleChange = async (userId, newRole) => {
+  const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       await User.update(userId, { role: newRole });
       // Refresh users list
@@ -144,7 +153,7 @@ export default function Users() {
                       {user.role === 'admin' ? 'Administrator' : 'Contractor'}
                     </Badge>
                     
-                    {currentUser.id !== user.id && (
+                    {currentUser && currentUser.id !== user.id && (
                       <Select
                         value={user.role || 'contractor'}
                         onValueChange={(value) => handleRoleChange(user.id, value)}
@@ -159,7 +168,7 @@ export default function Users() {
                       </Select>
                     )}
                     
-                    {currentUser.id === user.id && (
+                    {currentUser && currentUser.id === user.id && (
                       <Badge variant="outline" className="text-green-600 border-green-200">
                         You
                       </Badge>

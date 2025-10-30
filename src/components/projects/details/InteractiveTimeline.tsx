@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Save } from "lucide-react";
 import { format, differenceInDays, parseISO, isValid } from 'date-fns';
-import { Project } from '@/api/entities';
+import { Project } from '@/api/supabaseEntities';
 
 export default function InteractiveTimeline({ project, onProjectUpdate }) {
   const [isDragging, setIsDragging] = useState(null);
