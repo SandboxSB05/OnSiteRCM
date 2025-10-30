@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FolderOpen, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import logo from '@/assets/onsite-logo.png';
 
 // Import from the actual location
 import { login, type LoginCredentials } from '../services/authService';
@@ -90,23 +92,37 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50 -z-10"></div>
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md"
+      >
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <FolderOpen className="w-7 h-7 text-white" />
-            </div>
-            <span className="text-3xl font-bold text-gray-900">OnSite</span>
-          </div>
-          <p className="text-gray-600">Roofing Contractor Management</p>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex items-center justify-center mb-4"
+          >
+            <img src={logo} alt="OnSite Logo" className="h-20" />
+          </motion.div>
+          <p className="text-muted-foreground" style={{ fontSize: '1.125rem' }}>
+            Welcome back to OnSite
+          </p>
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-xl border-2">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+        <Card className="shadow-2xl border-2 border-gray-100">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-2xl font-bold text-center" style={{ letterSpacing: '-0.01em' }}>
+              Sign In
+            </CardTitle>
             <CardDescription className="text-center">
               Enter your credentials to access your account
             </CardDescription>
@@ -114,10 +130,15 @@ export default function Login() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                </motion.div>
               )}
 
               <div className="space-y-2">
@@ -132,6 +153,7 @@ export default function Login() {
                   disabled={isLoading}
                   autoComplete="email"
                   required
+                  className="h-11"
                 />
               </div>
 
@@ -147,6 +169,7 @@ export default function Login() {
                   disabled={isLoading}
                   autoComplete="current-password"
                   required
+                  className="h-11"
                 />
               </div>
 
@@ -167,7 +190,7 @@ export default function Login() {
                 </div>
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                  className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -175,7 +198,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full h-11 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -189,12 +212,12 @@ export default function Login() {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-sm text-center text-gray-600">
+          <CardFooter className="flex flex-col space-y-4 pb-6">
+            <div className="text-sm text-center text-muted-foreground">
               Don't have an account?{' '}
               <Link
                 to="/register"
-                className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline"
               >
                 Sign up for free
               </Link>
@@ -203,15 +226,20 @@ export default function Login() {
         </Card>
 
         {/* Back to Home */}
-        <div className="text-center mt-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-center mt-6"
+        >
           <Link
             to="/"
-            className="text-sm text-gray-600 hover:text-gray-900 hover:underline"
+            className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors"
           >
             ← Back to Home
           </Link>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

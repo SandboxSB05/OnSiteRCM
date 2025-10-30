@@ -206,13 +206,11 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
               >
                 <Menu className="h-6 w-6" />
               </Button>
-              <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg p-1">
-                  <img src={logo} alt="OnSite Logo" className="w-full h-full object-contain" />
-                </div>
+              <div className="flex items-center gap-3">
+                <img src={logo} alt="OnSite Logo" className="h-12 rounded-lg" />
                 <div>
-                  <p className="text-sm font-medium text-[#717182]">OnSite</p>
-                  <p className="text-base font-semibold text-[#030213]">Contractor Hub</p>
+                  <p className="text-xs font-semibold text-[#717182] uppercase tracking-wide">OnSite</p>
+                  <p className="text-base font-bold text-[#030213] leading-tight">Contractor Hub</p>
                 </div>
               </div>
             </div>
@@ -228,14 +226,12 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
             <div className="relative ml-auto flex h-full w-[18rem] flex-col rounded-l-3xl border border-[rgba(0,0,0,0.08)] bg-white/95 p-5 shadow-2xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
-                    <Home className="h-4 w-4" />
-                  </div>
+                  <img src={logo} alt="OnSite Logo" className="h-12 rounded-lg" />
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#717182]">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#717182]">
                       OnSite
                     </p>
-                    <p className="text-base font-semibold text-[#030213]">Contractor Hub</p>
+                    <p className="text-base font-bold text-[#030213] leading-tight">Contractor Hub</p>
                   </div>
                 </div>
                 <Button
@@ -305,16 +301,14 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
           <aside className="hidden w-64 shrink-0 lg:block border-r border-[rgba(0,0,0,0.06)] bg-white">
             <div className="sticky top-0 flex h-screen flex-col overflow-hidden">
               {/* Compact Header */}
-              <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 p-4 text-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg p-1">
-                    <img src={logo} alt="OnSite Logo" className="w-full h-full object-contain" />
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-white/70 font-medium">
+              <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 px-4 py-5 text-white">
+                <div className="flex flex-col items-center gap-4">
+                  <img src={logo} alt="OnSite Logo" className="h-16 rounded-xl" />
+                  <div className="text-center">
+                    <p className="text-sm uppercase tracking-wider text-white/90 font-bold mb-1">
                       OnSite
                     </p>
-                    <h2 className="text-lg font-bold">Contractor Hub</h2>
+                    <h2 className="text-base font-bold leading-tight">Contractor Hub</h2>
                   </div>
                 </div>
               </div>
@@ -517,16 +511,14 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
         <aside className="hidden w-64 shrink-0 lg:block border-r border-[rgba(0,0,0,0.06)] bg-white">
           <div className="sticky top-0 flex h-screen flex-col overflow-hidden">
             {/* Compact Header */}
-            <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 p-4 text-white">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg p-1">
-                  <img src={logo} alt="OnSite Logo" className="w-full h-full object-contain" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-white/70 font-medium">
+            <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 px-4 py-5 text-white">
+              <div className="flex flex-col items-center gap-4">
+                <img src={logo} alt="OnSite Logo" className="h-16 rounded-xl" />
+                <div className="text-center">
+                  <p className="text-sm uppercase tracking-wider text-white/90 font-bold mb-1">
                     OnSite
                   </p>
-                  <h2 className="text-lg font-bold">
+                  <h2 className="text-base font-bold leading-tight">
                     {user?.role === 'admin' ? 'Admin Hub' : 'Client Portal'}
                   </h2>
                 </div>
