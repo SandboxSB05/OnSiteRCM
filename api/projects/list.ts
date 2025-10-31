@@ -41,9 +41,11 @@ export default async function handler(
     let query = supabase.from('projects_with_clients').select('*');
 
     // Apply filters exactly like the website's Project.filter() method
-    if (userId && role === 'contractor') {
+    if (userId && (role === 'contractor' || role === 'admin')) {
       // For contractors/admins, get projects they own
-      query = query.eq('project_owner_id', userId);
+      // Support both possible owner column names in the view
+      // Uses OR: project_owner_id == userId OR owner_user_id == userId
+      query = query.or(`project_owner_id.eq.${userId},owner_user_id.eq.${userId}`);
     } else if (userId && role === 'client') {
       // For clients, get projects where they are the client
       query = query.eq('client_id', userId);
