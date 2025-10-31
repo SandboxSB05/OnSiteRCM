@@ -23,7 +23,7 @@ export function Hero() {
             </div>
             
             <h1 className="mb-6" style={{ fontSize: '3.5rem', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-              Sim communication between contractors and homeowners
+              Simplify communication between contractors and homeowners
             </h1>
             
             <p className="mb-8 text-muted-foreground" style={{ fontSize: '1.25rem', lineHeight: 1.6 }}>

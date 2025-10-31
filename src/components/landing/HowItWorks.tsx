@@ -45,10 +45,14 @@ export function HowItWorks() {
           {steps.map((step, index) => (
             <motion.div
               key={step.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              initial={{ opacity: 0, x: -100, scale: 0.95 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ margin: "-100px" }}
+              transition={{ 
+                duration: 0.8, 
+                delay: index * 0.2, 
+                ease: [0.22, 1, 0.36, 1] 
+              }}
             >
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-lg transition-shadow h-full">
                 {/* Icon */}
