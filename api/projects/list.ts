@@ -1,9 +1,15 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * GET /api/projects/list
  * 
- * Get list of projects (mock data for testing)
+ * Get list of projects from Supabase
  * 
  * Query Parameters:
  * - userId: string (optional) - Filter projects by user
@@ -30,8 +36,30 @@ export default async function handler(
   try {
     const { userId, role } = req.query;
 
-    // MOCK DATA - In production, this would query Supabase
-    const mockProjects = [
+    // Query real projects from Supabase using the projects_with_clients view
+    let query = supabase.from('projects_with_clients').select('*');
+
+    // Filter by user if provided
+    if (userId && role === 'contractor') {
+      query = query.eq('project_owner_id', userId);
+    } else if (userId && role === 'client') {
+      query = query.eq('client_id', userId);
+    }
+
+    const { data: projects, error } = await query.order('created_date', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({
+        error: 'Database error',
+        message: error.message,
+        details: error.details
+      });
+    }
+
+    // If no real projects, return mock data as fallback
+    if (!projects || projects.length === 0) {
+      const mockProjects = [
       {
         id: 'proj-1',
         project_name: 'Wilson Residence Roof Replacement',
@@ -89,24 +117,21 @@ export default async function handler(
         budget: 15000,
         actual_cost: 3750
       }
-    ];
+      ];
 
-    // Filter by userId if provided (for demo, all projects belong to any user)
-    let filteredProjects = mockProjects;
-    
-    if (userId && role === 'contractor') {
-      // Contractor sees their own projects
-      filteredProjects = mockProjects.filter(p => p.project_owner_id === userId);
-    } else if (userId && role === 'client') {
-      // Client sees projects where they are the client
-      filteredProjects = mockProjects.filter(p => p.client_id === userId);
+      return res.status(200).json({
+        projects: mockProjects,
+        count: mockProjects.length,
+        message: 'Projects retrieved successfully (fallback mock data)',
+        source: 'mock'
+      });
     }
-    // Admin or no filter = see all projects
 
     return res.status(200).json({
-      projects: filteredProjects,
-      count: filteredProjects.length,
-      message: 'Projects retrieved successfully'
+      projects: projects,
+      count: projects.length,
+      message: 'Projects retrieved successfully from database',
+      source: 'supabase'
     });
 
   } catch (error) {
