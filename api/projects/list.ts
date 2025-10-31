@@ -36,17 +36,29 @@ export default async function handler(
   try {
     const { userId, role } = req.query;
 
-    // Query real projects from Supabase using the projects_with_clients view
+    // Query real projects from Supabase using projects_with_clients view
+    // This matches exactly how the MyProjects page queries: Project.filter()
     let query = supabase.from('projects_with_clients').select('*');
 
-    // Filter by user if provided
+    // Apply filters exactly like the website's Project.filter() method
     if (userId && role === 'contractor') {
+      // For contractors/admins, get projects they own
       query = query.eq('project_owner_id', userId);
     } else if (userId && role === 'client') {
+      // For clients, get projects where they are the client
       query = query.eq('client_id', userId);
     }
 
+    // Order by created_date descending (newest first)
     const { data: projects, error } = await query.order('created_date', { ascending: false });
+    
+    console.log('Supabase query result:', { 
+      projectCount: projects?.length, 
+      error: error?.message,
+      userId, 
+      role,
+      view: 'projects_with_clients'
+    });
 
     if (error) {
       console.error('Supabase error:', error);
