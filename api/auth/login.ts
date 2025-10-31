@@ -129,7 +129,8 @@ export default async function handler(
     console.error('Login error:', error);
     return res.status(500).json({
       error: 'Internal server error',
-      message: 'An unexpected error occurred during login'
+      message: 'An unexpected error occurred during login',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }
