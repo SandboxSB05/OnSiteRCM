@@ -1,16 +1,11 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 // import { createClient } from '@supabase/supabase-js';
 // import bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
 
 // Mock mode - no external dependencies required
 // const supabaseUrl = process.env.SUPABASE_URL!;
 // const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-// JWT secret for token generation
-const JWT_SECRET = process.env.JWT_SECRET || 'mock-jwt-secret-for-demo';
-const JWT_EXPIRES_IN = '24h';
 
 interface LoginRequestBody {
   email: string;
@@ -106,17 +101,17 @@ export default async function handler(
       company: 'Demo Company'
     };
 
-    // Generate JWT token
+    // Generate mock token (simple base64 encoded token for demo)
     const tokenPayload = {
       userId: user.id,
       email: user.email,
       role: user.role,
-      company: user.company
+      company: user.company,
+      exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours from now
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN
-    });
+    // Create a simple base64 token
+    const token = `Bearer.${Buffer.from(JSON.stringify(tokenPayload)).toString('base64')}`;
 
     // Return user data
     return res.status(200).json({
