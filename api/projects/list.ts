@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 // Initialize Supabase credentials
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 /**
  * GET /api/projects/list
@@ -33,35 +34,38 @@ export default async function handler(
   }
 
   try {
-    const { userId, role } = req.query;
-    const supabaseAuthHeader = (req.headers['x-supabase-auth'] || req.headers['x-supabase-token'] || '') as string;
-    const supabaseRefreshHeader = (req.headers['x-supabase-refresh'] || '') as string;
+    // Authorize using our own API token (returned from /api/auth/login)
+    // Expect header: Authorization: Bearer.<base64 json payload>
+    const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
 
-    // Create a Supabase client
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // If we have Supabase tokens, set the session so RLS policies work correctly
-    // This is what makes auth.uid() return the correct user ID in RLS policies
-    if (supabaseAuthHeader) {
-      const accessToken = supabaseAuthHeader.replace(/^Bearer\s+/i, '');
-      const refreshToken = supabaseRefreshHeader || '';
-      
-      if (accessToken) {
-        const { data: { session }, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        
-        if (sessionError) {
-          console.warn('Failed to set Supabase session:', sessionError.message);
-        } else {
-          console.log('Supabase session set for user:', session?.user?.id);
-        }
-      }
+    if (!authHeader.startsWith('Bearer.')) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Missing or invalid authorization token' });
     }
 
-    // Query real projects from Supabase using projects_with_clients view
-    // This matches exactly how the MyProjects page queries: Project.filter()
+    let tokenPayload: any;
+    try {
+      const base64 = authHeader.split('Bearer.')[1];
+      const json = Buffer.from(base64, 'base64').toString('utf8');
+      tokenPayload = JSON.parse(json);
+    } catch (e) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token format' });
+    }
+
+    if (!tokenPayload?.userId || !tokenPayload?.exp || Date.now() > tokenPayload.exp) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Token expired or invalid' });
+    }
+
+    const userId = String(tokenPayload.userId);
+    const role = String(tokenPayload.role || 'contractor');
+
+    // Use service role on the server to bypass RLS safely (NEVER expose this key to clients)
+    if (!supabaseServiceRoleKey) {
+      return res.status(500).json({ error: 'Server misconfiguration', message: 'Missing SUPABASE_SERVICE_ROLE_KEY' });
+    }
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    // Query projects with clients view
+    // Filters match MyProjects page semantics
     let query = supabase.from('projects_with_clients').select('*');
 
     // Apply filters exactly like the website's Project.filter() method
