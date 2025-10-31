@@ -1,10 +1,9 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
+// Initialize Supabase credentials
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * GET /api/projects/list
@@ -35,6 +34,16 @@ export default async function handler(
 
   try {
     const { userId, role } = req.query;
+    const supabaseAuthHeader = (req.headers['x-supabase-auth'] || req.headers['x-supabase-token'] || '') as string;
+
+    // Create a Supabase client that forwards the caller's auth (so RLS policies match the web app)
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: supabaseAuthHeader
+          ? { Authorization: supabaseAuthHeader.startsWith('Bearer') ? supabaseAuthHeader : `Bearer ${supabaseAuthHeader}` }
+          : {},
+      },
+    });
 
     // Query real projects from Supabase using projects_with_clients view
     // This matches exactly how the MyProjects page queries: Project.filter()
@@ -52,7 +61,7 @@ export default async function handler(
     }
 
     // Order by created_date descending (newest first)
-    const { data: projects, error } = await query.order('created_date', { ascending: false });
+    let { data: projects, error } = await query.order('created_date', { ascending: false });
     
     console.log('Supabase query result:', { 
       projectCount: projects?.length, 
@@ -70,6 +79,23 @@ export default async function handler(
         details: error.details,
         hint: error.hint
       });
+    }
+
+    // If no results from the view, try querying the base table as a fallback
+    if (!projects || projects.length === 0) {
+      let baseQuery = supabase.from('projects').select('*');
+      if (userId && (role === 'contractor' || role === 'admin')) {
+        baseQuery = baseQuery.or(`project_owner_id.eq.${userId},owner_user_id.eq.${userId}`);
+      } else if (userId && role === 'client') {
+        baseQuery = baseQuery.eq('client_id', userId);
+      }
+
+      const { data: baseProjects, error: baseError } = await baseQuery.order('created_date', { ascending: false });
+      if (baseError) {
+        console.error('Supabase base table error:', baseError);
+      } else if (baseProjects && baseProjects.length > 0) {
+        projects = baseProjects;
+      }
     }
 
     // Return real data from Supabase (no mock fallback)

@@ -114,6 +114,7 @@ export default async function handler(
         company: userData.company || ''
       },
       token: token,
+      supabaseAccessToken: authData.session?.access_token || null,
       message: 'Login successful'
     });
 
