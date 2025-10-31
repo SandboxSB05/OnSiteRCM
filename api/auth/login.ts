@@ -115,6 +115,7 @@ export default async function handler(
       },
       token: token,
       supabaseAccessToken: authData.session?.access_token || null,
+      supabaseRefreshToken: authData.session?.refresh_token || null,
       message: 'Login successful'
     });
 

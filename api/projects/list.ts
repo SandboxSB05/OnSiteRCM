@@ -35,15 +35,30 @@ export default async function handler(
   try {
     const { userId, role } = req.query;
     const supabaseAuthHeader = (req.headers['x-supabase-auth'] || req.headers['x-supabase-token'] || '') as string;
+    const supabaseRefreshHeader = (req.headers['x-supabase-refresh'] || '') as string;
 
-    // Create a Supabase client that forwards the caller's auth (so RLS policies match the web app)
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: supabaseAuthHeader
-          ? { Authorization: supabaseAuthHeader.startsWith('Bearer') ? supabaseAuthHeader : `Bearer ${supabaseAuthHeader}` }
-          : {},
-      },
-    });
+    // Create a Supabase client
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // If we have Supabase tokens, set the session so RLS policies work correctly
+    // This is what makes auth.uid() return the correct user ID in RLS policies
+    if (supabaseAuthHeader) {
+      const accessToken = supabaseAuthHeader.replace(/^Bearer\s+/i, '');
+      const refreshToken = supabaseRefreshHeader || '';
+      
+      if (accessToken) {
+        const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        if (sessionError) {
+          console.warn('Failed to set Supabase session:', sessionError.message);
+        } else {
+          console.log('Supabase session set for user:', session?.user?.id);
+        }
+      }
+    }
 
     // Query real projects from Supabase using projects_with_clients view
     // This matches exactly how the MyProjects page queries: Project.filter()
