@@ -1,5 +1,6 @@
 import { Camera, RefreshCw, Send } from "lucide-react";
 import { motion } from "framer-motion";
+import { AppDemo } from "./AppDemo";
 
 const steps = [
   {
@@ -45,14 +46,10 @@ export function HowItWorks() {
           {steps.map((step, index) => (
             <motion.div
               key={step.title}
-              initial={{ opacity: 0, x: -100, scale: 0.95 }}
-              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              initial={{ opacity: 0, y: 20, filter: "blur(10px)", scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
               viewport={{ margin: "-100px" }}
-              transition={{ 
-                duration: 0.8, 
-                delay: index * 0.2, 
-                ease: [0.22, 1, 0.36, 1] 
-              }}
+              transition={{ duration: 0.8, delay: index * 0.2, ease: "easeOut" }}
             >
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-lg transition-shadow h-full">
                 {/* Icon */}
@@ -85,6 +82,17 @@ export function HowItWorks() {
         <div className="hidden md:block relative -mt-96 mb-96 pointer-events-none">
           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 opacity-50"></div>
         </div>
+
+        {/* App Demo Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ margin: "-100px" }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mt-24"
+        >
+          <AppDemo />
+        </motion.div>
       </div>
     </section>
   );
