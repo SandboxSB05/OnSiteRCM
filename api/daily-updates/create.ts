@@ -83,8 +83,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       insertData.ai_summary = body.ai_summary;
     }
 
-    if (tokenPayload.email) {
-      insertData.created_by = tokenPayload.email;
+    if (tokenPayload.userId) {
+      insertData.created_by = tokenPayload.userId;
     }
 
     // photos - JSONB array
