@@ -58,6 +58,31 @@ export default async function handler(
     const userId = String(tokenPayload.userId);
     const role = String(tokenPayload.role || 'contractor');
 
+    const {
+      order,
+      limit,
+      id,
+      project_owner_id,
+      client_id,
+      project_status,
+      project_type,
+    } = req.query;
+
+    const normalizeParam = (value: string | string[] | undefined) => {
+      if (!value) return undefined;
+      return Array.isArray(value) ? value[0] : value;
+    };
+
+    const normalizedOrder = normalizeParam(order);
+    const normalizedLimit = normalizeParam(limit);
+    const filters = {
+      id: normalizeParam(id),
+      project_owner_id: normalizeParam(project_owner_id),
+      client_id: normalizeParam(client_id),
+      project_status: normalizeParam(project_status),
+      project_type: normalizeParam(project_type),
+    };
+
     // Use service role on the server to bypass RLS safely (NEVER expose this key to clients)
     if (!supabaseServiceRoleKey) {
       return res.status(500).json({ error: 'Server misconfiguration', message: 'Missing SUPABASE_SERVICE_ROLE_KEY' });
@@ -77,15 +102,50 @@ export default async function handler(
       query = query.eq('client_id', userId);
     }
 
-    // Order by created_date descending (newest first)
-    let { data: projects, error } = await query.order('created_date', { ascending: false });
+    // Apply additional filters from query string
+    Object.entries(filters).forEach(([key, value]) => {
+      if (!value) return;
+      if (key === 'id') {
+        query = query.eq('id', value);
+      } else if (typeof value === 'string' && value.includes(',')) {
+        const values = value
+          .split(',')
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0);
+        if (values.length > 0) {
+          query = query.in(key, values);
+        }
+      } else {
+        query = query.eq(key, value);
+      }
+    });
+
+    // Handle ordering
+    if (normalizedOrder) {
+      const desc = normalizedOrder.startsWith('-');
+      const field = desc ? normalizedOrder.substring(1) : normalizedOrder;
+      query = query.order(field, { ascending: !desc });
+    } else {
+      query = query.order('created_date', { ascending: false });
+    }
+
+    // Handle limit
+    if (normalizedLimit) {
+      const parsed = parseInt(normalizedLimit, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        query = query.limit(parsed);
+      }
+    }
+
+    let { data: projects, error } = await query;
     
     console.log('Supabase query result:', { 
       projectCount: projects?.length, 
       error: error?.message,
       userId, 
       role,
-      view: 'projects_with_clients'
+      view: 'projects_with_clients',
+      filters
     });
 
     if (error) {
@@ -107,7 +167,39 @@ export default async function handler(
         baseQuery = baseQuery.eq('client_id', userId);
       }
 
-      const { data: baseProjects, error: baseError } = await baseQuery.order('created_date', { ascending: false });
+      Object.entries(filters).forEach(([key, value]) => {
+        if (!value) return;
+        if (key === 'id') {
+          baseQuery = baseQuery.eq('id', value);
+        } else if (typeof value === 'string' && value.includes(',')) {
+          const values = value
+            .split(',')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+          if (values.length > 0) {
+            baseQuery = baseQuery.in(key, values);
+          }
+        } else {
+          baseQuery = baseQuery.eq(key, value);
+        }
+      });
+
+      if (normalizedOrder) {
+        const desc = normalizedOrder.startsWith('-');
+        const field = desc ? normalizedOrder.substring(1) : normalizedOrder;
+        baseQuery = baseQuery.order(field, { ascending: !desc });
+      } else {
+        baseQuery = baseQuery.order('created_date', { ascending: false });
+      }
+
+      if (normalizedLimit) {
+        const parsed = parseInt(normalizedLimit, 10);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          baseQuery = baseQuery.limit(parsed);
+        }
+      }
+
+      const { data: baseProjects, error: baseError } = await baseQuery;
       if (baseError) {
         console.error('Supabase base table error:', baseError);
       } else if (baseProjects && baseProjects.length > 0) {
@@ -121,6 +213,14 @@ export default async function handler(
       project_progress:
         project?.project_progress !== undefined ? project.project_progress : null,
     }));
+
+    console.log(
+      'Project progress snapshot:',
+      normalizedProjects.map((project: any) => ({
+        id: project.id,
+        project_progress: project.project_progress,
+      }))
+    );
 
     // Return real data from Supabase (no mock fallback)
     return res.status(200).json({

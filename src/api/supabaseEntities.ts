@@ -290,10 +290,168 @@ class SupabaseUser extends SupabaseEntity {
 
 class SupabaseProject extends SupabaseEntity {
   viewName: string;
+  private authTokenCache: { token: string; exp: number } | null;
 
   constructor() {
     super('projects');
     this.viewName = 'projects_with_clients';
+    this.authTokenCache = null;
+  }
+
+  private encodeBase64(value: string) {
+    if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+      return window.btoa(value);
+    }
+    if (typeof btoa === 'function') {
+      return btoa(value);
+    }
+    throw new Error('No base64 encoder available for auth token payload');
+  }
+
+  private async getServerlessAuthToken() {
+    const stillValid = this.authTokenCache && this.authTokenCache.exp > Date.now() + 5000;
+    if (stillValid) {
+      return this.authTokenCache!.token;
+    }
+
+    const { data: { user: authUser }, error } = await supabase.auth.getUser();
+    if (error || !authUser) {
+      throw new Error('Not authenticated');
+    }
+
+    let role =
+      (authUser.app_metadata && (authUser.app_metadata as Record<string, any>).role) ||
+      (authUser.user_metadata && (authUser.user_metadata as Record<string, any>).role) ||
+      null;
+
+    if (!role) {
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', authUser.id)
+        .single();
+
+      if (profileError) {
+        throw new Error(profileError.message);
+      }
+
+      role = profile?.role || 'contractor';
+    }
+
+    const payload = {
+      userId: authUser.id,
+      role,
+      exp: Date.now() + 30 * 60 * 1000, // 30 minutes
+    };
+
+    const token = `Bearer.${this.encodeBase64(JSON.stringify(payload))}`;
+    this.authTokenCache = { token, exp: payload.exp };
+    return token;
+  }
+
+  private buildQueryString(params: Record<string, any>) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === undefined || value === null) {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        if (value.length === 0) return;
+        searchParams.append(key, value.join(','));
+        return;
+      }
+
+      searchParams.append(key, String(value));
+    });
+    const serialized = searchParams.toString();
+    return serialized ? `?${serialized}` : '';
+  }
+
+  private async requestProjectsFallback(params: Record<string, any> = {}) {
+    console.warn(
+      '[SUPABASE] Falling back to direct Supabase client for projects request (serverless unavailable)'
+    );
+
+    const { order, limit, ...filters } = params;
+
+    let query = supabase.from(this.viewName).select('*');
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value === undefined || value === null) {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        if (value.length === 0) {
+          return;
+        }
+        query = query.in(key, value);
+      } else {
+        query = query.eq(key, value);
+      }
+    });
+
+    if (order && typeof order === 'string') {
+      const desc = order.startsWith('-');
+      const field = desc ? order.substring(1) : order;
+      query = query.order(field, { ascending: !desc });
+    } else {
+      query = query.order('created_date', { ascending: false });
+    }
+
+    if (limit) {
+      const parsedLimit =
+        typeof limit === 'string' ? parseInt(limit, 10) : Number(limit);
+      if (!Number.isNaN(parsedLimit) && parsedLimit > 0) {
+        query = query.limit(parsedLimit);
+      }
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Supabase fallback error:', error);
+      throw new Error(error.message);
+    }
+
+    return (data || []).map((project: any) => ({
+      ...project,
+      project_progress:
+        project?.project_progress !== undefined ? project.project_progress : null,
+    }));
+  }
+
+  private async requestProjects(params: Record<string, any> = {}) {
+    try {
+      const token = await this.getServerlessAuthToken();
+      const queryString = this.buildQueryString(params);
+
+      const response = await fetch(`/api/projects/list${queryString}`, {
+        headers: {
+          Authorization: token,
+        },
+        credentials: 'include',
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Unexpected content type: ${contentType || 'unknown'}`);
+      }
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        const message =
+          payload?.message || payload?.error || 'Failed to fetch projects';
+        throw new Error(message);
+      }
+
+      return (payload?.projects || []) as any[];
+    } catch (error) {
+      console.warn('Serverless projects API error:', error);
+      return this.requestProjectsFallback(params);
+    }
   }
 
   /**
@@ -303,29 +461,18 @@ class SupabaseProject extends SupabaseEntity {
   async list(orderBy = 'created_date', limit: number | null = null) {
     console.log(`%c[SUPABASE] ${this.tableName}.list() [WITH CLIENT JOIN]`, 'color: #4CAF50; font-weight: bold');
     
-    let query = supabase.from(this.viewName).select('*');
-
-    // Handle sorting
+    const params: Record<string, any> = {};
     if (orderBy) {
-      const desc = orderBy.startsWith('-');
-      const field = desc ? orderBy.substring(1) : orderBy;
-      query = query.order(field, { ascending: !desc });
+      params.order = orderBy;
     }
-
-    // Apply limit
     if (limit) {
-      query = query.limit(limit);
+      params.limit = limit;
     }
 
-    const { data, error } = await query;
+    const projects = await this.requestProjects(params);
 
-    if (error) {
-      console.error(`Error listing ${this.tableName}:`, error);
-      throw new Error(error.message);
-    }
-
-    console.log(`  ← Returning ${data?.length || 0} records with client info`);
-    return data || [];
+    console.log(`  ← Returning ${projects.length} records with client info`);
+    return projects;
   }
 
   /**
@@ -336,36 +483,29 @@ class SupabaseProject extends SupabaseEntity {
     console.log(`%c[SUPABASE] ${this.tableName}.filter() [WITH CLIENT JOIN]`, 'color: #2196F3; font-weight: bold');
     console.log('  → Filters:', filters);
 
-    let query = supabase.from(this.viewName).select('*');
+    const params: Record<string, any> = {};
 
-    // Apply filters
     Object.entries(filters).forEach(([key, value]) => {
+      if (value === undefined || value === null) {
+        return;
+      }
+
       if (key.endsWith('__in') && Array.isArray(value)) {
-        // Handle IN queries
         const actualKey = key.replace('__in', '');
-        query = query.in(actualKey, value);
+        params[actualKey] = value;
       } else {
-        // Standard equality filter
-        query = query.eq(key, value);
+        params[key] = value;
       }
     });
 
-    // Handle sorting
     if (orderBy) {
-      const desc = orderBy.startsWith('-');
-      const field = desc ? orderBy.substring(1) : orderBy;
-      query = query.order(field, { ascending: !desc });
+      params.order = orderBy;
     }
 
-    const { data, error } = await query;
+    const projects = await this.requestProjects(params);
 
-    if (error) {
-      console.error(`Error filtering ${this.tableName}:`, error);
-      throw new Error(error.message);
-    }
-
-    console.log(`  ← Returning ${data?.length || 0} filtered records with client info`);
-    return data || [];
+    console.log(`  ← Returning ${projects.length || 0} filtered records with client info`);
+    return projects;
   }
 
   /**
@@ -376,23 +516,16 @@ class SupabaseProject extends SupabaseEntity {
     console.log(`%c[SUPABASE] ${this.tableName}.findOne() [WITH CLIENT JOIN]`, 'color: #FF9800; font-weight: bold');
     console.log('  → Searching for ID:', id);
 
-    const { data, error } = await supabase
-      .from(this.viewName)
-      .select('*')
-      .eq('id', id)
-      .single();
+    const projects = await this.requestProjects({ id });
+    const project = projects[0] || null;
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        console.warn(`  ⚠️ No ${this.tableName} found with ID: ${id}`);
-        return null;
-      }
-      console.error(`Error finding ${this.tableName}:`, error);
-      throw new Error(error.message);
+    if (!project) {
+      console.warn(`  ⚠️ No ${this.tableName} found with ID: ${id}`);
+      return null;
     }
 
     console.log('  ← Found record with client info');
-    return data;
+    return project;
   }
 
   // Create, update, and delete still use the base table (inherited from SupabaseEntity)
