@@ -138,22 +138,13 @@ CREATE POLICY "Admins can view all projects"
 CREATE TABLE daily_updates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  update_date DATE NOT NULL,
-  project_phase_worked_on VARCHAR(100),
-  project_phase_progress INTEGER CHECK (project_phase_progress BETWEEN 0 AND 100),
-  work_summary TEXT NOT NULL,
-  materials_used TEXT,
-  weather_conditions VARCHAR(255),
-  hours_worked DECIMAL(5, 2),
-  issues_encountered TEXT,
+  update_date DATE NOT NULL
+  work_description TEXT NOT NULL,
   ai_summary TEXT,
-  project_phase VARCHAR(100),
-  project_phase_progress INTEGER CHECK (project_phase_progress BETWEEN 0 AND 100),
-  sent_to_customer BOOLEAN DEFAULT FALSE,
-  author_user_id UUID REFERENCES auth.users(id),
   created_by VARCHAR(255), -- Email of creator
   photos JSONB DEFAULT '[]'::jsonb,
-  videos JSONB DEFAULT '[]'::jsonb,
+  project_phase_worked_on VARCHAR(100),
+  project_phase_progress INTEGER CHECK (project_phase_progress BETWEEN 0 AND 100),
   created_date TIMESTAMPTZ DEFAULT NOW(),
   updated_date TIMESTAMPTZ DEFAULT NOW()
 );

@@ -58,37 +58,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const body = parseRequestBody(req.body);
 
     const projectId = body.project_id;
-    const description = body.pm_description || body.work_description || body.work_summary || '';
-    if (!projectId || !description) {
+    // The DB column is `work_description` (per schema). Accept pm_description as an alias.
+    const workDescription = body.pm_description || body.work_description || body.work_summary || '';
+    if (!projectId || !workDescription) {
       return res.status(400).json({
         error: 'Validation error',
-        message: 'project_id and a description are required',
+        message: 'project_id and work_description are required',
       });
     }
 
     const updateDate = body.update_date || new Date().toISOString().split('T')[0];
 
     // Map and normalize incoming fields to database columns for daily_updates
+    // Map only the columns present in the provided DB schema for daily_updates
     const mappedData: Record<string, any> = {
       project_id: projectId,
       update_date: updateDate,
-      work_summary: description,
+      work_description: workDescription, // TEXT NOT NULL in schema
+      ai_summary: body.ai_summary || null,
+      created_by: tokenPayload.email || null,
+      photos: Array.isArray(body.progress_photos) ? body.progress_photos : (Array.isArray(body.photos) ? body.photos : []),
       project_phase_worked_on: body.project_phase_worked_on || body.project_phase || null,
       project_phase_progress:
         body.project_phase_progress !== undefined && body.project_phase_progress !== null
           ? Number(body.project_phase_progress)
           : null,
-      materials_used:
-        Array.isArray(body.materials_used) ? JSON.stringify(body.materials_used) : (typeof body.materials_used === 'string' ? body.materials_used : null),
-      weather_conditions: body.weather_conditions || null,
-      hours_worked: body.hours_worked !== undefined && body.hours_worked !== null ? Number(body.hours_worked) : null,
-      issues_encountered: body.issues_encountered || null,
-      ai_summary: body.ai_summary || null,
-      project_phase: body.project_phase || null,
-      sent_to_customer: body.sent_to_customer === true,
-      created_by: tokenPayload.email || null,
-      photos: Array.isArray(body.progress_photos) ? body.progress_photos : (Array.isArray(body.photos) ? body.photos : []),
-      videos: Array.isArray(body.videos) ? body.videos : [],
     };
 
     // Remove undefined/null keys so the insert doesn't try to set unknown or empty columns
@@ -115,11 +109,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    console.log('Daily update created:', {
-      id: dailyUpdate?.id,
-      project_id: projectId,
-      author_user_id: insertData.author_user_id,
-    });
+    console.log('Daily update created:', { id: dailyUpdate?.id, project_id: projectId });
 
     return res.status(201).json({
       message: 'Daily update created successfully',
