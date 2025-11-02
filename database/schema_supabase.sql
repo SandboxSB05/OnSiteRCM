@@ -139,12 +139,16 @@ CREATE TABLE daily_updates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   update_date DATE NOT NULL,
+  project_phase_worked_on VARCHAR(100),
+  project_phase_progress INTEGER CHECK (project_phase_progress BETWEEN 0 AND 100),
   work_summary TEXT NOT NULL,
   materials_used TEXT,
   weather_conditions VARCHAR(255),
   hours_worked DECIMAL(5, 2),
   issues_encountered TEXT,
   ai_summary TEXT,
+  project_phase VARCHAR(100),
+  project_phase_progress INTEGER CHECK (project_phase_progress BETWEEN 0 AND 100),
   sent_to_customer BOOLEAN DEFAULT FALSE,
   author_user_id UUID REFERENCES auth.users(id),
   created_by VARCHAR(255), -- Email of creator
@@ -177,40 +181,6 @@ CREATE POLICY "Users can create updates for their projects"
       AND projects.owner_user_id = auth.uid()
     )
   );
-
--- =========================================================================
--- CLIENT UPDATES TABLE
--- =========================================================================
-CREATE TABLE client_updates (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  update_date DATE NOT NULL,
-  description TEXT NOT NULL,
-  time_cost_labor DECIMAL(10, 2) DEFAULT 0,
-  time_cost_notes TEXT,
-  additional_materials JSONB DEFAULT '[]'::jsonb,
-  total_cost_to_date DECIMAL(10, 2) DEFAULT 0,
-  total_paid DECIMAL(10, 2) DEFAULT 0,
-  total_due DECIMAL(10, 2) DEFAULT 0,
-  photos JSONB DEFAULT '[]'::jsonb,
-  videos JSONB DEFAULT '[]'::jsonb,
-  created_date TIMESTAMPTZ DEFAULT NOW(),
-  updated_date TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable RLS for client_updates
-ALTER TABLE client_updates ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view client updates for their projects"
-  ON client_updates FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM projects
-      WHERE projects.id = client_updates.project_id
-      AND projects.owner_user_id = auth.uid()
-    )
-  );
-
 -- =========================================================================
 -- PROJECT COLLABORATORS TABLE
 -- =========================================================================

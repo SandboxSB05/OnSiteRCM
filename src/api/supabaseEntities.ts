@@ -6,6 +6,67 @@
 
 import { supabase } from '../../lib/supabaseClient';
 
+type ServerlessAuthCache = { token: string; exp: number };
+let serverlessAuthTokenCache: ServerlessAuthCache | null = null;
+
+const encodeBase64 = (value: string) => {
+  if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+    return window.btoa(value);
+  }
+  if (typeof btoa === 'function') {
+    return btoa(value);
+  }
+  throw new Error('No base64 encoder available for auth token payload');
+};
+
+const getServerlessAuthToken = async () => {
+  const bufferMs = 5000;
+  if (serverlessAuthTokenCache && serverlessAuthTokenCache.exp > Date.now() + bufferMs) {
+    return serverlessAuthTokenCache.token;
+  }
+
+  const {
+    data: { user: authUser },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !authUser) {
+    throw new Error('Not authenticated');
+  }
+
+  const appMetadata = (authUser as any)?.app_metadata || {};
+  const userMetadata = (authUser as any)?.user_metadata || {};
+
+  let role =
+    (appMetadata && appMetadata.role) ||
+    (userMetadata && userMetadata.role) ||
+    null;
+
+  if (!role) {
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', authUser.id)
+      .single();
+
+    if (profileError) {
+      throw new Error(profileError.message);
+    }
+
+    role = profile?.role || 'contractor';
+  }
+
+  const payload = {
+    userId: authUser.id,
+    role,
+    exp: Date.now() + 30 * 60 * 1000,
+  };
+
+  const token = `Bearer.${encodeBase64(JSON.stringify(payload))}`;
+  serverlessAuthTokenCache = { token, exp: payload.exp };
+  return token;
+};
+
 // =========================================================================
 // BASE SUPABASE ENTITY CLASS
 // =========================================================================
@@ -290,63 +351,10 @@ class SupabaseUser extends SupabaseEntity {
 
 class SupabaseProject extends SupabaseEntity {
   viewName: string;
-  private authTokenCache: { token: string; exp: number } | null;
 
   constructor() {
     super('projects');
     this.viewName = 'projects_with_clients';
-    this.authTokenCache = null;
-  }
-
-  private encodeBase64(value: string) {
-    if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
-      return window.btoa(value);
-    }
-    if (typeof btoa === 'function') {
-      return btoa(value);
-    }
-    throw new Error('No base64 encoder available for auth token payload');
-  }
-
-  private async getServerlessAuthToken() {
-    const stillValid = this.authTokenCache && this.authTokenCache.exp > Date.now() + 5000;
-    if (stillValid) {
-      return this.authTokenCache!.token;
-    }
-
-    const { data: { user: authUser }, error } = await supabase.auth.getUser();
-    if (error || !authUser) {
-      throw new Error('Not authenticated');
-    }
-
-    let role =
-      (authUser.app_metadata && (authUser.app_metadata as Record<string, any>).role) ||
-      (authUser.user_metadata && (authUser.user_metadata as Record<string, any>).role) ||
-      null;
-
-    if (!role) {
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', authUser.id)
-        .single();
-
-      if (profileError) {
-        throw new Error(profileError.message);
-      }
-
-      role = profile?.role || 'contractor';
-    }
-
-    const payload = {
-      userId: authUser.id,
-      role,
-      exp: Date.now() + 30 * 60 * 1000, // 30 minutes
-    };
-
-    const token = `Bearer.${this.encodeBase64(JSON.stringify(payload))}`;
-    this.authTokenCache = { token, exp: payload.exp };
-    return token;
   }
 
   private buildQueryString(params: Record<string, any>) {
@@ -424,7 +432,7 @@ class SupabaseProject extends SupabaseEntity {
 
   private async requestProjects(params: Record<string, any> = {}) {
     try {
-      const token = await this.getServerlessAuthToken();
+      const token = await getServerlessAuthToken();
       const queryString = this.buildQueryString(params);
 
       const response = await fetch(`/api/projects/list${queryString}`, {
@@ -532,11 +540,58 @@ class SupabaseProject extends SupabaseEntity {
 }
 
 // =========================================================================
+// DAILY UPDATE ENTITY (SERVERLESS CREATE)
+// =========================================================================
+
+class SupabaseDailyUpdate extends SupabaseEntity {
+  constructor() {
+    super('daily_updates');
+  }
+
+  async create(data: Record<string, any>) {
+    console.log('%c[SUPABASE] daily_updates.create() [SERVERLESS]', 'color: #9C27B0; font-weight: bold');
+    console.log('  → Data:', data);
+
+    try {
+      const token = await getServerlessAuthToken();
+      const response = await fetch('/api/daily-updates/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Unexpected content type: ${contentType || 'unknown'}`);
+      }
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        const message = payload?.message || payload?.error || 'Failed to create daily update';
+        throw new Error(message);
+      }
+
+      const created = payload?.dailyUpdate || payload?.data || payload;
+      console.log('  ← Created record with ID:', created?.id);
+      return created;
+    } catch (error) {
+      console.warn('Serverless daily update create error, falling back to Supabase client:', error);
+      return super.create(data);
+    }
+  }
+}
+
+// =========================================================================
 // EXPORT ENTITY INSTANCES
 // =========================================================================
 
 export const Project = new SupabaseProject(); // Uses view with client JOIN
-export const DailyUpdate = new SupabaseEntity('daily_updates');
+export const DailyUpdate = new SupabaseDailyUpdate();
 export const ClientUpdate = new SupabaseEntity('client_updates');
 export const ProjectCollaborator = new SupabaseEntity('project_collaborators');
 export const Cost = new SupabaseEntity('costs');
