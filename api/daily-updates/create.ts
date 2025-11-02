@@ -85,11 +85,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           : null,
     };
 
-    // Remove undefined/null keys so the insert doesn't try to set unknown or empty columns
+    // Query the target DB schema for `daily_updates` columns and filter mappedData
+    // This makes the endpoint resilient to differing deployments where columns may vary.
+    const { data: columns, error: columnsError } = await supabase
+      .from('information_schema.columns')
+      .select('column_name,data_type')
+      .eq('table_name', 'daily_updates')
+      .eq('table_schema', 'public');
+
+    if (columnsError) {
+      console.warn('Could not fetch information_schema.columns for daily_updates, proceeding with best-effort insert', columnsError);
+    }
+
     const insertData: Record<string, any> = {};
+    const cols = Array.isArray(columns) ? columns.map((c: any) => ({ name: c.column_name, type: c.data_type })) : [];
+
     Object.keys(mappedData).forEach((k) => {
-      if (mappedData[k] !== undefined && mappedData[k] !== null) {
-        insertData[k] = mappedData[k];
+      const val = mappedData[k];
+      if (val === undefined || val === null) return;
+
+      // If we have column metadata, only include keys that exist in the remote table
+      if (cols.length > 0) {
+        const col = cols.find((c: any) => c.name === k);
+        if (!col) return; // column not present in target DB
+
+        // If the column is a uuid but value looks like an email, prefer token userId
+        if (col.type === 'uuid' && typeof val === 'string' && val.includes('@')) {
+          if (tokenPayload?.userId) {
+            insertData[k] = tokenPayload.userId;
+          } else {
+            // can't coerce, skip
+            return;
+          }
+        } else if (col.type === 'json' || col.type === 'jsonb') {
+          // ensure JSON columns are proper objects/arrays
+          insertData[k] = typeof val === 'string' ? JSON.parse(val) : val;
+        } else if (col.type === 'integer') {
+          insertData[k] = Number(val);
+        } else {
+          insertData[k] = val;
+        }
+      } else {
+        // No metadata available; fall back to including non-null values
+        insertData[k] = val;
       }
     });
 
