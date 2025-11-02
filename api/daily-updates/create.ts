@@ -68,36 +68,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const updateDate = body.update_date || new Date().toISOString().split('T')[0];
 
-    const insertData: Record<string, any> = {
-      ...body,
+    // Map and normalize incoming fields to database columns for daily_updates
+    const mappedData: Record<string, any> = {
       project_id: projectId,
       update_date: updateDate,
+      work_summary: description,
+      project_phase_worked_on: body.project_phase_worked_on || body.project_phase || null,
+      project_phase_progress:
+        body.project_phase_progress !== undefined && body.project_phase_progress !== null
+          ? Number(body.project_phase_progress)
+          : null,
+      materials_used:
+        Array.isArray(body.materials_used) ? JSON.stringify(body.materials_used) : (typeof body.materials_used === 'string' ? body.materials_used : null),
+      weather_conditions: body.weather_conditions || null,
+      hours_worked: body.hours_worked !== undefined && body.hours_worked !== null ? Number(body.hours_worked) : null,
+      issues_encountered: body.issues_encountered || null,
+      ai_summary: body.ai_summary || null,
+      project_phase: body.project_phase || null,
+      sent_to_customer: body.sent_to_customer === true,
       author_user_id: body.author_user_id || tokenPayload.userId,
+      created_by: tokenPayload.email || null,
+      photos: Array.isArray(body.progress_photos) ? body.progress_photos : (Array.isArray(body.photos) ? body.photos : []),
+      videos: Array.isArray(body.videos) ? body.videos : [],
     };
 
-    if (!Array.isArray(insertData.progress_photos)) {
-      insertData.progress_photos = Array.isArray(body.progress_photos) ? body.progress_photos : [];
-    }
-
-    if (!Array.isArray(insertData.materials_used)) {
-      insertData.materials_used = Array.isArray(body.materials_used) ? body.materials_used : [];
-    }
-
-    if (insertData.hours_worked !== undefined && insertData.hours_worked !== null) {
-      insertData.hours_worked = Number(insertData.hours_worked);
-    }
-
-    if (insertData.completion_percentage !== undefined && insertData.completion_percentage !== null) {
-      insertData.completion_percentage = Number(insertData.completion_percentage);
-    }
-
-    if (insertData.project_phase_progress !== undefined && insertData.project_phase_progress !== null) {
-      insertData.project_phase_progress = Number(insertData.project_phase_progress);
-    }
-
-    if (insertData.sent_to_customer === undefined) {
-      insertData.sent_to_customer = false;
-    }
+    // Remove undefined/null keys so the insert doesn't try to set unknown or empty columns
+    const insertData: Record<string, any> = {};
+    Object.keys(mappedData).forEach((k) => {
+      if (mappedData[k] !== undefined && mappedData[k] !== null) {
+        insertData[k] = mappedData[k];
+      }
+    });
 
     const { data: dailyUpdate, error } = await supabase
       .from('daily_updates')
