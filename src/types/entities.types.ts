@@ -45,6 +45,9 @@ export interface Project {
   project_manager?: string;
   owner_user_id: string;
   
+  // Progress tracking (JSON)
+  project_progress?: Record<string, any> | null;
+  
   // Metadata
   created_date: string;
   updated_date?: string;

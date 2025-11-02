@@ -115,11 +115,18 @@ export default async function handler(
       }
     }
 
+    // Ensure JSON column is consistently present in the response
+    const normalizedProjects = (projects || []).map((project: any) => ({
+      ...project,
+      project_progress:
+        project?.project_progress !== undefined ? project.project_progress : null,
+    }));
+
     // Return real data from Supabase (no mock fallback)
     return res.status(200).json({
-      projects: projects || [],
-      count: projects?.length || 0,
-      message: projects?.length ? 'Projects retrieved successfully from database' : 'No projects found',
+      projects: normalizedProjects,
+      count: normalizedProjects.length,
+      message: normalizedProjects.length ? 'Projects retrieved successfully from database' : 'No projects found',
       source: 'supabase',
       filters: { userId, role }
     });
@@ -133,4 +140,3 @@ export default async function handler(
     });
   }
 }
-

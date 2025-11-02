@@ -89,6 +89,9 @@ export interface DbProject {
   // Project Management
   project_manager: string | null;
   owner_user_id: string;
+
+  // Progress tracking
+  project_progress: Record<string, any> | null;
   
   // Metadata
   created_date: string;  // ISO timestamp
