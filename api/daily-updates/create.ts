@@ -69,67 +69,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const updateDate = body.update_date || new Date().toISOString().split('T')[0];
 
-    // Map and normalize incoming fields to database columns for daily_updates
-    // Map only the columns present in the provided DB schema for daily_updates
-    const mappedData: Record<string, any> = {
+    // Build insert data with only the columns from your exact DB schema for daily_updates:
+    // id, project_id, update_date, work_description, ai_summary, created_by, photos,
+    // project_phase_worked_on, project_phase_progress, created_date, updated_date
+    const insertData: Record<string, any> = {
       project_id: projectId,
       update_date: updateDate,
-      work_description: workDescription, // TEXT NOT NULL in schema
-      ai_summary: body.ai_summary || null,
-      created_by: tokenPayload.email || null,
-      photos: Array.isArray(body.progress_photos) ? body.progress_photos : (Array.isArray(body.photos) ? body.photos : []),
-      project_phase_worked_on: body.project_phase_worked_on || body.project_phase || null,
-      project_phase_progress:
-        body.project_phase_progress !== undefined && body.project_phase_progress !== null
-          ? Number(body.project_phase_progress)
-          : null,
+      work_description: workDescription,
     };
 
-    // Query the target DB schema for `daily_updates` columns and filter mappedData
-    // This makes the endpoint resilient to differing deployments where columns may vary.
-    const { data: columns, error: columnsError } = await supabase
-      .from('information_schema.columns')
-      .select('column_name,data_type')
-      .eq('table_name', 'daily_updates')
-      .eq('table_schema', 'public');
-
-    if (columnsError) {
-      console.warn('Could not fetch information_schema.columns for daily_updates, proceeding with best-effort insert', columnsError);
+    // Optional fields - only include if present
+    if (body.ai_summary) {
+      insertData.ai_summary = body.ai_summary;
     }
 
-    const insertData: Record<string, any> = {};
-    const cols = Array.isArray(columns) ? columns.map((c: any) => ({ name: c.column_name, type: c.data_type })) : [];
+    if (tokenPayload.email) {
+      insertData.created_by = tokenPayload.email;
+    }
 
-    Object.keys(mappedData).forEach((k) => {
-      const val = mappedData[k];
-      if (val === undefined || val === null) return;
+    // photos - JSONB array
+    const photos = Array.isArray(body.progress_photos) 
+      ? body.progress_photos 
+      : (Array.isArray(body.photos) ? body.photos : null);
+    if (photos && photos.length > 0) {
+      insertData.photos = photos;
+    }
 
-      // If we have column metadata, only include keys that exist in the remote table
-      if (cols.length > 0) {
-        const col = cols.find((c: any) => c.name === k);
-        if (!col) return; // column not present in target DB
+    // project_phase fields
+    if (body.project_phase_worked_on || body.project_phase) {
+      insertData.project_phase_worked_on = body.project_phase_worked_on || body.project_phase;
+    }
 
-        // If the column is a uuid but value looks like an email, prefer token userId
-        if (col.type === 'uuid' && typeof val === 'string' && val.includes('@')) {
-          if (tokenPayload?.userId) {
-            insertData[k] = tokenPayload.userId;
-          } else {
-            // can't coerce, skip
-            return;
-          }
-        } else if (col.type === 'json' || col.type === 'jsonb') {
-          // ensure JSON columns are proper objects/arrays
-          insertData[k] = typeof val === 'string' ? JSON.parse(val) : val;
-        } else if (col.type === 'integer') {
-          insertData[k] = Number(val);
-        } else {
-          insertData[k] = val;
-        }
-      } else {
-        // No metadata available; fall back to including non-null values
-        insertData[k] = val;
-      }
-    });
+    if (body.project_phase_progress !== undefined && body.project_phase_progress !== null) {
+      insertData.project_phase_progress = Number(body.project_phase_progress);
+    }
 
     const { data: dailyUpdate, error } = await supabase
       .from('daily_updates')
