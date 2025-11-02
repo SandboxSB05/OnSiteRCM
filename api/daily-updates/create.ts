@@ -86,7 +86,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ai_summary: body.ai_summary || null,
       project_phase: body.project_phase || null,
       sent_to_customer: body.sent_to_customer === true,
-      author_user_id: body.author_user_id || tokenPayload.userId,
       created_by: tokenPayload.email || null,
       photos: Array.isArray(body.progress_photos) ? body.progress_photos : (Array.isArray(body.photos) ? body.photos : []),
       videos: Array.isArray(body.videos) ? body.videos : [],
