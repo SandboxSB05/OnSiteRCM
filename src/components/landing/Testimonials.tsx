@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 
 const testimonials = [
   {
@@ -22,10 +23,46 @@ const testimonials = [
     role: "Owner",
     company: "Thompson Construction",
     rating: 5
+  },
+  {
+    quote: "Relay cut our update calls in half and bumped our Google reviews within a month.",
+    author: "Marta P.",
+    role: "Operations Manager",
+    company: "Peak Roofing",
+    rating: 5
+  },
+  {
+    quote: "Homeowners finally feel in the loop. We closed two referrals last week because of the daily photo summaries.",
+    author: "Jared L.",
+    role: "Owner",
+    company: "Clearview Remodel",
+    rating: 5
+  },
+  {
+    quote: "Our PMs post once, everyone sees it. Zero 'what's the status?' texts.",
+    author: "Alyssa K.",
+    role: "Project Coordinator",
+    company: "Northside Builders",
+    rating: 5
   }
 ];
 
 export function Testimonials() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => {
+      const nextIndex = prevIndex + 3;
+      return nextIndex >= testimonials.length ? 0 : nextIndex;
+    });
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) => {
+      const nextIndex = prevIndex - 3;
+      return nextIndex < 0 ? testimonials.length - 3 : nextIndex;
+    });
+  };
   return (
     <section id="testimonials" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-emerald-50 to-teal-50">
       <div className="max-w-7xl mx-auto">
@@ -44,81 +81,66 @@ export function Testimonials() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-            >
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 h-full flex flex-col">
-                {/* Stars */}
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-
-                {/* Quote */}
-                <blockquote className="mb-6 flex-grow">
-                  <p className="text-muted-foreground" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>
-                    "{testimonial.quote}"
-                  </p>
-                </blockquote>
-
-                {/* Author */}
-                <div className="border-t border-gray-200 pt-4">
-                  <div style={{ fontSize: '0.9375rem', fontWeight: 600 }}>
-                    {testimonial.author}
-                  </div>
-                  <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>
-                    {testimonial.role}
-                  </div>
-                  <div className="text-emerald-600" style={{ fontSize: '0.875rem' }}>
-                    {testimonial.company}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Stats section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-16 bg-white rounded-2xl p-12 shadow-sm border border-gray-200"
+          className="relative"
         >
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700 }} className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                500+
-              </div>
-              <div className="text-muted-foreground mt-2">Active Contractors</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700 }} className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                50K+
-              </div>
-              <div className="text-muted-foreground mt-2">Updates Sent</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700 }} className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                98%
-              </div>
-              <div className="text-muted-foreground mt-2">Satisfaction Rate</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700 }} className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                4.9
-              </div>
-              <div className="text-muted-foreground mt-2">Average Rating</div>
+          <div className="overflow-hidden max-w-[1000px] mx-auto testimonials-container">
+            <div 
+              className="flex justify-center testimonial-slide-transition"
+              style={{ gap: 'calc((100% - (280px * 3)) / 2)' }}
+            >
+              {testimonials.slice(currentIndex, currentIndex + 3).map((testimonial, index) => (
+                <div 
+                  key={currentIndex + index}
+                  className="w-[280px] flex-shrink-0 testimonial-card"
+                >
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 h-full flex flex-col">
+                    <div className="flex gap-1 mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <blockquote className="mb-6 flex-grow">
+                      <p className="text-muted-foreground" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>
+                        "{testimonial.quote}"
+                      </p>
+                    </blockquote>
+                    <div className="border-t border-gray-200 pt-4">
+                      <div style={{ fontSize: '0.9375rem', fontWeight: 600 }}>
+                        {testimonial.author}
+                      </div>
+                      <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>
+                        {testimonial.role}
+                      </div>
+                      <div className="text-emerald-600" style={{ fontSize: '0.875rem' }}>
+                        {testimonial.company}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+          
+          <button 
+            onClick={prevSlide} 
+            className="nav-button absolute left-4 lg:left-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-900"
+            aria-label="Previous testimonials"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          
+          <button 
+            onClick={nextSlide}
+            className="nav-button absolute right-4 lg:right-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-900"
+            aria-label="Next testimonials"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
         </motion.div>
       </div>
     </section>

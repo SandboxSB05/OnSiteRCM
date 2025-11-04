@@ -4,7 +4,7 @@ import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/onsite-logo.png";
+import logo from "@/assets/relay-logo.svg";
 
 export function CTAFooter() {
   const [email, setEmail] = useState("");
@@ -69,7 +69,7 @@ export function CTAFooter() {
             {/* Company info */}
             <div>
               <div className="mb-4">
-                <img src={logo} alt="OnSite Logo" className="h-14" />
+                <img src={logo} alt="Relay Logo" className="h-8" />
               </div>
               <p className="text-gray-400" style={{ fontSize: '0.875rem' }}>
                 The communication layer for modern contractors.

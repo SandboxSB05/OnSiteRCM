@@ -11,7 +11,7 @@ import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { register, type RegisterData } from '@/services/authService';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/onsite-logo.png';
+import logo from '@/assets/relay-logo.svg';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -144,7 +144,7 @@ export default function Register() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="flex items-center justify-center mb-4"
           >
-            <img src={logo} alt="OnSite Logo" className="h-20" />
+            <img src={logo} alt="Relay Logo" className="h-10" />
           </motion.div>
           <p className="text-muted-foreground" style={{ fontSize: '1.125rem' }}>
             Start your 14-day free trial
