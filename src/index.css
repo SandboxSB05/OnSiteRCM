@@ -31,9 +31,13 @@
   transition: all 0.2s ease-in-out;
 }
 
-.testimonial-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+.testimonial-card > div {
+  transition: all 0.2s ease-in-out;
+}
+
+.testimonial-card:hover > div {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  border-color: rgb(167 243 208);
 }
 
 /* Navigation button hover effects */

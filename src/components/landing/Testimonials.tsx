@@ -98,7 +98,7 @@ export function Testimonials() {
                   key={currentIndex + index}
                   className="w-[280px] flex-shrink-0 testimonial-card"
                 >
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 h-full flex flex-col">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 h-full flex flex-col transition-all hover:shadow-xl hover:border-emerald-200">
                     <div className="flex gap-1 mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (
                         <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
