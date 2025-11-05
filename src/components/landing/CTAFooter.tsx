@@ -4,7 +4,7 @@ import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/onsite-logo.png";
+import logo from "@/assets/RelayLogo.svg";
 
 export function CTAFooter() {
   const [email, setEmail] = useState("");
@@ -28,7 +28,7 @@ export function CTAFooter() {
             transition={{ duration: 0.6 }}
           >
             <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }} className="mb-4">
-              Get started with OnSite today
+              Get started with Relay today
             </h2>
             <p className="text-gray-400 mb-8" style={{ fontSize: '1.125rem' }}>
               Join hundreds of contractors who are already delivering better client experiences
@@ -69,7 +69,7 @@ export function CTAFooter() {
             {/* Company info */}
             <div>
               <div className="mb-4">
-                <img src={logo} alt="OnSite Logo" className="h-14" />
+                <img src={logo} alt="Relay logo" className="h-40" />
               </div>
               <p className="text-gray-400" style={{ fontSize: '0.875rem' }}>
                 The communication layer for modern contractors.
@@ -121,7 +121,7 @@ export function CTAFooter() {
           {/* Bottom bar */}
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-500" style={{ fontSize: '0.875rem' }}>
-              © 2025 OnSite. All rights reserved.
+              © 2025 Relay. All rights reserved.
             </p>
             <div className="flex gap-6 text-gray-500" style={{ fontSize: '0.875rem' }}>
               <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
@@ -134,4 +134,3 @@ export function CTAFooter() {
     </footer>
   );
 }
-

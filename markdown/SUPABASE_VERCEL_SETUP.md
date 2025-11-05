@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to set up the OnSite authentication system using Supabase for the database and Vercel for serverless API endpoints.
+This guide explains how to set up the Relay authentication system using Supabase for the database and Vercel for serverless API endpoints.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ Frontend (React) → Vercel Serverless Functions → Supabase PostgreSQL
 1. Go to https://app.supabase.com
 2. Click "New Project"
 3. Fill in:
-   - **Name**: OnSite Roofing Tracker
+   - **Name**: Relay Roofing Tracker
    - **Database Password**: (save this securely)
    - **Region**: Choose closest to your users
 4. Click "Create new project"

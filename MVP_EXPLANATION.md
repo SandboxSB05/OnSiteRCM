@@ -1,8 +1,8 @@
-# OnSite RCM - MVP Technical Explanation
+# Relay RCM - MVP Technical Explanation
 
 ## 🎯 Overview
 
-OnSite RCM is a **roofing contractor management system** that helps contractors track projects, manage daily updates, communicate with clients, and analyze project performance. This document explains how all the parts work together.
+Relay RCM is a **roofing contractor management system** that helps contractors track projects, manage daily updates, communicate with clients, and analyze project performance. This document explains how all the parts work together.
 
 ---
 

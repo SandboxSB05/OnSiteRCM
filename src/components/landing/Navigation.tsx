@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/onsite-logo.png";
+import logo from "@/assets/RelayLogo.svg";
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -13,7 +13,7 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <img src={logo} alt="OnSite Logo" className="h-16" />
+            <img src={logo} alt="Relay logo" className="h-48" />
           </div>
 
           {/* Desktop Navigation */}
@@ -84,4 +84,3 @@ export function Navigation() {
     </nav>
   );
 }
-

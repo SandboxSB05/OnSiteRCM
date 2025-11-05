@@ -1,7 +1,7 @@
 {
   "name": "onsite-api",
   "version": "1.0.0",
-  "description": "Vercel serverless API for OnSite Roofing Contractor Management",
+  "description": "Vercel serverless API for Relay Roofing Contractor Management",
   "private": true,
   "scripts": {
     "dev": "vercel dev",

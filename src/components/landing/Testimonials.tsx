@@ -3,7 +3,7 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "OnSite has completely changed how we communicate with clients. Updates are professional, automatic, and our clients love the transparency. We've seen a huge boost in satisfaction scores.",
+    quote: "Relay has completely changed how we communicate with clients. Updates are professional, automatic, and our clients love the transparency. We've seen a huge boost in satisfaction scores.",
     author: "Sarah Martinez",
     role: "Project Manager",
     company: "Elite Roofing Co.",
@@ -17,7 +17,7 @@ const testimonials = [
     rating: 5
   },
   {
-    quote: "The CRM integration is seamless. It just works. Our team spends less time on admin and more time actually building. OnSite pays for itself in saved hours alone.",
+    quote: "The CRM integration is seamless. It just works. Our team spends less time on admin and more time actually building. Relay pays for itself in saved hours alone.",
     author: "David Thompson",
     role: "Owner",
     company: "Thompson Construction",

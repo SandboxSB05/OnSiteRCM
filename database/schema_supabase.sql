@@ -1,4 +1,4 @@
--- OnSite RCM Database Schema for Supabase
+-- Relay RCM Database Schema for Supabase
 -- Optimized for Supabase PostgreSQL
 -- Date: October 15, 2025
 

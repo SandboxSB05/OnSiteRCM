@@ -1,4 +1,4 @@
--- OnSite RCM Database Schema
+-- Relay RCM Database Schema
 -- Standardized schema for production implementation
 -- Date: October 15, 2025
 

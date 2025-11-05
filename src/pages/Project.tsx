@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Project } from '@/api/supabaseEntities';
-import { DailyUpdate } from '@/api/supabaseEntities';
 import { User } from '@/api/supabaseEntities';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
@@ -16,13 +15,6 @@ interface ProjectType {
   [key: string]: any;
 }
 
-interface DailyUpdateType {
-  id: string;
-  update_date: string;
-  project_id: string;
-  [key: string]: any;
-}
-
 interface UserType {
   id: string;
   role?: string;
@@ -31,7 +23,6 @@ interface UserType {
 
 export default function ProjectPage() {
   const [project, setProject] = useState<ProjectType | null>(null);
-  const [dailyUpdates, setDailyUpdates] = useState<DailyUpdateType[]>([]);
   const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,14 +39,12 @@ export default function ProjectPage() {
     
     setIsLoading(true);
     try {
-      const [projectData, updatesData, currentUser] = await Promise.all([
+      const [projectData, currentUser] = await Promise.all([
         Project.get(projectId),
-        DailyUpdate.filter({ project_id: projectId }, "-update_date"),
         User.me()
       ]);
       
       setProject(projectData);
-      setDailyUpdates(updatesData);
       setUser(currentUser);
 
     } catch (e) {
@@ -73,12 +62,6 @@ export default function ProjectPage() {
 
   const handleProjectUpdate = (updatedProject: Partial<ProjectType>) => {
     setProject(p => p ? { ...p, ...updatedProject } : null);
-  };
-
-  const onUpdateCreated = (newUpdate: DailyUpdateType) => {
-    setDailyUpdates(prev => [newUpdate, ...prev].sort((a, b) => 
-      new Date(b.update_date).getTime() - new Date(a.update_date).getTime()
-    ));
   };
 
   if (isLoading) {
@@ -112,13 +95,10 @@ export default function ProjectPage() {
         )}
         {activeTab === 'updates' && (
           <DailyUpdatesThread 
-            project={project} 
-            initialUpdates={dailyUpdates} 
             currentUser={user}
-            onUpdateCreated={onUpdateCreated}
+            projectId={projectId || undefined}
           />
         )}
-         {activeTab === 'finances' && <div className="text-center py-12 text-gray-500">Finance tracking coming soon...</div>}
          {activeTab === 'files' && <div className="text-center py-12 text-gray-500">File management coming soon...</div>}
       </div>
     </div>
