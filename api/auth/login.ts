@@ -1,16 +1,10 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-// import { createClient } from '@supabase/supabase-js';
-// import bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import { createClient } from '@supabase/supabase-js';
 
-// Mock mode - no external dependencies required
-// const supabaseUrl = process.env.SUPABASE_URL!;
-// const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-// const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-// JWT secret for token generation
-const JWT_SECRET = process.env.JWT_SECRET || 'mock-jwt-secret-for-demo';
-const JWT_EXPIRES_IN = '24h';
+// Initialize Supabase client
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface LoginRequestBody {
   email: string;
@@ -71,57 +65,57 @@ export default async function handler(
       });
     }
 
-    // MOCK DATA - Accept any email/password combination
-    // In production, this would query a real database
-    const mockUsers: Record<string, User> = {
-      'admin@onsite.com': {
-        id: 'user-1',
-        email: 'admin@onsite.com',
-        name: 'Admin User',
-        role: 'admin',
-        company: 'OnSite Roofing'
-      },
-      'user@onsite.com': {
-        id: 'user-2',
-        email: 'user@onsite.com',
-        name: 'Regular User',
-        role: 'contractor',
-        company: 'OnSite Roofing'
-      },
-      'client@example.com': {
-        id: 'user-3',
-        email: 'client@example.com',
-        name: 'Client User',
-        role: 'client',
-        company: 'Example Corp'
-      }
-    };
-
-    // Find user or create a default one
-    const user = mockUsers[email.toLowerCase()] || {
-      id: 'user-default',
+    // Authenticate with Supabase
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase(),
-      name: 'Demo User',
-      role: 'contractor' as const,
-      company: 'Demo Company'
-    };
-
-    // Generate JWT token
-    const tokenPayload = {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      company: user.company
-    };
-
-    const token = jwt.sign(tokenPayload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN
+      password: password,
     });
 
-    // Return user data
+    if (authError || !authData.user) {
+      return res.status(401).json({
+        error: 'Authentication failed',
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Fetch user profile from users table
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (userError || !userData) {
+      return res.status(500).json({
+        error: 'Profile error',
+        message: 'Failed to fetch user profile'
+      });
+    }
+
+    // Generate token with real user data
+    const tokenPayload = {
+      userId: userData.id,
+      email: userData.email,
+      role: userData.role,
+      company: userData.company,
+      exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours from now
+    };
+    
+    // Create a simple base64 token
+    const token = `Bearer.${Buffer.from(JSON.stringify(tokenPayload)).toString('base64')}`;
+
+    // Return real user data
     return res.status(200).json({
-      user: user,
+      user: {
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        company: userData.company || ''
+      },
       token: token,
+      supabaseAccessToken: authData.session?.access_token || null,
+      supabaseRefreshToken: authData.session?.refresh_token || null,
       message: 'Login successful'
     });
 
@@ -129,7 +123,8 @@ export default async function handler(
     console.error('Login error:', error);
     return res.status(500).json({
       error: 'Internal server error',
-      message: 'An unexpected error occurred during login'
+      message: 'An unexpected error occurred during login',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }

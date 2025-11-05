@@ -1,8 +1,8 @@
-# OnSite RCM - MVP API Specification
+# Relay RCM - MVP API Specification
 
 ## Overview
 
-This document outlines the **essential API endpoints** needed for the MVP (Minimum Viable Product) of OnSite RCM. This is a streamlined version focusing only on core functionality required to get contractors tracking projects and communicating with clients.
+This document outlines the **essential API endpoints** needed for the MVP (Minimum Viable Product) of Relay RCM. This is a streamlined version focusing only on core functionality required to get contractors tracking projects and communicating with clients.
 
 **MVP Core Features:**
 

@@ -6,7 +6,7 @@ const steps = [
   {
     icon: Camera,
     title: "Capture",
-    description: "Project managers use the OnSite mobile app to capture photos, notes, and progress summaries right from the job site.",
+    description: "Project managers use the Relay mobile app to capture photos, notes, and progress summaries right from the job site.",
     color: "from-emerald-500 to-teal-600"
   },
   {

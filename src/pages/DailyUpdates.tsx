@@ -42,6 +42,15 @@ export default function CreateUpdate() {
   }, []);
 
   useEffect(() => {
+    // Check for pre-selected project from URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectParam = urlParams.get('project');
+    if (projectParam && projects.length > 0) {
+      setSelectedProjectId(projectParam);
+    }
+  }, [projects]);
+
+  useEffect(() => {
     if (selectedProjectId) {
       const project = projects.find(p => p.id === selectedProjectId);
       if (project) {
@@ -223,7 +232,7 @@ export default function CreateUpdate() {
         <div style="background-color: #f9fafb; padding: 24px; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
           <p style="margin: 0; color: #6b7280; font-size: 14px;">
             Best regards,<br/>
-            <span style="font-weight: 600; color: #1f2937;">Your OnSite Roofing Team</span>
+            <span style="font-weight: 600; color: #1f2937;">Your Relay Roofing Team</span>
           </p>
         </div>
       </div>

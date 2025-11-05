@@ -35,7 +35,7 @@ export function Integrations() {
             Integrates with your tools
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
-            OnSite connects seamlessly with the CRM platforms contractors already use
+            Relay connects seamlessly with the CRM platforms contractors already use
           </p>
         </motion.div>
 
@@ -111,7 +111,7 @@ export function Integrations() {
               </h4>
               <p className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>
                 We offer a flexible API for custom integrations. Contact our team to discuss 
-                connecting OnSite with your specific platform.
+                connecting Relay with your specific platform.
               </p>
             </motion.div>
           </motion.div>

@@ -1,4 +1,4 @@
-# Supabase Setup Guide for OnSite RCM
+# Supabase Setup Guide for Relay RCM
 
 ## Overview
 

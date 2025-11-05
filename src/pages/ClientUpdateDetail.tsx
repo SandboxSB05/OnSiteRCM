@@ -240,7 +240,7 @@ export default function ClientUpdateDetail() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Powered by OnSite | Roofing Contractor Management</p>
+          <p>Powered by Relay | Roofing Contractor Management</p>
           {project && project.client_name && (
             <p className="mt-1">For: {project.client_name}</p>
           )}

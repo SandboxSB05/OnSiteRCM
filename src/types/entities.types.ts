@@ -45,6 +45,9 @@ export interface Project {
   project_manager?: string;
   owner_user_id: string;
   
+  // Progress tracking (JSON)
+  project_progress?: Record<string, any> | null;
+  
   // Metadata
   created_date: string;
   updated_date?: string;
@@ -60,6 +63,8 @@ export interface DailyUpdate {
   update_date: string;
   work_description: string;
   ai_summary?: string;
+  project_phase?: string;
+  project_phase_progress?: number;
   photos: string[];
   author_user_id: string;
   created_date: string;

@@ -68,7 +68,7 @@ export default function MyProjects() {
       } else {
         userProjects = await Project.filter({ project_owner_id: currentUser.id });
       }
-      
+      console.log("Loaded user projects:", userProjects);
       setProjects(Array.isArray(userProjects) ? userProjects : []);
     } catch (error) {
       console.error("Error loading projects:", error);

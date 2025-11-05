@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/relay-logo.svg';
+import logo from '@/assets/RelayLogo.svg';
 
 // Import from the actual location
 import { login, type LoginCredentials } from '../services/authService';
@@ -100,25 +100,27 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md mx-auto flex flex-col items-center text-center"
       >
         {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex items-center justify-center mb-4"
-          >
-            <img src={logo} alt="Relay Logo" className="h-10" />
-          </motion.div>
-          <p className="text-muted-foreground" style={{ fontSize: '1.125rem' }}>
-            Welcome back to OnSite
-          </p>
+        <div className="w-full mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="-translate-x-6 transform">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <div className="h-36 w-60 overflow-hidden rounded-2xl flex items-center justify-center translate-x-4 md:translate-x-5">
+                  <img src={logo} alt="Relay logo" className="h-64 object-contain" />
+                </div>
+              </motion.div>
+            </div>
+          </div>
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-2xl border-2 border-gray-100">
+        <Card className="shadow-2xl border-2 border-gray-100 w-full">
           <CardHeader className="space-y-1 pb-6">
             <CardTitle className="text-2xl font-bold text-center" style={{ letterSpacing: '-0.01em' }}>
               Sign In

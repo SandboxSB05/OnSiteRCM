@@ -27,7 +27,7 @@ export function Hero() {
             </h1>
             
             <p className="mb-8 text-muted-foreground" style={{ fontSize: '1.25rem', lineHeight: 1.6 }}>
-              OnSite connects to your CRM and helps you send professional project updates 
+              Relay connects to your CRM and helps you send professional project updates 
               without leaving your workflow. Build trust through transparency.
             </p>
             
@@ -77,7 +77,7 @@ export function Hero() {
               <div className="bg-white rounded-3xl shadow-2xl p-6 border border-gray-200">
                 <img
                   src={heroImage}
-                  alt="OnSite Mobile App Interface"
+                  alt="Relay Mobile App Interface"
                   className="w-full rounded-xl"
                 />
               </div>

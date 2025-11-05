@@ -1,4 +1,4 @@
-# Vercel Serverless Functions Structure for OnSite RCM MVP
+# Vercel Serverless Functions Structure for Relay RCM MVP
 
 ## Overview
 
