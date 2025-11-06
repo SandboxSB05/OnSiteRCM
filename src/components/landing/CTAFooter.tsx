@@ -29,7 +29,7 @@ export function CTAFooter() {
             transition={{ duration: 0.6 }}
           >
             <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }} className="mb-4">
-              Get started with Relay today
+              Turn every project into your next lead.
             </h2>
             <p className="text-gray-400 mb-8" style={{ fontSize: '1.125rem' }}>
               Join hundreds of contractors who are already delivering better client experiences
