@@ -238,8 +238,12 @@ export function Integrations() {
               const isOpen = openFaq === index;
 
               return (
-                <div
+                <motion.div
                   key={faq.question}
+                  initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
+                  whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
                   className={`px-6 md:px-8 ${index !== faqs.length - 1 ? "border-b border-emerald-50" : ""}`}
                 >
                   <button
@@ -265,7 +269,7 @@ export function Integrations() {
                       {faq.answer}
                     </motion.div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </motion.div>
