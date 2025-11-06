@@ -1,4 +1,4 @@
-import { Smartphone, Link2, LayoutDashboard, BarChart3 } from "lucide-react";
+import { Smartphone, Link2, Users, ClipboardCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { ImageWithFallback } from "./ImageWithFallback";
 
@@ -6,25 +6,25 @@ const features = [
   {
     icon: Smartphone,
     title: "Mobile App",
-    description: "Capture photos, add notes, and send updates from anywhere on the job site. Works offline and syncs when connected.",
+    description: "Capture photos, record voice updates, and send progress reports instantly from the field — all tied directly to each job.",
     gradient: "from-emerald-500 to-teal-600"
   },
   {
     icon: Link2,
     title: "CRM Integration",
-    description: "Seamlessly connects with JobNimbus, Buildertrend, and other leading contractor CRMs. No double data entry.",
+    description: "Relay connects seamlessly with your CRM, logging every update, crew check-in, and change order without manual data entry.",
     gradient: "from-teal-500 to-cyan-600"
   },
   {
-    icon: LayoutDashboard,
-    title: "Client Dashboard",
-    description: "Give homeowners a beautiful portal to view all project updates, photos, and timeline in one place.",
+    icon: Users,
+    title: "Manage Crews",
+    description: "Track daily check-ins, assign tasks, and see who's on site with real-time visibility across every project.",
     gradient: "from-cyan-500 to-blue-600"
   },
   {
-    icon: BarChart3,
-    title: "Performance Analytics",
-    description: "Track communication metrics, client engagement, and team performance with detailed analytics and reporting.",
+    icon: ClipboardCheck,
+    title: "Change Orders & Approvals",
+    description: "Create, send, and approve change orders in minutes. Clients review and sign in-app for faster turnaround.",
     gradient: "from-blue-500 to-indigo-600"
   }
 ];
@@ -45,7 +45,7 @@ export function Features() {
             <span className="block">and keep projects on track</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
-            Powerful features designed specifically for contractors who care about communication
+            Powerful tools built for contractors who want visibility, speed, and less admin work.
           </p>
         </motion.div>
 
