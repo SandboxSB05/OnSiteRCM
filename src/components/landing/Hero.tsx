@@ -16,8 +16,12 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full mb-6">
-            <span style={{ fontSize: '0.875rem' }}>Trusted by 500+ contractors</span>
+          <div className="inline-block relative mb-6">
+            <div className="animate-border rounded-full p-[1px] bg-gradient-to-r from-[#000000] via-[#0066cc] to-[#000000] bg-[length:400%_400%]">
+              <div className="px-3 py-1 rounded-full bg-white">
+                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">Trusted by 500+ contractors</span>
+              </div>
+            </div>
           </div>
           
           <h1 className="mb-6" style={{ fontSize: '3.5rem', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
@@ -46,21 +50,6 @@ export function Hero() {
             </a>
           </div>
 
-          {/* Social proof */}
-          <div className="mt-12 flex items-center gap-8 justify-center">
-            <div>
-              <div style={{ fontSize: '1.875rem', fontWeight: 700 }}>98%</div>
-              <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>Client Satisfaction</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.875rem', fontWeight: 700 }}>50K+</div>
-              <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>Updates Sent</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.875rem', fontWeight: 700 }}>24/7</div>
-              <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>Support</div>
-            </div>
-          </div>
         </motion.div>
       </div>
     </section>
