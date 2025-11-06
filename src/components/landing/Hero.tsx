@@ -19,24 +19,23 @@ export function Hero() {
           <div className="inline-block relative mb-6">
             <div className="animate-border rounded-full p-[1px] bg-gradient-to-r from-[#000000] via-[#0066cc] to-[#000000] bg-[length:400%_400%]">
               <div className="px-3 py-1 rounded-full bg-white">
-                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">Trusted by 500+ contractors</span>
+                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">Trusted by contractors</span>
               </div>
             </div>
           </div>
           
-          <h1 className="mb-6" style={{ fontSize: '3.5rem', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-            Simplify communication between contractors and homeowners
+          <h1 className="mb-6" style={{ fontSize: '4.5rem', fontWeight: 550, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+            Jobsite communication
+            simplified.
           </h1>
           
           <p className="mb-8 text-muted-foreground mx-auto max-w-2xl" style={{ fontSize: '1.25rem', lineHeight: 1.6 }}>
-            OnSite connects to your CRM and helps you send professional project updates 
-            without leaving your workflow. Build trust through transparency.
+            Relay connects your crews, clients, and CRM with automated updates that keep everyone aligned.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/register">
               <Button 
-                size="lg" 
                 className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
               >
                 Book a Demo
@@ -44,7 +43,7 @@ export function Hero() {
               </Button>
             </Link>
             <a href="#features">
-              <Button size="lg" variant="outline">
+              <Button variant="outline">
                 Learn More
               </Button>
             </a>
