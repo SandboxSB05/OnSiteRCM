@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Home,
   FolderOpen, 
-  Upload, 
+  Upload,
   BarChart3, 
   Users, 
   Settings,

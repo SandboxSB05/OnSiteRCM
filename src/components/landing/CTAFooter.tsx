@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/RelayLogo.svg";
 
+
 export function CTAFooter() {
   const [email, setEmail] = useState("");
 
@@ -70,6 +71,7 @@ export function CTAFooter() {
             <div>
               <div className="mb-4">
                 <img src={logo} alt="Relay logo" className="h-40" />
+                <img src={logo} alt="Relay Logo" className="h-8" />
               </div>
               <p className="text-gray-400" style={{ fontSize: '0.875rem' }}>
                 The communication layer for modern contractors.
