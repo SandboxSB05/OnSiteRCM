@@ -24,9 +24,9 @@ export function Hero() {
             </div>
           </div>
           
-          <h1 className="mb-6" style={{ fontSize: '4.5rem', fontWeight: 550, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+          <h1 className="mb-6" style={{ fontSize: '3.5rem', fontWeight: 550, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
             Jobsite communication
-            simplified.
+            <span className="block">simplified.</span>
           </h1>
           
           <p className="mb-8 text-muted-foreground mx-auto max-w-2xl" style={{ fontSize: '1.25rem', lineHeight: 1.6 }}>
@@ -54,4 +54,3 @@ export function Hero() {
     </section>
   );
 }
-

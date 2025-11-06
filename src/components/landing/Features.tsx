@@ -40,8 +40,8 @@ export function Features() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
-            Everything you need to delight your clients
+          <h2 style={{ fontSize: '3.5rem', fontWeight: 550, letterSpacing: '-0.02em' }}>
+            Everything you need to delight your clients and keep projects on track
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
             Powerful features designed specifically for contractors who care about communication
