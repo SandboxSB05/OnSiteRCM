@@ -68,7 +68,6 @@ export function CTAFooter() {
             <div>
               <div className="mb-4">
                 <img src={logo} alt="Relay logo" className="h-40" />
-                <img src={logo} alt="Relay Logo" className="h-8" />
               </div>
               <p className="text-gray-400" style={{ fontSize: '0.875rem' }}>
                 The communication layer for modern contractors.
@@ -93,7 +92,6 @@ export function CTAFooter() {
                 <li><a href="#" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
 
@@ -103,15 +101,15 @@ export function CTAFooter() {
               <ul className="space-y-3 text-gray-400" style={{ fontSize: '0.875rem' }}>
                 <li className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
-                  <span>hello@onsite.com</span>
+                  <span>henry@relaycxp.com</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <span>(555) 123-4567</span>
+                  <span>(831) 566-8549</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 mt-0.5" />
-                  <span>San Francisco, CA</span>
+                  <span>Provo, UT</span>
                 </li>
               </ul>
             </div>
