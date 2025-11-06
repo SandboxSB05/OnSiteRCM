@@ -6,19 +6,19 @@ const steps = [
   {
     icon: Camera,
     title: "Capture",
-    description: "Project managers use the Relay mobile app to capture photos, notes, and progress summaries right from the job site.",
+    description: "Record voice updates, snap photos, and log progress right from the field. Relay keeps every detail organized in one place.",
     color: "from-emerald-500 to-teal-600"
   },
   {
     icon: RefreshCw,
     title: "Sync",
-    description: "Updates automatically sync back into your CRM (JobNimbus, Buildertrend, etc.) as activity entries, keeping your records complete.",
+    description: "Relay automatically syncs updates, photos, and check-ins into your CRM. No manual entry and no missed information.",
     color: "from-teal-500 to-cyan-600"
   },
   {
     icon: Send,
     title: "Update",
-    description: "Homeowners receive clean, branded updates through text or email, improving transparency and trust throughout the project.",
+    description: "Clients and operators receive clean progress reports and instant change order approvals that keep everyone aligned.",
     color: "from-cyan-500 to-blue-600"
   }
 ];
@@ -32,7 +32,7 @@ export function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
           <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
             How It Works
@@ -40,6 +40,7 @@ export function HowItWorks() {
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
             Three simple steps to transform how you communicate with homeowners
           </p>
+          <div className="hidden md:block mt-6 h-0.5 w-full bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 opacity-60" />
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
@@ -78,11 +79,6 @@ export function HowItWorks() {
           ))}
         </div>
 
-        {/* Connection line - desktop only */}
-        <div className="hidden md:block relative -mt-96 mb-96 pointer-events-none">
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 opacity-50"></div>
-        </div>
-
         {/* App Demo Section */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -97,4 +93,3 @@ export function HowItWorks() {
     </section>
   );
 }
-
