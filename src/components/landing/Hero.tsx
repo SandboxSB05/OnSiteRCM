@@ -19,7 +19,7 @@ export function Hero() {
           <div className="inline-block relative mb-6">
             <div className="animate-border rounded-full p-[1px] bg-gradient-to-r from-[#000000] via-[#0066cc] to-[#000000] bg-[length:400%_400%]">
               <div className="px-3 py-1 rounded-full bg-white">
-                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">Trusted by contractors</span>
+                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">Experience our interactive demo</span>
               </div>
             </div>
           </div>
