@@ -56,9 +56,6 @@ export function CTAFooter() {
               </div>
             </form>
 
-            <p className="text-gray-500" style={{ fontSize: '0.875rem' }}>
-              Free 14-day trial • No credit card required • Setup in 5 minutes
-            </p>
           </motion.div>
         </div>
       </section>
