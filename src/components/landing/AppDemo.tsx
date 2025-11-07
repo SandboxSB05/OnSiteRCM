@@ -96,7 +96,7 @@ export function AppDemo() {
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
             Try Relay in Action
           </h1>
-          <div className="space-y-4">
+          <div className="space-y-4 pt-2">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-1">
                 <Check className="w-5 h-5 text-white" />
