@@ -86,7 +86,10 @@ export function AppDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 md:py-12 px-4 flex items-center justify-center">
+    <div
+      id="interactive-demo"
+      className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 md:py-12 px-4 flex items-center justify-center"
+    >
       <div className="max-w-6xl w-full grid md:grid-cols-2 gap-8 items-start md:items-center">
         {/* Left side — Description */}
         <div className="space-y-6">

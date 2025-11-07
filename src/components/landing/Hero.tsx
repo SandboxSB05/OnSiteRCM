@@ -16,13 +16,15 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-block relative mb-6">
+          <a href="#interactive-demo" className="inline-block relative mb-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-full">
             <div className="animate-border rounded-full p-[1px] bg-gradient-to-r from-[#000000] via-[#0066cc] to-[#000000] bg-[length:400%_400%]">
-              <div className="px-3 py-1 rounded-full bg-white">
-                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">Experience our interactive demo</span>
+              <div className="px-3 py-1 rounded-full bg-white hover:bg-gray-50 transition-colors">
+                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">
+                  Experience our interactive demo
+                </span>
               </div>
             </div>
-          </div>
+          </a>
           
           <h1 className="mb-6" style={{ fontSize: '3.5rem', fontWeight: 550, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
             Jobsite communication
