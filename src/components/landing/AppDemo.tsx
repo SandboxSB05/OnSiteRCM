@@ -86,8 +86,8 @@ export function AppDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 flex items-center justify-center">
-      <div className="max-w-6xl w-full grid md:grid-cols-2 gap-8 items-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 md:py-12 px-4 flex items-center justify-center">
+      <div className="max-w-6xl w-full grid md:grid-cols-2 gap-8 items-start md:items-center">
         {/* Left side — Description */}
         <div className="space-y-6">
           <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">
@@ -127,6 +127,28 @@ export function AppDemo() {
               <div>
                 <h3>Send Update</h3>
                 <p className="text-muted-foreground">Share a clean update with your client</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-1">
+                <Check className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3>Photo Requirements</h3>
+                <p className="text-muted-foreground">
+                  Require crews to upload a set number of photos before moving to the next phase.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-1">
+                <Check className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3>Custom Phases</h3>
+                <p className="text-muted-foreground">
+                  Build your own phase structure or start from one of our pre-made templates.
+                </p>
               </div>
             </div>
           </div>
