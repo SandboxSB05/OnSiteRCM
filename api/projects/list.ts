@@ -96,7 +96,7 @@ export default async function handler(
     // Apply filters exactly like the website's Project.filter() method
     if (userId && (role === 'contractor' || role === 'admin')) {
       // For contractors/admins, get projects they own (match MyProjects.tsx)
-      query = query.eq('project_owner_id', userId);
+      query = query.eq('contractor_id', userId);
     } else if (userId && role === 'client') {
       // For clients, get projects where they are the client
       query = query.eq('client_id', userId);
@@ -162,7 +162,7 @@ export default async function handler(
     if (!projects || projects.length === 0) {
       let baseQuery = supabase.from('projects').select('*');
       if (userId && (role === 'contractor' || role === 'admin')) {
-        baseQuery = baseQuery.eq('project_owner_id', userId);
+        baseQuery = baseQuery.eq('contractor_id', userId);
       } else if (userId && role === 'client') {
         baseQuery = baseQuery.eq('client_id', userId);
       }
