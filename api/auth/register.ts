@@ -14,19 +14,20 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 interface RegisterRequestBody {
   fullName: string;
   email: string;
-  company: string;
+  companyName?: string; // Only for contractors
   phone?: string;
   password: string;
-  role?: 'admin' | 'contractor' | 'client';
+  role?: 'admin' | 'contractor' | 'crew_lead';
+  contractorId?: string; // Only for crew_leads - contractor they belong to
 }
 
 interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'contractor' | 'client';
-  company: string;
+  role: 'admin' | 'contractor' | 'crew_lead';
   phone?: string;
+  companyName?: string; // Only for contractors
 }
 
 /**
@@ -39,10 +40,11 @@ interface User {
  * {
  *   "fullName": "John Smith",
  *   "email": "john@example.com",
- *   "company": "ABC Roofing",
+ *   "companyName": "ABC Roofing", // Required for contractors
  *   "phone": "555-1234",
  *   "password": "securepassword123",
- *   "role": "contractor" // optional, defaults to contractor
+ *   "role": "contractor", // 'admin', 'contractor', or 'crew_lead'
+ *   "contractorId": "uuid" // Required for crew_leads
  * }
  * 
  * Response:
@@ -52,8 +54,8 @@ interface User {
  *     "email": "john@example.com",
  *     "name": "John Smith",
  *     "role": "contractor",
- *     "company": "ABC Roofing",
- *     "phone": "555-1234"
+ *     "phone": "555-1234",
+ *     "companyName": "ABC Roofing"
  *   },
  *   "session": { ... },
  *   "message": "Registration successful"
@@ -72,13 +74,28 @@ export default async function handler(
   }
 
   try {
-    const { fullName, email, company, phone, password, role = 'contractor' } = req.body as RegisterRequestBody;
+    const { fullName, email, companyName, phone, password, role = 'contractor', contractorId } = req.body as RegisterRequestBody;
 
     // Validate required fields
-    if (!fullName || !email || !company || !password) {
+    if (!fullName || !email || !password) {
       return res.status(400).json({
         error: 'Validation error',
-        message: 'Full name, email, company, and password are required'
+        message: 'Full name, email, and password are required'
+      });
+    }
+
+    // Validate role-specific requirements
+    if (role === 'contractor' && !companyName) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'Company name is required for contractors'
+      });
+    }
+
+    if (role === 'crew_lead' && !contractorId) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'Contractor ID is required for crew leads'
       });
     }
 
@@ -100,10 +117,10 @@ export default async function handler(
     }
 
     // Validate role
-    if (!['admin', 'contractor', 'client'].includes(role)) {
+    if (!['admin', 'contractor', 'crew_lead'].includes(role)) {
       return res.status(400).json({
         error: 'Validation error',
-        message: 'Role must be admin, contractor, or client'
+        message: 'Role must be admin, contractor, or crew_lead'
       });
     }
 
@@ -127,11 +144,11 @@ export default async function handler(
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: normalizedEmail,
       password: password,
-      email_confirm: true, // Auto-confirm email in production, you may want to send confirmation emails
+      email_confirm: true, // Auto-confirm email in production
       user_metadata: {
         full_name: fullName,
-        company: company,
-        phone: phone
+        phone: phone,
+        role: role
       }
     });
 
@@ -157,11 +174,10 @@ export default async function handler(
         id: authData.user.id,
         email: normalizedEmail,
         name: fullName,
-        company: company,
         phone: phone || null,
         role: role,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_date: new Date().toISOString(),
+        updated_date: new Date().toISOString()
       })
       .select()
       .single();
@@ -188,24 +204,80 @@ export default async function handler(
       });
     }
 
+    // Create role-specific records
+    if (role === 'contractor') {
+      const { error: contractorError } = await supabase
+        .from('contractors')
+        .insert({
+          id: authData.user.id,
+          company_name: companyName,
+          verified: false,
+          subscription_tier: 'basic',
+          created_date: new Date().toISOString(),
+          updated_date: new Date().toISOString()
+        });
+
+      if (contractorError) {
+        console.error('Contractor record creation error:', contractorError);
+        // Cleanup
+        await supabase.from('users').delete().eq('id', authData.user.id);
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        
+        return res.status(500).json({
+          error: 'Registration failed',
+          message: 'Failed to create contractor record'
+        });
+      }
+    } else if (role === 'crew_lead') {
+      const { error: crewLeadError } = await supabase
+        .from('crew_leads')
+        .insert({
+          id: authData.user.id,
+          contractor_id: contractorId,
+          status: 'pending',
+          phone: phone || null,
+          invited_at: new Date().toISOString(),
+          created_at: new Date().toISOString()
+        });
+
+      if (crewLeadError) {
+        console.error('Crew lead record creation error:', crewLeadError);
+        // Cleanup
+        await supabase.from('users').delete().eq('id', authData.user.id);
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        
+        return res.status(500).json({
+          error: 'Registration failed',
+          message: 'Failed to create crew lead record'
+        });
+      }
+    }
+
     // Create a session for the user
     const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password: password
     });
 
+    // Prepare user response
+    const userResponse: any = {
+      id: userProfile.id,
+      email: userProfile.email,
+      name: userProfile.name,
+      role: userProfile.role,
+      phone: userProfile.phone || undefined,
+    };
+
+    // Add company name for contractors
+    if (role === 'contractor') {
+      userResponse.companyName = companyName;
+    }
+
     if (sessionError || !sessionData.session) {
       console.error('Session creation error:', sessionError);
       // User is created but auto-login failed - they can login manually
       return res.status(201).json({
-        user: {
-          id: userProfile.id,
-          email: userProfile.email,
-          name: userProfile.name,
-          role: userProfile.role,
-          company: userProfile.company,
-          phone: userProfile.phone || undefined,
-        },
+        user: userResponse,
         session: null,
         message: 'Registration successful. Please log in.'
       });
@@ -213,14 +285,7 @@ export default async function handler(
 
     // Return success response
     return res.status(201).json({
-      user: {
-        id: userProfile.id,
-        email: userProfile.email,
-        name: userProfile.name,
-        role: userProfile.role,
-        company: userProfile.company,
-        phone: userProfile.phone || undefined,
-      },
+      user: userResponse,
       session: sessionData.session,
       message: 'Registration successful'
     });

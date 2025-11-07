@@ -13,9 +13,11 @@ export interface LoginCredentials {
 export interface RegisterData {
   fullName: string;
   email: string;
-  company: string;
+  companyName?: string; // Only for contractors
   phone?: string;
   password: string;
+  role?: 'admin' | 'contractor' | 'crew_lead';
+  contractorId?: string; // Only for crew_leads
 }
 
 export interface AuthResponse {
@@ -23,10 +25,9 @@ export interface AuthResponse {
     id: string;
     email: string;
     name: string;
-    role: 'admin' | 'contractor' | 'client';
-    company: string;
+    role: 'admin' | 'contractor' | 'crew_lead';
     phone?: string;
-    payment_verified?: boolean;
+    companyName?: string; // Only for contractors
   };
   session: any;
 }
@@ -35,10 +36,9 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'contractor' | 'client';
-  company: string;
+  role: 'admin' | 'contractor' | 'crew_lead';
   phone?: string;
-  payment_verified?: boolean;
+  companyName?: string; // Only for contractors
 }
 
 /**
@@ -71,6 +71,18 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       throw new Error('Failed to fetch user profile');
     }
 
+    // Fetch contractor data if user is a contractor
+    let companyName = undefined;
+    if (userData.role === 'contractor') {
+      const { data: contractorData } = await supabase
+        .from('contractors')
+        .select('company_name')
+        .eq('id', userData.id)
+        .single();
+      
+      companyName = contractorData?.company_name;
+    }
+
     // Update last login
     await supabase
       .from('users')
@@ -83,9 +95,8 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
         email: userData.email,
         name: userData.name,
         role: userData.role,
-        company: userData.company || '',
         phone: userData.phone || undefined,
-        payment_verified: userData.payment_verified || false,
+        companyName: companyName,
       },
       session: authData.session,
     };
@@ -109,10 +120,11 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
       body: JSON.stringify({
         fullName: userData.fullName,
         email: userData.email,
-        company: userData.company,
+        companyName: userData.companyName,
         phone: userData.phone,
         password: userData.password,
-        role: 'contractor', // Default role
+        role: userData.role || 'contractor', // Default role
+        contractorId: userData.contractorId,
       }),
     });
 
@@ -136,9 +148,8 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
         email: data.user.email,
         name: data.user.name,
         role: data.user.role,
-        company: data.user.company,
         phone: data.user.phone,
-        payment_verified: data.user.payment_verified || false,
+        companyName: data.user.companyName,
       },
       session: data.session,
     };
@@ -184,14 +195,25 @@ export const verifySession = async (): Promise<User> => {
       throw new Error('Failed to fetch user profile');
     }
 
+    // Fetch contractor data if user is a contractor
+    let companyName = undefined;
+    if (userData.role === 'contractor') {
+      const { data: contractorData } = await supabase
+        .from('contractors')
+        .select('company_name')
+        .eq('id', userData.id)
+        .single();
+      
+      companyName = contractorData?.company_name;
+    }
+
     return {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       role: userData.role,
-      company: userData.company || '',
       phone: userData.phone || undefined,
-      payment_verified: userData.payment_verified || false,
+      companyName: companyName,
     };
   } catch (error: any) {
     throw new Error(error.message || 'Session verification failed');
@@ -215,14 +237,25 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
     if (!userData) return null;
 
+    // Fetch contractor data if user is a contractor
+    let companyName = undefined;
+    if (userData.role === 'contractor') {
+      const { data: contractorData } = await supabase
+        .from('contractors')
+        .select('company_name')
+        .eq('id', userData.id)
+        .single();
+      
+      companyName = contractorData?.company_name;
+    }
+
     return {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       role: userData.role,
-      company: userData.company || '',
       phone: userData.phone || undefined,
-      payment_verified: userData.payment_verified || false,
+      companyName: companyName,
     };
   } catch (error) {
     console.error('Error getting current user:', error);
