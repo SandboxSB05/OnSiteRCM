@@ -1,21 +1,15 @@
--- Create View with JOIN to get Client Information from Users Table
+-- Create View for Projects (Updated for New Schema)
 -- Run this in your Supabase SQL Editor
--- Date: October 17, 2025
+-- Date: November 6, 2025
 
 -- =========================================================================
 -- CREATE VIEW: projects_with_clients
--- Joins projects table with users table to include client information
+-- Note: In the current schema, client info is stored directly in projects table
+-- This view is created for compatibility with existing code
 -- =========================================================================
 
 CREATE OR REPLACE VIEW projects_with_clients AS
-SELECT 
-  p.*,
-  -- Client information from users table
-  u.name AS client_name,
-  u.email AS client_email,
-  u.phone AS client_phone
-FROM projects p
-LEFT JOIN users u ON p.client_id = u.id;
+SELECT * FROM projects;
 
 -- =========================================================================
 -- GRANT SELECT PERMISSION

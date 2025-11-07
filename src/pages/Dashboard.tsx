@@ -17,7 +17,7 @@ interface ProjectType {
   id: string;
   project_status?: string;
   project_budget?: number;
-  project_owner_id?: string;
+  contractor_id?: string;
   estimated_end_date?: string;
   estimated_completion_date?: string;
   [key: string]: any;
@@ -62,7 +62,7 @@ export default function Dashboard() {
       } else {
         // Contractor sees only their projects and updates
         console.log('Loading projects for contractor:', currentUser.id);
-        projectsData = await Project.filter({ project_owner_id: currentUser.id });
+        projectsData = await Project.filter({ contractor_id: currentUser.id });
         console.log('Contractor projects loaded:', projectsData.length);
         const projectIds = projectsData.map((p: ProjectType) => p.id);
         

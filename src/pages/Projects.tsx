@@ -104,10 +104,10 @@ export default function Projects() {
       if (editingProject) {
         await Project.update(editingProject.id, validProjectData);
       } else {
-        // Add project_owner_id when creating new project
+        // Add contractor_id when creating new project
         const projectWithOwner = {
           ...validProjectData,
-          project_owner_id: user.id
+          contractor_id: user.id
         };
         await Project.create(projectWithOwner);
       }

@@ -62,7 +62,7 @@ export default async function handler(
       order,
       limit,
       id,
-      project_owner_id,
+      contractor_id,
       client_id,
       project_status,
       project_type,
@@ -77,7 +77,7 @@ export default async function handler(
     const normalizedLimit = normalizeParam(limit);
     const filters = {
       id: normalizeParam(id),
-      project_owner_id: normalizeParam(project_owner_id),
+      contractor_id: normalizeParam(contractor_id),
       client_id: normalizeParam(client_id),
       project_status: normalizeParam(project_status),
       project_type: normalizeParam(project_type),

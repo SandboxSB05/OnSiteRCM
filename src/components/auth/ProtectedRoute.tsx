@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: Array<'admin' | 'contractor' | 'client'>;
+  allowedRoles?: Array<'admin' | 'contractor' | 'crew_lead'>;
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
@@ -34,15 +34,16 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // PAYMENT LOCK COMMENTED OUT - Allow all authenticated users
   // Check if user has verified payment (except for the payment-required page itself)
-  if (!user.payment_verified && location.pathname !== '/payment-required') {
-    return <Navigate to="/payment-required" replace />;
-  }
+  // if (!user.payment_verified && location.pathname !== '/payment-required') {
+  //   return <Navigate to="/payment-required" replace />;
+  // }
 
   // Check role-based access if roles are specified
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirect to appropriate page based on user role
-    if (user.role === 'client') {
+    if (user.role === 'crew_lead') {
       return <Navigate to="/MyProjects" replace />;
     }
     return <Navigate to="/Dashboard" replace />;
