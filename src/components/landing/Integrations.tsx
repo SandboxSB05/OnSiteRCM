@@ -56,11 +56,11 @@ export function Integrations() {
 
         {/* CTA card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-12 mb-12 text-white text-center"
+          initial={{ opacity: 0, y: 50, scale: 0.97 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: false, amount: 0.35 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-12 mb-12 text-white text-center shadow-[0_25px_60px_-30px_rgba(16,185,129,0.75)]"
         >
           <h3 className="mb-4" style={{ fontSize: "1.875rem", fontWeight: 700 }}>
             Let’s build your integration together
@@ -77,18 +77,25 @@ export function Integrations() {
         <div className="grid lg:grid-cols-2 gap-12 items-stretch">
           {/* How it works */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 border border-gray-200 flex flex-col"
+            initial={{ opacity: 0, y: 45, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.65, ease: "easeOut" }}
+            className="relative rounded-2xl p-8 border-2 border-emerald-200 bg-gradient-to-br from-gray-50 to-white flex flex-col shadow-[0_25px_60px_-35px_rgba(16,185,129,0.65)]"
           >
             <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
               How we build it
             </h3>
             <div className="space-y-4 flex-1">
               {integrationFeatures.map((feature, index) => (
-                <div key={index} className="flex items-start gap-4">
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
+                  className="flex items-start gap-4"
+                >
                   <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
                     <feature.icon className="w-5 h-5 text-emerald-600" />
                   </div>
@@ -100,18 +107,18 @@ export function Integrations() {
                       {feature.description}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
 
           {/* Benefits */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 flex flex-col"
+            initial={{ opacity: 0, y: 45, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.65, delay: 0.1, ease: "easeOut" }}
+            className="relative bg-white rounded-2xl p-8 border-2 border-emerald-200 flex flex-col shadow-[0_25px_60px_-35px_rgba(16,185,129,0.65)]"
           >
             <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
               What you get
@@ -121,10 +128,10 @@ export function Integrations() {
               {benefits.map((benefit, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
                   className="flex items-start gap-3"
                 >
                   <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -160,4 +167,3 @@ export function Integrations() {
     </section>
   );
 }
-
