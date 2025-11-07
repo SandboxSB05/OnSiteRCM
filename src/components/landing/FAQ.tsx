@@ -56,7 +56,7 @@ export function FAQ() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: false, amount: 0.4 }}
         transition={{ duration: 0.6 }}
         className="text-center mb-12"
       >
@@ -83,7 +83,7 @@ export function FAQ() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: false, amount: 0.4 }}
         transition={{ duration: 0.6 }}
         className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-[26px] border border-emerald-100 shadow-[0_20px_60px_-30px_rgba(15,118,110,0.45)] max-w-4xl mx-auto"
       >
@@ -95,7 +95,7 @@ export function FAQ() {
               key={faq.question}
               initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: false, margin: "-50px", amount: 0.4 }}
               transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
               className={`px-6 md:px-8 ${index !== faqs.length - 1 ? "border-b border-emerald-50" : ""}`}
             >

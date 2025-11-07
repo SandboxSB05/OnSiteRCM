@@ -38,7 +38,7 @@ export function Integrations() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, amount: 0.35 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -92,7 +92,7 @@ export function Integrations() {
                   key={feature.title}
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
+                  viewport={{ once: false, amount: 0.3 }}
                   transition={{ duration: 0.35, delay: index * 0.08 }}
                   className="flex items-start gap-4"
                 >
@@ -130,7 +130,7 @@ export function Integrations() {
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
+                  viewport={{ once: false, amount: 0.3 }}
                   transition={{ duration: 0.35, delay: index * 0.08 }}
                   className="flex items-start gap-3"
                 >
