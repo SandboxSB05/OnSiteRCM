@@ -96,11 +96,6 @@ export function AppDemo() {
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
             Try Relay in Action
           </h1>
-          <p className="text-muted-foreground text-lg">
-            Record a quick update, add photos, include an unexpected cost, and send a clean
-            progress update.
-          </p>
-
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-1">
