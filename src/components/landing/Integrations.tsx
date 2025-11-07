@@ -7,27 +7,27 @@ import { FAQ } from "./FAQ";
 const integrationFeatures = [
   {
     icon: Code2,
-    title: "Custom Built",
-    description: "We build the exact integration your team needs, no generic solutions."
-  },
-  {
-    icon: Zap,
-    title: "Fast Deployment",
-    description: "Most integrations are live within 2 to 4 weeks of partnership kickoff."
+    title: "Integration Ready",
+    description: "Relay is built on a flexible API that makes connecting to CRMs simple when the time comes."
   },
   {
     icon: Users,
-    title: "White Glove Setup",
-    description: "Our team handles the integration and testing process with you."
+    title: "Collaborative Setup",
+    description: "We work with your CRM provider and your team to plan the right connection flow."
+  },
+  {
+    icon: Zap,
+    title: "White Glove Support",
+    description: "Our team helps configure Relay for your specific processes and reporting needs."
   }
 ];
 
 const benefits = [
-  "Two way sync with your CRM",
-  "Zero duplicate data entry",
-  "Updates appear as CRM activities",
-  "Preserve your existing workflow",
-  "Ongoing support and maintenance"
+  "Reduce double data entry",
+  "Keep your CRM as the source of truth",
+  "Streamline field updates and approvals",
+  "Maintain visibility across teams",
+  "Integration-ready platform and ongoing support"
 ];
 
 export function Integrations() {
@@ -43,14 +43,14 @@ export function Integrations() {
           className="text-center mb-16"
         >
           <h2 style={{ fontSize: "2.5rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
-            Built for Your CRM
+            Built to connect with your CRM
           </h2>
           <p
             className="mt-4 text-muted-foreground max-w-2xl mx-auto"
             style={{ fontSize: "1.125rem" }}
           >
-            We build custom integrations tailored to your tech stack. Work with us to connect
-            Relay with your existing tools.
+            Relay is designed to connect with the tools your team already uses.
+            We collaborate with your CRM provider to make setup seamless when you’re ready to integrate.
           </p>
         </motion.div>
 
@@ -66,11 +66,11 @@ export function Integrations() {
             Let’s build your integration together
           </h3>
           <p className="max-w-2xl mx-auto mb-8 opacity-90" style={{ fontSize: "1.125rem" }}>
-            We partner with contractors to build the integration they need. No off the shelf
-            compromises, just a solution that fits your workflow.
+            We partner with contractors to design the best way Relay fits into your workflow. 
+            Whether you use JobNimbus, Buildertrend, or another CRM, our platform is built to connect when you are.
           </p>
           <button className="px-8 py-4 bg-white text-emerald-600 rounded-xl hover:bg-gray-50 transition-colors shadow-lg">
-            Schedule integration call
+            Talk with our team
           </button>
         </motion.div>
 
