@@ -1,82 +1,105 @@
-import { Camera, Mic, X, Check } from "lucide-react";
+import {Camera, Mic, X, Check, Home, FileText, User, ArrowLeft, Image as ImageIcon,} from "lucide-react";
 import { useState } from "react";
 import { Slider } from "../ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export function AppDemo() {
   const [progress, setProgress] = useState(75);
   const [photos, setPhotos] = useState<Array<{ id: number; placeholder: boolean }>>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDone, setRecordingDone] = useState(false);
-  const [textContent, setTextContent] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [textContent, setTextContent] = useState(
+    "Completed framing on west wall. Starting electrical rough-in tomorrow."
+  );
+  const [progressPhase, setProgressPhase] = useState("inspection");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const tags = [
-    { id: "schedule", label: "On Schedule", color: "bg-blue-100 text-blue-700" },
-    { id: "weather", label: "Good Weather", color: "bg-green-100 text-green-700" },
-    { id: "team", label: "Team Effort", color: "bg-purple-100 text-purple-700" }
-  ];
+  // Add Unexpected Cost flow (separate screen)
+  const [showCostScreen, setShowCostScreen] = useState(false);
+  const [costAmount, setCostAmount] = useState("");
+  const [costCategory, setCostCategory] = useState("additional-materials");
+  const [costDescription, setCostDescription] = useState("");
+  const [costPhotos, setCostPhotos] = useState<Array<{ id: number; placeholder: boolean }>>([]);
 
+  // --- handlers (kept same structure) ---
   const handleVoiceRecord = () => {
     setIsRecording(true);
     setRecordingDone(false);
-    
-    // Simulate recording for 2 seconds
     setTimeout(() => {
       setIsRecording(false);
       setRecordingDone(true);
-      setTextContent("Completed west section of the roof today. All shingles installed and looking great. Moving to north side tomorrow morning. Weather looking good for the next few days.");
+      if (!textContent) {
+        setTextContent(
+          "Completed framing on west wall. Starting electrical rough-in tomorrow."
+        );
+      }
     }, 2000);
   };
 
   const handlePhotoUpload = () => {
-    if (photos.length < 2) {
+    if (photos.length < 3) {
       setPhotos([...photos, { id: Date.now(), placeholder: true }]);
     }
   };
 
   const removePhoto = (id: number) => {
-    setPhotos(photos.filter(p => p.id !== id));
-  };
-
-  const toggleTag = (tagId: string) => {
-    if (selectedTags.includes(tagId)) {
-      setSelectedTags(selectedTags.filter(id => id !== tagId));
-    } else {
-      setSelectedTags([...selectedTags, tagId]);
-    }
+    setPhotos(photos.filter((p) => p.id !== id));
   };
 
   const handleSendUpdate = () => {
     setShowSuccess(true);
     setTimeout(() => {
-      // Reset demo
+      // reset demo
       setShowSuccess(false);
       setProgress(75);
       setPhotos([]);
       setTextContent("");
-      setSelectedTags([]);
       setRecordingDone(false);
-    }, 3000);
+      setProgressPhase("inspection");
+    }, 2000);
+  };
+
+  const handleAddCost = () => setShowCostScreen(true);
+  const handleBackFromCost = () => setShowCostScreen(false);
+
+  const handleCostPhotoUpload = () => {
+    if (costPhotos.length < 2) {
+      setCostPhotos([...costPhotos, { id: Date.now(), placeholder: true }]);
+    }
+  };
+
+  const handleSubmitCost = () => {
+    // simulate submit
+    setTimeout(() => {
+      setShowCostScreen(false);
+      setCostAmount("");
+      setCostDescription("");
+      setCostPhotos([]);
+      setCostCategory("additional-materials");
+    }, 500);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 flex items-center justify-center">
       <div className="max-w-6xl w-full grid md:grid-cols-2 gap-8 items-center">
-        {/* Left side - Description */}
+        {/* Left side — Description */}
         <div className="space-y-6">
-          <div>
-            <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full mb-4">
-              Interactive Demo
-            </span>
-            <h1 className="mb-4">
-              Try Relay in Action
-            </h1>
-            <p className="text-muted-foreground" style={{ fontSize: '1.125rem' }}>
-              Experience how easy it is to send professional updates to homeowners. 
-              Try the voice-to-text feature, add photos, and send a complete progress update.
-            </p>
-          </div>
+          <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+            Interactive Demo
+          </span>
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+            Try Relay in Action
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Record a quick update, add photos, include an unexpected cost, and send a clean
+            progress update.
+          </p>
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
@@ -84,8 +107,8 @@ export function AppDemo() {
                 <Check className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3>Voice-to-Text</h3>
-                <p className="text-muted-foreground">Click the microphone to record your update</p>
+                <h3>Voice to Text</h3>
+                <p className="text-muted-foreground">Tap the mic to record your update</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -102,166 +125,270 @@ export function AppDemo() {
                 <Check className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3>Update Client</h3>
-                <p className="text-muted-foreground">Easily update your client</p>
+                <h3>Send Update</h3>
+                <p className="text-muted-foreground">Share a clean update with your client</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right side - Phone mockup */}
+        {/* Right side — Phone mockup */}
         <div className="relative">
           {/* Phone frame */}
           <div className="mx-auto w-[340px] h-[700px] bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
-            <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative">
-              {/* Status bar */}
-              <div className="h-6 bg-gradient-to-r from-blue-500 to-teal-400" />
-
-              {/* App content */}
-              <div className="h-full overflow-y-auto pb-20">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-blue-500 to-teal-400 px-5 pt-2 pb-6 text-white">
-                  <h2 className="text-xl">Add Update</h2>
-                  <p className="text-sm opacity-90">Wilson Residence - New Roof Installation</p>
-                </div>
-
-                <div className="px-5 py-4 space-y-6">
-                  {/* Progress */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-700">Update Progress</span>
-                      <span className="text-lg text-teal-600">{progress}%</span>
+            <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative flex flex-col">
+              {/* App content (scroll area) */}
+              <div className="flex-1 overflow-y-auto pb-16">
+                {!showCostScreen ? (
+                  <>
+                    {/* Header — teal gradient like new screen */}
+                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 pt-5 pb-6 text-white">
+                      <h2 className="text-2xl mb-1">Add Update</h2>
+                      <p className="text-sm opacity-90">Wilson Residence - New Roof Installation</p>
                     </div>
-                    <input
-                      type="range"
-                      value={progress}
-                      onChange={(e) => setProgress(parseInt(e.target.value))}
-                      max={100}
-                      min={0}
-                      step={1}
-                      className="relative w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-blue-500/50 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-20"
-                      style={{
-                        background: `linear-gradient(to right, 
-                          #3b82f6 0%, 
-                          #14b8a6 ${progress}%, 
-                          #e5e7eb ${progress}%, 
-                          #e5e7eb 100%)`
-                      }}
-                    />
-                    <p className="text-xs text-gray-500 mt-2">Phase: New Roof Installation</p>
-                  </div>
 
-                  {/* Text input */}
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-2">
-                      What did you get done today?
-                    </label>
-                    <div className="relative">
-                      <textarea
-                        value={textContent}
-                        onChange={(e) => setTextContent(e.target.value)}
-                        placeholder="Tap the mic to record your update..."
-                        className="w-full h-32 px-3 py-2 pr-12 border border-gray-300 rounded-lg resize-none text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      />
-                      <button
-                        onClick={handleVoiceRecord}
-                        disabled={isRecording}
-                        className={`absolute right-2 bottom-2 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                          isRecording 
-                            ? "bg-red-500 animate-pulse" 
-                            : recordingDone
-                            ? "bg-green-500"
-                            : "bg-teal-500 hover:bg-teal-600"
-                        }`}
-                      >
-                        <Mic className="w-5 h-5 text-white" />
-                      </button>
-                    </div>
-                    <p className="text-xs text-teal-600 mt-1 flex items-center gap-1">
-                      <Mic className="w-3 h-3" />
-                      Voice to text enabled · Just tap and speak
-                    </p>
-                  </div>
+                    {/* Body */}
+                    <div className="px-5 py-4 space-y-5">
+                      {/* Progress Phase */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">Progress Phase</label>
+                        <Select value={progressPhase} onValueChange={setProgressPhase}>
+                          <SelectTrigger className="w-full bg-white border-gray-300 rounded-2xl">
+                            <SelectValue placeholder="Select phase" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="inspection">Inspection &amp; Planning</SelectItem>
+                            <SelectItem value="foundation">Foundation</SelectItem>
+                            <SelectItem value="framing">Framing</SelectItem>
+                            <SelectItem value="roofing">Roofing</SelectItem>
+                            <SelectItem value="finishing">Finishing</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  {/* Photos */}
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-2">
-                      Add Photos
-                    </label>
-                    <div className="flex gap-3">
-                      {/* Add photo button */}
-                      {photos.length < 2 && (
-                        <button
-                          onClick={handlePhotoUpload}
-                          className="w-24 h-24 border-2 border-dashed border-teal-300 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-teal-500 hover:bg-teal-50 transition-colors"
-                        >
-                          <Camera className="w-6 h-6 text-teal-500" />
-                          <span className="text-xs text-teal-600">Take Photo</span>
-                        </button>
-                      )}
-                      
-                      {/* Photo thumbnails */}
-                      {photos.map(photo => (
-                        <div key={photo.id} className="relative w-24 h-24 bg-teal-100 rounded-lg">
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Camera className="w-8 h-8 text-teal-400" />
-                          </div>
+                      {/* Phase Completion */}
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-gray-700">Phase Completion</span>
+                          <span className="text-lg text-emerald-600">{progress}%</span>
+                        </div>
+                        <Slider
+                          value={[progress]}
+                          onValueChange={(value) => setProgress(value[0] ?? 0)}
+                          max={100}
+                          step={1}
+                          className="w-full [&_[role=slider]]:bg-emerald-500 [&_[role=slider]]:border-emerald-500"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>0%</span>
+                          <span>50%</span>
+                          <span>100%</span>
+                        </div>
+                      </div>
+
+                      {/* Update Description */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">Update Description</label>
+                        <div className="relative">
+                          <textarea
+                            value={textContent}
+                            onChange={(e) => setTextContent(e.target.value)}
+                            placeholder="Completed framing on west wall. Starting electrical rough-in tomorrow."
+                            className="w-full h-28 px-3 py-2 pr-12 border border-gray-300 rounded-2xl resize-none text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
                           <button
-                            onClick={() => removePhoto(photo.id)}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600"
+                            onClick={handleVoiceRecord}
+                            disabled={isRecording}
+                            className={`absolute right-2 bottom-2 w-10 h-10 rounded-full flex items-center justify-center transition-all
+                              ${
+                                isRecording
+                                  ? "bg-red-500 animate-pulse"
+                                  : recordingDone
+                                  ? "bg-green-500"
+                                  : "bg-emerald-500 hover:bg-emerald-600"
+                              }`}
+                            aria-label="Record voice"
                           >
-                            <X className="w-4 h-4 text-white" />
+                            <Mic className="w-5 h-5 text-white" />
                           </button>
                         </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                      📸 Photos help clients see your progress
-                    </p>
-                  </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Voice recording makes updates even faster
+                        </p>
+                      </div>
 
-                  {/* Tags */}
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-2">
-                      Quick Tags (Optional)
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map(tag => (
+                      {/* Unexpected Extra Cost */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">
+                          Unexpected Extra Cost (Optional)
+                        </label>
                         <button
-                          key={tag.id}
-                          onClick={() => toggleTag(tag.id)}
-                          className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
-                            selectedTags.includes(tag.id)
-                              ? tag.color
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
+                          onClick={handleAddCost}
+                          className="w-full bg-emerald-600 text-white py-3 rounded-2xl hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                         >
-                          {tag.label}
+                          <span className="text-lg">$</span>
+                          <span className="font-medium">Add Unexpected Cost</span>
                         </button>
-                      ))}
+                        <p className="text-xs text-gray-500 mt-1">
+                          Add any unexpected costs discovered during this phase
+                        </p>
+                      </div>
+
+                      {/* Photos (3 slots) */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">Photos</label>
+                        <div className="flex gap-3">
+                          {/* Add photo button */}
+                          {photos.length < 3 && (
+                            <button
+                              onClick={handlePhotoUpload}
+                              className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center hover:border-emerald-500 hover:bg-emerald-50 transition-colors bg-white"
+                              aria-label="Add photo"
+                            >
+                              <Camera className="w-6 h-6 text-gray-400" />
+                            </button>
+                          )}
+
+                          {/* Photo thumbnails */}
+                          {photos.map((photo) => (
+                            <div
+                              key={photo.id}
+                              className="relative w-20 h-20 bg-gray-200 rounded-2xl grid place-items-center"
+                            >
+                              <ImageIcon className="w-6 h-6 text-gray-500" />
+                              <button
+                                onClick={() => removePhoto(photo.id)}
+                                className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600"
+                                aria-label="Remove photo"
+                              >
+                                <X className="w-3 h-3 text-white" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Send button */}
+                      <button
+                        onClick={handleSendUpdate}
+                        disabled={!textContent && photos.length === 0}
+                        className="w-full bg-emerald-600 text-white py-3.5 rounded-2xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-center"
+                      >
+                        Send Update
+                      </button>
                     </div>
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Add Unexpected Cost Screen */}
+                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 pt-5 pb-6 text-white">
+                      <button
+                        onClick={handleBackFromCost}
+                        className="flex items-center gap-2 mb-4 hover:opacity-90 transition-opacity"
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span>Back</span>
+                      </button>
+                      <h2 className="text-2xl mb-1">Add Unexpected Cost</h2>
+                      <p className="text-sm opacity-90">Test</p>
+                    </div>
 
-                  {/* Notification info */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800 flex items-start gap-2">
-                      <span className="text-lg">ℹ️</span>
-                      <span>
-                        <strong>Client will be notified</strong><br />
-                        Sarah Wilson will receive an SMS and email update immediately
-                      </span>
-                    </p>
-                  </div>
+                    <div className="px-5 py-4 space-y-5">
+                      {/* Amount */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">Cost Amount</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                          <input
+                            type="number"
+                            value={costAmount}
+                            onChange={(e) => setCostAmount(e.target.value)}
+                            placeholder="0.00"
+                            className="w-full pl-8 pr-3 py-3 border border-gray-300 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+                        </div>
+                      </div>
 
-                  {/* Send button */}
-                  <button
-                    onClick={handleSendUpdate}
-                    disabled={!textContent && photos.length === 0}
-                    className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-3 rounded-lg hover:from-blue-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                  >
-                    <Check className="w-5 h-5" />
-                    Send Update to Client
-                  </button>
+                      {/* Category */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">Cost Category</label>
+                        <Select value={costCategory} onValueChange={setCostCategory}>
+                          <SelectTrigger className="w-full bg-white border-gray-300 rounded-2xl">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="additional-materials">Additional Materials</SelectItem>
+                            <SelectItem value="labor">Labor</SelectItem>
+                            <SelectItem value="equipment">Equipment</SelectItem>
+                            <SelectItem value="permits">Permits</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">Description</label>
+                        <textarea
+                          value={costDescription}
+                          onChange={(e) => setCostDescription(e.target.value)}
+                          placeholder="Describe the unexpected cost"
+                          className="w-full h-28 px-3 py-2 border border-gray-300 rounded-2xl resize-none text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+
+                      {/* Photo evidence */}
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-2">Photo Evidence</label>
+                        <div className="flex gap-3">
+                          {costPhotos.length < 2 && (
+                            <button
+                              onClick={handleCostPhotoUpload}
+                              className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center hover:border-emerald-500 hover:bg-emerald-50 transition-colors bg-white"
+                            >
+                              <Camera className="w-6 h-6 text-emerald-500" />
+                            </button>
+                          )}
+                          {costPhotos.length < 2 && (
+                            <button
+                              onClick={handleCostPhotoUpload}
+                              className="w-20 h-20 bg-gray-200 rounded-2xl grid place-items-center hover:bg-gray-300 transition-colors"
+                            >
+                              <ImageIcon className="w-6 h-6 text-gray-500" />
+                            </button>
+                          )}
+                          {costPhotos.map((p) => (
+                            <div key={p.id} className="w-20 h-20 bg-gray-200 rounded-2xl grid place-items-center">
+                              <ImageIcon className="w-6 h-6 text-gray-500" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={handleSubmitCost}
+                        className="w-full bg-emerald-600 text-white py-3.5 rounded-2xl hover:bg-emerald-700 transition-all text-center"
+                      >
+                        Submit Cost Request
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Bottom Navigation (inside phone chrome) */}
+              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-3 flex justify-around items-center">
+                <div className="flex flex-col items-center gap-1 text-gray-400">
+                  <Home className="w-5 h-5" />
+                  <span className="text-xs">Projects</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 text-emerald-600">
+                  <FileText className="w-5 h-5" />
+                  <span className="text-xs">Add Update</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 text-gray-400">
+                  <User className="w-5 h-5" />
+                  <span className="text-xs">Profile</span>
                 </div>
               </div>
             </div>
@@ -269,13 +396,13 @@ export function AppDemo() {
 
           {/* Success overlay */}
           {showSuccess && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-[3rem]">
-              <div className="bg-white rounded-2xl p-8 mx-8 text-center space-y-4 animate-in fade-in">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-[3rem]">
+              <div className="bg-white rounded-2xl p-8 mx-8 text-center space-y-4">
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto">
                   <Check className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-2xl text-gray-900">Update Sent!</h3>
-                <p className="text-gray-600">Sarah Wilson has been notified</p>
+                <p className="text-gray-600">Your client has been notified</p>
               </div>
             </div>
           )}
@@ -284,3 +411,4 @@ export function AppDemo() {
     </div>
   );
 }
+
