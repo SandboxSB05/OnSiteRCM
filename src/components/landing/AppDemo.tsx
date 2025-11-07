@@ -224,10 +224,10 @@ export function AppDemo() {
                         </label>
                         <button
                           onClick={handleAddCost}
-                          className="w-full bg-emerald-600 text-white py-3 rounded-2xl hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                          className="w-full bg-gradient-to-r from-orange-400 to-amber-500 text-white py-3 rounded-2xl hover:from-orange-500 hover:to-amber-600 transition-colors flex items-center justify-center gap-2"
                         >
                           <span className="text-lg">$</span>
-                          <span className="font-medium">Add Unexpected Cost</span>
+                          <span className="font-medium">Add Change Order</span>
                         </button>
                         <p className="text-xs text-gray-500 mt-1">
                           Add any unexpected costs discovered during this phase
@@ -411,4 +411,3 @@ export function AppDemo() {
     </div>
   );
 }
-
