@@ -270,48 +270,11 @@ ALTER TABLE project_check_ins ENABLE ROW LEVEL SECURITY;
 -- USERS TABLE POLICIES
 -- =========================================================================
 
--- Admins can see all users
-CREATE POLICY users_admin_all ON users
-  FOR ALL
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM users u
-      WHERE u.id = auth.uid()
-      AND u.role = 'admin'
-    )
-  );
-
--- Contractors can see themselves, their crew leads, and associated users
-CREATE POLICY users_contractor_view ON users
+-- Any authenticated user can view their own record
+CREATE POLICY users_view_own ON users
   FOR SELECT
   TO authenticated
-  USING (
-    id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM contractors c
-      WHERE c.id = auth.uid()
-      AND (
-        -- Can see their crew leads
-        users.id IN (
-          SELECT cl.id FROM crew_leads cl WHERE cl.contractor_id = c.id
-        )
-      )
-    )
-  );
-
--- Crew leads can see themselves and their contractor
-CREATE POLICY users_crew_lead_view ON users
-  FOR SELECT
-  TO authenticated
-  USING (
-    id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM crew_leads cl
-      WHERE cl.id = auth.uid()
-      AND users.id = cl.contractor_id
-    )
-  );
+  USING (id = auth.uid());
 
 -- Users can update their own record
 CREATE POLICY users_update_own ON users

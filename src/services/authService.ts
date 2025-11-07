@@ -43,6 +43,7 @@ export interface User {
 
 /**
  * Login user with Supabase Auth
+ * Note: Requires RLS policy 'users_view_own' to allow users to read their own record
  */
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
@@ -56,38 +57,55 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       throw new Error(authError.message || 'Invalid email or password');
     }
 
-    if (!authData.user) {
+    if (!authData.user || !authData.session) {
       throw new Error('No user data returned');
     }
 
+    // Wait a moment for the session to be fully established
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     // Fetch user profile from public.users table
+    // This requires the 'users_view_own' RLS policy to be in place
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('id', authData.user.id)
       .single();
 
-    if (userError || !userData) {
-      throw new Error('Failed to fetch user profile');
+    if (userError) {
+      console.error('Error fetching user profile:', userError);
+      throw new Error(`Failed to fetch user profile: ${userError.message}`);
+    }
+
+    if (!userData) {
+      throw new Error('No user profile found');
     }
 
     // Fetch contractor data if user is a contractor
     let companyName = undefined;
     if (userData.role === 'contractor') {
-      const { data: contractorData } = await supabase
+      const { data: contractorData, error: contractorError } = await supabase
         .from('contractors')
         .select('company_name')
         .eq('id', userData.id)
         .single();
       
+      if (contractorError) {
+        console.error('Error fetching contractor data:', contractorError);
+      }
+      
       companyName = contractorData?.company_name;
     }
 
     // Update last login
-    await supabase
+    const { error: updateError } = await supabase
       .from('users')
       .update({ last_login: new Date().toISOString() })
       .eq('id', userData.id);
+
+    if (updateError) {
+      console.error('Error updating last login:', updateError);
+    }
 
     return {
       user: {
@@ -101,6 +119,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       session: authData.session,
     };
   } catch (error: any) {
+    console.error('Login error details:', error);
     throw new Error(error.message || 'Login failed');
   }
 };
