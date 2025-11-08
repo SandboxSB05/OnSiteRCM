@@ -293,6 +293,26 @@ const uploadFilesToSupabase = async (
 const isUuid = (value: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
+const getFieldValue = (fields: Record<string, string>, keys: string[]): string | undefined => {
+  if (!fields || Object.keys(fields).length === 0) {
+    return undefined;
+  }
+
+  const normalizedEntries = Object.entries(fields).reduce<Record<string, string>>((acc, [key, value]) => {
+    acc[key.toLowerCase()] = value;
+    return acc;
+  }, {});
+
+  for (const key of keys) {
+    const normalizedKey = key.toLowerCase();
+    if (normalizedEntries.hasOwnProperty(normalizedKey)) {
+      return normalizedEntries[normalizedKey];
+    }
+  }
+
+  return undefined;
+};
+
 export type UploadHandlerResult = {
   status: number;
   body: Record<string, any>;
@@ -370,7 +390,16 @@ export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadH
 
     const folder = buildFolder(fields);
     const dailyUpdateId =
-      (fields.daily_update_id || fields.dailyUpdateId || fields.daily_updates_id || '').trim();
+      (
+        getFieldValue(fields, [
+          'daily_update_id',
+          'dailyUpdateId',
+          'daily_updates_id',
+          'dailyUpdatesId',
+          'daily_updateID',
+          'dailyUpdateID',
+        ]) || ''
+      ).trim();
 
     if (dailyUpdateId && !isUuid(dailyUpdateId)) {
       return {
@@ -387,6 +416,7 @@ export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadH
 
     let photoRecords: any[] | null = null;
     if (dailyUpdateId) {
+      console.log('[Upload Handler] Linking uploads to daily_update_id:', dailyUpdateId);
       const rows = uploads.map((upload) => ({
         daily_update_id: dailyUpdateId,
         storage_bucket: upload.bucket,
@@ -399,6 +429,8 @@ export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadH
         throw new Error(`Failed to record photo metadata: ${error.message}`);
       }
       photoRecords = data || [];
+    } else {
+      console.log('[Upload Handler] No daily_update_id supplied; skipping update_photos insert.');
     }
 
     console.log('Uploaded files to Supabase Storage', {
