@@ -129,18 +129,26 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
     const fields: Record<string, string> = {};
 
     bb.on('file', (name: string, fileStream: any, info: any) => {
-      const filename = info.filename as string;
-      const encoding = info.encoding as string;
-      const mimeType = info.mimeType as string;
+      console.log('[Parse Multipart] File event fired');
+      console.log('[Parse Multipart] info object keys:', Object.keys(info));
+      console.log('[Parse Multipart] full info:', info);
       
-      console.log(`[Parse Multipart] File received: fieldname="${name}", filename="${filename}", mimeType="${mimeType}"`);
+      // In busboy v2+, filename might be directly on info or accessed differently
+      let filename = info.filename;
+      let mimeType = info.mimeType;
+      let encoding = info.encoding;
       
+      console.log(`[Parse Multipart] Extracted values: filename="${filename}", mimeType="${mimeType}", encoding="${encoding}"`);
+      
+      // If we still don't have a filename, generate one
       if (!filename) {
-        console.log(`[Parse Multipart] Skipping file without filename for field: ${name}`);
-        fileStream.resume();
-        return;
+        console.log(`[Parse Multipart] No filename found, generating one for field: ${name}`);
+        filename = `${name}-${Date.now()}`;
+        mimeType = mimeType || 'application/octet-stream';
       }
-
+      
+      console.log(`[Parse Multipart] Using filename="${filename}", mimeType="${mimeType}"`);
+      
       const chunks: Buffer[] = [];
       let fileSize = 0;
 
