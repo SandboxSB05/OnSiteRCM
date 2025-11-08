@@ -67,7 +67,7 @@ export function FAQ() {
           Support & onboarding
         </p>
         <h2
-          style={{ fontSize: "2.25rem", fontWeight: 700, letterSpacing: "-0.02em" }}
+          style={{ fontSize: "2.25rem", fontWeight: 550, letterSpacing: "-0.02em" }}
           className="mt-3"
         >
           Frequently asked questions
@@ -104,7 +104,7 @@ export function FAQ() {
                 onClick={() => handleToggle(index)}
                 className="flex w-full items-center justify-between gap-6 py-5 text-left"
               >
-                <span style={{ fontSize: "1.0625rem", fontWeight: 600 }} className="text-gray-900">
+                <span style={{ fontSize: "1.0625rem", fontWeight: 550 }} className="text-gray-900">
                   {faq.question}
                 </span>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500">

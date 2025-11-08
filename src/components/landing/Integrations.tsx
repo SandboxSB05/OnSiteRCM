@@ -42,7 +42,7 @@ export function Integrations() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 style={{ fontSize: "2.5rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
+          <h2 style={{ fontSize: "2.5rem", fontWeight: 550, letterSpacing: "-0.02em" }}>
             Built to connect with your CRM
           </h2>
           <p
@@ -62,7 +62,7 @@ export function Integrations() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-12 mb-12 text-white text-center shadow-[0_25px_60px_-30px_rgba(16,185,129,0.75)]"
         >
-          <h3 className="mb-4" style={{ fontSize: "1.875rem", fontWeight: 700 }}>
+          <h3 className="mb-4" style={{ fontSize: "1.875rem", fontWeight: 550 }}>
             Let’s build your integration together
           </h3>
           <p className="max-w-2xl mx-auto mb-8 opacity-90" style={{ fontSize: "1.125rem" }}>
@@ -83,7 +83,7 @@ export function Integrations() {
             transition={{ duration: 0.65, ease: "easeOut" }}
             className="relative rounded-2xl p-8 border-2 border-emerald-200 bg-gradient-to-br from-gray-50 to-white flex flex-col shadow-[0_25px_60px_-35px_rgba(16,185,129,0.65)]"
           >
-            <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+            <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 550 }}>
               How we build it
             </h3>
             <div className="space-y-4 flex-1">
@@ -100,7 +100,7 @@ export function Integrations() {
                     <feature.icon className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <div style={{ fontSize: "1rem", fontWeight: 600 }} className="mb-1">
+                    <div style={{ fontSize: "1rem", fontWeight: 550 }} className="mb-1">
                       {feature.title}
                     </div>
                     <p className="text-muted-foreground" style={{ fontSize: "0.875rem" }}>
@@ -120,7 +120,7 @@ export function Integrations() {
             transition={{ duration: 0.65, delay: 0.1, ease: "easeOut" }}
             className="relative bg-white rounded-2xl p-8 border-2 border-emerald-200 flex flex-col shadow-[0_25px_60px_-35px_rgba(16,185,129,0.65)]"
           >
-            <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+            <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 550 }}>
               What you get
             </h3>
 
@@ -148,7 +148,7 @@ export function Integrations() {
                   <Code2 className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <div style={{ fontSize: "1rem", fontWeight: 600 }} className="mb-1">
+                  <div style={{ fontSize: "1rem", fontWeight: 550 }} className="mb-1">
                     API first architecture
                   </div>
                   <p className="text-muted-foreground" style={{ fontSize: "0.875rem" }}>

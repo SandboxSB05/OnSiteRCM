@@ -73,7 +73,7 @@ export function Testimonials() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 550, letterSpacing: '-0.02em' }}>
             Trusted by contractors and homeowners
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
@@ -118,7 +118,7 @@ export function Testimonials() {
                         </p>
                       </blockquote>
                       <div className="border-t border-gray-200 pt-4">
-                        <div style={{ fontSize: '0.9375rem', fontWeight: 600 }}>
+                        <div style={{ fontSize: '0.9375rem', fontWeight: 550 }}>
                           {testimonial.author}
                         </div>
                         <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>

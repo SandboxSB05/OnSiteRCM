@@ -111,13 +111,13 @@ export function HowItWorks() {
 
                 {/* Step number */}
                 <div className="inline-block px-3 py-1 bg-gray-100 rounded-full mb-4">
-                  <span className="text-muted-foreground" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+                  <span className="text-muted-foreground" style={{ fontSize: '0.75rem', fontWeight: 550 }}>
                     STEP {index + 1}
                   </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="mb-3" style={{ fontSize: '1.5rem', fontWeight: 600 }}>
+                <h3 className="mb-3" style={{ fontSize: '1.5rem', fontWeight: 550 }}>
                   {step.title}
                 </h3>
 

@@ -28,7 +28,7 @@ export function CTAFooter() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }} className="mb-4">
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 550, letterSpacing: '-0.02em' }} className="mb-4">
               Turn every project into your next lead
             </h2>
             <p className="text-gray-400 mb-8" style={{ fontSize: '1.125rem' }}>
@@ -76,7 +76,7 @@ export function CTAFooter() {
 
             {/* Product */}
             <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }} className="mb-4">Product</h4>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400" style={{ fontSize: '0.875rem' }}>
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="#integrations" className="hover:text-white transition-colors">Integrations</a></li>
@@ -87,7 +87,7 @@ export function CTAFooter() {
 
             {/* Company */}
             <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }} className="mb-4">Company</h4>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400" style={{ fontSize: '0.875rem' }}>
                 <li><a href="#" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
@@ -97,7 +97,7 @@ export function CTAFooter() {
 
             {/* Contact */}
             <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }} className="mb-4">Contact</h4>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4">Contact</h4>
               <ul className="space-y-3 text-gray-400" style={{ fontSize: '0.875rem' }}>
                 <li className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
