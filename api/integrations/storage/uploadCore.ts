@@ -189,12 +189,12 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
 const parseAuthToken = (req: IncomingMessage) => {
   const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
 
-  if (!authHeader.startsWith('Bearer.')) {
+  if (!authHeader.startsWith('Bearer ')) {
     return { error: 'Missing or invalid authorization token' };
   }
 
   try {
-    const base64 = authHeader.split('Bearer.')[1];
+    const base64 = authHeader.split('Bearer ')[1];
     const json = Buffer.from(base64, 'base64').toString('utf8');
     const payload = JSON.parse(json);
 
