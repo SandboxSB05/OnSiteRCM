@@ -101,8 +101,10 @@ const createUniqueFilename = (originalName?: string) => {
 const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
   return new Promise((resolve, reject) => {
     const contentType = req.headers['content-type'] || req.headers['Content-Type'];
+    console.log('[Parse Multipart] Content-Type:', contentType);
+    
     if (!contentType || typeof contentType !== 'string' || !contentType.toLowerCase().includes('multipart/form-data')) {
-      console.error('Invalid content-type:', contentType);
+      console.error('[Parse Multipart] Invalid content-type:', contentType);
       reject(new Error('Content-Type must be multipart/form-data'));
       return;
     }
@@ -112,6 +114,8 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
     Object.keys(req.headers).forEach(key => {
       normalizedHeaders[key.toLowerCase()] = req.headers[key];
     });
+
+    console.log('[Parse Multipart] Normalized headers:', normalizedHeaders);
 
     const bb = busboy({
       headers: normalizedHeaders,
@@ -129,7 +133,10 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
       const encoding = info.encoding as string;
       const mimeType = info.mimeType as string;
       
+      console.log(`[Parse Multipart] File received: fieldname="${name}", filename="${filename}", mimeType="${mimeType}"`);
+      
       if (!filename) {
+        console.log(`[Parse Multipart] Skipping file without filename for field: ${name}`);
         fileStream.resume();
         return;
       }
@@ -180,7 +187,7 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
     });
 
     bb.once('finish', () => {
-      console.log(`Multipart form parsed: ${files.length} files`);
+      console.log(`[Parse Multipart] Form parsing complete: ${files.length} files, fields:`, Object.keys(fields));
       resolve({ files, fields });
     });
 
@@ -272,6 +279,9 @@ export type UploadHandlerResult = {
 };
 
 export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadHandlerResult> => {
+  console.log('[Upload Handler] Request received - Method:', req.method);
+  console.log('[Upload Handler] Content-Type:', req.headers['content-type']);
+  
   // Get config lazily to support dev server middleware
   const config = getConfig();
   const { supabaseUrl, supabaseServiceRoleKey, storageBucket: bucket, maxUploadBytes: maxBytes, maxFilesPerRequest: maxFiles, allowedMimePrefixes: mimePrefix } = config;
