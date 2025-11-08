@@ -14,9 +14,7 @@ export function AppDemo() {
   const [photos, setPhotos] = useState<Array<{ id: number; placeholder: boolean }>>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDone, setRecordingDone] = useState(false);
-  const [textContent, setTextContent] = useState(
-    "Completed framing on west wall. Starting electrical rough-in tomorrow."
-  );
+  const [textContent, setTextContent] = useState("");
   const [progressPhase, setProgressPhase] = useState("inspection");
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -213,7 +211,7 @@ export function AppDemo() {
                           <textarea
                             value={textContent}
                             onChange={(e) => setTextContent(e.target.value)}
-                            placeholder="Completed framing on west wall. Starting electrical rough-in tomorrow."
+                            placeholder="Tap the mic or type an update..."
                             className="w-full h-28 px-3 py-2 pr-12 border border-gray-300 rounded-2xl resize-none text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           />
                           <button

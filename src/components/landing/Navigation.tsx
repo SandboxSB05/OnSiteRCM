@@ -27,9 +27,9 @@ export function Navigation() {
             <a href="#integrations" className="text-muted-foreground hover:text-foreground transition-colors">
               Integrations
             </a>
-            <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
+            {/* <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
               Testimonials
-            </a>
+            </a> */}
           </div>
 
           {/* CTA Buttons */}
@@ -69,9 +69,9 @@ export function Navigation() {
             <a href="#integrations" className="block text-muted-foreground hover:text-foreground transition-colors">
               Integrations
             </a>
-            <a href="#testimonials" className="block text-muted-foreground hover:text-foreground transition-colors">
+            {/* <a href="#testimonials" className="block text-muted-foreground hover:text-foreground transition-colors">
               Testimonials
-            </a>
+            </a> */}
             <div className="flex flex-col gap-2 pt-2">
               <Link to="/login">
                 <Button variant="ghost" className="w-full">Sign In</Button>
