@@ -191,12 +191,18 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
 const parseAuthToken = (req: IncomingMessage) => {
   const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
 
-  if (!authHeader.startsWith('Bearer ')) {
+  // Handle both "Bearer." and "Bearer " formats
+  if (!authHeader.startsWith('Bearer ') && !authHeader.startsWith('Bearer.')) {
     return { error: 'Missing or invalid authorization token' };
   }
 
   try {
-    const base64 = authHeader.split('Bearer ')[1];
+    // Extract the base64 part (works for both "Bearer." and "Bearer " separators)
+    const base64 = authHeader.replace(/^Bearer[\s.]+/, '');
+    if (!base64) {
+      return { error: 'Missing or invalid authorization token' };
+    }
+
     const json = Buffer.from(base64, 'base64').toString('utf8');
     const payload = JSON.parse(json);
 
@@ -206,6 +212,7 @@ const parseAuthToken = (req: IncomingMessage) => {
 
     return { payload };
   } catch (error) {
+    console.error('[Token Parse Error]', error);
     return { error: 'Invalid token format' };
   }
 };
