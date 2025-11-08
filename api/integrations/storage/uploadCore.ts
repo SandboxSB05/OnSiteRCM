@@ -8,13 +8,15 @@ const getConfig = () => ({
   supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   storageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'relay_photos',
-  maxUploadBytes: Number(process.env.FILE_UPLOAD_MAX_BYTES || 10 * 1024 * 1024),
-  maxFilesPerRequest: Number(process.env.FILE_UPLOAD_MAX_FILES || 10),
-  allowedMimePrefixes: (process.env.FILE_UPLOAD_ALLOWED_MIME_PREFIXES || 'image/')
+  maxUploadBytes: Number(10 * 1024 * 1024),
+  maxFilesPerRequest: Number(10),
+  allowedMimePrefixes: ('image/')
     .split(',')
     .map((prefix) => prefix.trim())
     .filter(Boolean),
 });
+
+
 
 // Keep these for backward compatibility
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
