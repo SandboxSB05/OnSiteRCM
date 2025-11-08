@@ -57,6 +57,21 @@ const isAllowedMimeType = (mimeType?: string | null) => {
   );
 };
 
+const getMimeTypeFromExtension = (filename: string): string => {
+  const ext = filename.toLowerCase().split('.').pop() || '';
+  const mimeMap: Record<string, string> = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    svg: 'image/svg+xml',
+    bmp: 'image/bmp',
+    tiff: 'image/tiff',
+  };
+  return mimeMap[ext] || 'application/octet-stream';
+};
+
 const sanitizePathSegment = (value?: string | null) => {
   if (!value) {
     return '';
@@ -130,24 +145,28 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
 
     bb.on('file', (name: string, fileStream: any, info: any) => {
       console.log('[Parse Multipart] File event fired');
-      console.log('[Parse Multipart] info object keys:', Object.keys(info));
-      console.log('[Parse Multipart] full info:', info);
+      console.log('[Parse Multipart] fieldname:', name);
+      console.log('[Parse Multipart] info (type):', typeof info);
+      console.log('[Parse Multipart] info (value):', info);
       
-      // In busboy v2+, filename might be directly on info or accessed differently
-      let filename = info.filename;
-      let mimeType = info.mimeType;
-      let encoding = info.encoding;
+      // In busboy v2, the third argument is the filename (as a string)
+      // The info object is actually just the filename
+      let filename = typeof info === 'string' ? info : info?.filename;
+      let mimeType = info?.mimeType;
+      let encoding = info?.encoding || '7bit';
       
-      console.log(`[Parse Multipart] Extracted values: filename="${filename}", mimeType="${mimeType}", encoding="${encoding}"`);
+      console.log(`[Parse Multipart] Parsed: filename="${filename}", mimeType="${mimeType}"`);
       
-      // If we still don't have a filename, generate one
-      if (!filename) {
-        console.log(`[Parse Multipart] No filename found, generating one for field: ${name}`);
+      if (!filename || filename.trim() === '') {
+        console.log(`[Parse Multipart] Invalid filename, generating fallback for field: ${name}`);
         filename = `${name}-${Date.now()}`;
-        mimeType = mimeType || 'application/octet-stream';
       }
       
-      console.log(`[Parse Multipart] Using filename="${filename}", mimeType="${mimeType}"`);
+      // If mimeType is not available, infer from filename extension
+      if (!mimeType) {
+        mimeType = getMimeTypeFromExtension(filename);
+        console.log(`[Parse Multipart] Inferred mimeType from filename: ${mimeType}`);
+      }
       
       const chunks: Buffer[] = [];
       let fileSize = 0;
