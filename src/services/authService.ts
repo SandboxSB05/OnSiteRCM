@@ -54,6 +54,11 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
     });
 
     if (authError) {
+      console.error('Supabase auth error details:', {
+        message: authError.message,
+        status: (authError as any).status,
+        code: (authError as any).code,
+      });
       throw new Error(authError.message || 'Invalid email or password');
     }
 

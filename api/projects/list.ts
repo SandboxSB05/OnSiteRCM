@@ -1,10 +1,12 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase credentials
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Get environment variables lazily to support dev server middleware
+const getConfig = () => ({
+  supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+});
 
 /**
  * GET /api/projects/list
@@ -25,6 +27,9 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Get config lazily to support dev server middleware
+  const { supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey } = getConfig();
+
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ 
@@ -84,8 +89,15 @@ export default async function handler(
     };
 
     // Use service role on the server to bypass RLS safely (NEVER expose this key to clients)
-    if (!supabaseServiceRoleKey) {
-      return res.status(500).json({ error: 'Server misconfiguration', message: 'Missing SUPABASE_SERVICE_ROLE_KEY' });
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      const missing = [];
+      if (!supabaseUrl) missing.push('SUPABASE_URL');
+      if (!supabaseServiceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+      console.error('Missing Supabase credentials:', missing.join(', '));
+      return res.status(500).json({ 
+        error: 'Server misconfiguration', 
+        message: `Missing credentials: ${missing.join(', ')}`
+      });
     }
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 

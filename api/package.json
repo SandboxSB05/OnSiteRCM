@@ -8,6 +8,7 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
+    "@fastify/busboy": "^2.1.1",
     "@supabase/supabase-js": "^2.39.0",
     "@vercel/node": "^3.0.12",
     "jsonwebtoken": "^9.0.2"

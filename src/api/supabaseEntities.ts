@@ -19,7 +19,7 @@ const encodeBase64 = (value: string) => {
   throw new Error('No base64 encoder available for auth token payload');
 };
 
-const getServerlessAuthToken = async () => {
+export const getServerlessAuthToken = async () => {
   const bufferMs = 5000;
   if (serverlessAuthTokenCache && serverlessAuthTokenCache.exp > Date.now() + bufferMs) {
     return serverlessAuthTokenCache.token;
