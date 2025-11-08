@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import heroImage from '@/assets/hero-mockup.png';
 
 export function Hero() {
@@ -36,14 +35,18 @@ export function Hero() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
+            <a
+              href="https://calendly.com/henry-relaycxp/30min"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Button 
                 className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
               >
                 Book a Demo
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-            </Link>
+            </a>
             <a href="#features">
               <Button variant="outline">
                 Learn More

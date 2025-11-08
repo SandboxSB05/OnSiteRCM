@@ -37,11 +37,15 @@ export function Navigation() {
             <Link to="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link to="/register">
+            <a
+              href="https://calendly.com/henry-relaycxp/30min"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
                 Book a Demo
               </Button>
-            </Link>
+            </a>
           </div>
 
           {/* Mobile menu button */}
@@ -72,11 +76,15 @@ export function Navigation() {
               <Link to="/login">
                 <Button variant="ghost" className="w-full">Sign In</Button>
               </Link>
-              <Link to="/register">
+              <a
+                href="https://calendly.com/henry-relaycxp/30min"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600">
                   Book a Demo
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         )}
