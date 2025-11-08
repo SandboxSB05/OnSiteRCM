@@ -8,28 +8,14 @@ const getConfig = () => ({
   supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   storageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'relay_photos',
-  maxUploadBytes: Number(10 * 1024 * 1024),
-  maxFilesPerRequest: Number(10),
-  allowedMimePrefixes: ('image/')
+  maxUploadBytes: Number(process.env.FILE_UPLOAD_MAX_BYTES || 10 * 1024 * 1024),
+  maxFilesPerRequest: Number(process.env.FILE_UPLOAD_MAX_FILES || 10),
+  allowedMimePrefixes: (process.env.FILE_UPLOAD_ALLOWED_MIME_PREFIXES || 'image/')
     .split(',')
     .map((prefix) => prefix.trim())
     .filter(Boolean),
 });
 
-
-
-// Keep these for backward compatibility
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const storageBucket = process.env.SUPABASE_STORAGE_BUCKET || 'relay_photos';
-
-const maxUploadBytes =
-  Number(process.env.FILE_UPLOAD_MAX_BYTES || 10 * 1024 * 1024); // 10MB default
-const maxFilesPerRequest = Number(process.env.FILE_UPLOAD_MAX_FILES || 10);
-const allowedMimePrefixes = (process.env.FILE_UPLOAD_ALLOWED_MIME_PREFIXES || 'image/')
-  .split(',')
-  .map((prefix) => prefix.trim())
-  .filter(Boolean);
 
 type ParsedFile = {
   fieldname: string;
@@ -46,6 +32,7 @@ type ParsedForm = {
 };
 
 const isAllowedMimeType = (mimeType?: string | null) => {
+  const { allowedMimePrefixes } = getConfig();
   if (!mimeType) {
     return false;
   }
@@ -131,6 +118,8 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
     });
 
     console.log('[Parse Multipart] Normalized headers:', normalizedHeaders);
+
+    const { maxUploadBytes, maxFilesPerRequest } = getConfig();
 
     const bb = busboy({
       headers: normalizedHeaders,
@@ -254,7 +243,8 @@ const parseAuthToken = (req: IncomingMessage) => {
 const uploadFilesToSupabase = async (
   supabase: ReturnType<typeof createClient>,
   folder: string,
-  files: ParsedFile[]
+  files: ParsedFile[],
+  bucket: string
 ) => {
   const uploads = [];
 
@@ -266,7 +256,7 @@ const uploadFilesToSupabase = async (
     const filename = createUniqueFilename(file.filename);
     const storagePath = `${folder}/${filename}`;
 
-    const { error: uploadError } = await supabase.storage.from(storageBucket).upload(
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(
       storagePath,
       file.data,
       {
@@ -279,13 +269,13 @@ const uploadFilesToSupabase = async (
       throw new Error(uploadError.message);
     }
 
-    const { data: publicUrlData } = supabase.storage.from(storageBucket).getPublicUrl(storagePath);
+    const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
     const publicUrl = publicUrlData?.publicUrl || null;
 
     uploads.push({
       originalName: file.filename,
       fileName: filename,
-      bucket: storageBucket,
+      bucket,
       path: storagePath,
       folder,
       size: file.size,
@@ -299,6 +289,9 @@ const uploadFilesToSupabase = async (
 
   return uploads;
 };
+
+const isUuid = (value: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 export type UploadHandlerResult = {
   status: number;
@@ -376,14 +369,44 @@ export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadH
     }
 
     const folder = buildFolder(fields);
+    const dailyUpdateId =
+      (fields.daily_update_id || fields.dailyUpdateId || fields.daily_updates_id || '').trim();
+
+    if (dailyUpdateId && !isUuid(dailyUpdateId)) {
+      return {
+        status: 400,
+        body: {
+          error: 'Validation error',
+          message: 'daily_update_id must be a valid UUID',
+        },
+      };
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    const uploads = await uploadFilesToSupabase(supabase, folder, files);
+    const uploads = await uploadFilesToSupabase(supabase, folder, files, bucket);
+
+    let photoRecords: any[] | null = null;
+    if (dailyUpdateId) {
+      const rows = uploads.map((upload) => ({
+        daily_update_id: dailyUpdateId,
+        storage_bucket: upload.bucket,
+        storage_path: upload.path,
+        uploaded_by: payload.userId,
+      }));
+
+      const { data, error } = await supabase.from('update_photos').insert(rows).select('*');
+      if (error) {
+        throw new Error(`Failed to record photo metadata: ${error.message}`);
+      }
+      photoRecords = data || [];
+    }
 
     console.log('Uploaded files to Supabase Storage', {
       userId: payload.userId,
       count: uploads.length,
       folder,
       bucket,
+      linked_to_daily_update: Boolean(dailyUpdateId),
     });
 
     return {
@@ -393,6 +416,7 @@ export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadH
         bucket,
         count: uploads.length,
         uploads,
+        photo_records: photoRecords,
       },
     };
   } catch (error) {
@@ -405,7 +429,9 @@ export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadH
       lowerMessage.includes('too many') ||
       lowerMessage.includes('unsupported') ||
       lowerMessage.includes('limit') ||
-      lowerMessage.includes('exceeds');
+      lowerMessage.includes('exceeds') ||
+      lowerMessage.includes('daily_update_id') ||
+      lowerMessage.includes('uuid');
 
     return {
       status: isValidationError ? 400 : 500,
