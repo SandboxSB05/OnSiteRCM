@@ -88,11 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // photos - JSONB array
-    const photos = Array.isArray(body.progress_photos) 
-      ? body.progress_photos 
-      : (Array.isArray(body.photos) ? body.photos : null);
-    if (photos && photos.length > 0) {
-      insertData.photos = photos;
+    // NOTE: Photos should be inserted into the update_photos table, not daily_updates
+    // The daily_updates table does not have a photos column in the schema_supabase.sql
+    // If you need to store photo metadata alongside the update, use the update_photos table instead
+    // For now, we skip photos here to avoid schema mismatch errors
+
+    if (body.ai_summary) {
+      insertData.ai_summary = body.ai_summary;
     }
 
     // project_phase fields
