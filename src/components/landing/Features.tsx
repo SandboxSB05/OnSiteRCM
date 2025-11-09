@@ -1,4 +1,4 @@
-import { ClipboardCheck, Link2, Smartphone, Users } from "lucide-react";
+import { ClipboardCheck, Link2, Smartphone, Users, type LucideIcon } from "lucide-react";
 import {
   motion,
   useReducedMotion,
@@ -8,7 +8,15 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { ImageWithFallback } from "./ImageWithFallback";
 
-const STORY_FEATURES = [
+type StoryFeature = {
+  id: string;
+  title: string;
+  body: string;
+  icon: LucideIcon;
+  label?: string;
+};
+
+const STORY_FEATURES: StoryFeature[] = [
   {
     id: "mobile-app",
     title: "Mobile App",
@@ -29,8 +37,9 @@ const STORY_FEATURES = [
   },
   {
     id: "change-orders",
-    title: "Change Orders & Approvals",
-    body: "Create, send, and approve change orders in minutes. Clients review and sign in app for faster turnaround.",
+    title: "Change Orders Made Simple",
+    body: "Create and send change orders in minutes. Clients and office staff review and confirm quickly for faster turnaround.",
+    label: "Change Order",
     icon: ClipboardCheck,
   },
 ] as const;
@@ -111,8 +120,7 @@ export function Features({ imageSrc = DEFAULT_IMAGE }: FeaturesProps) {
             <span className="block">and keep projects on track</span>
           </h2>
           <p className="mt-4 text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-            Explore the Relay story from the field to the office—one immersive
-            image, four moments that show how your team stays aligned.
+            See how Relay connects the field and the office so your team stays on the same page.
           </p>
         </motion.div>
 
@@ -156,7 +164,7 @@ export function Features({ imageSrc = DEFAULT_IMAGE }: FeaturesProps) {
                         <div className="flex items-center justify-center gap-3 text-emerald-600 mb-4">
                           <Icon className="w-7 h-7" aria-hidden="true" />
                           <span className="text-base font-semibold tracking-[0.35em] uppercase">
-                            {feature.title}
+                            {feature.label ?? feature.title}
                           </span>
                         </div>
                         <h3

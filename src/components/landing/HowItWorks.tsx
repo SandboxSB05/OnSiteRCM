@@ -7,13 +7,13 @@ const homeownerSteps = [
   {
     icon: Camera,
     title: "Capture",
-    description: "Record voice updates, snap photos, and log progress right from the field. Relay keeps every detail organized and in one place.",
+    description: "Record voice updates, snap photos, and log progress right from the field. Relay keeps everything organized.",
     color: "from-emerald-500 to-teal-600"
   },
   {
     icon: RefreshCw,
     title: "Sync",
-    description: "Relay automatically syncs updates, photos, and check-ins into your CRM. No manual entry and no missed information.",
+    description: "Relay automatically syncs updates, photos, and check-ins into your CRM. No manual entry, no missed information.",
     color: "from-teal-500 to-cyan-600"
   },
   {
