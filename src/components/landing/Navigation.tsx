@@ -6,6 +6,10 @@ import logo from "@/assets/RelayLogo.svg";
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const handleLogoClick = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setMobileMenuOpen(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
@@ -13,7 +17,14 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Relay logo" className="h-48" />
+            <button
+              type="button"
+              onClick={handleLogoClick}
+              className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              aria-label="Scroll to top"
+            >
+              <img src={logo} alt="Relay logo" className="h-36" />
+            </button>
           </div>
 
           {/* Desktop Navigation */}
