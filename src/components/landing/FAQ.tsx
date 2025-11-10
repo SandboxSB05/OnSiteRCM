@@ -35,12 +35,12 @@ const faqs = [
   {
     question: "How is Relay priced?",
     answer:
-      "We use a per-seat monthly subscription. We currently offer a single tier while we continue to add features."
+      "Relay uses a monthly per-seat subscription. Pricing depends on your team size and feature needs. Talk with our team to get a custom setup."
   },
   {
     question: "How long does setup take?",
     answer:
-      "Most teams connect the CRM and start capturing updates the same day. We provide guided onboarding and best practices for crew adoption."
+      "Most teams are up and running quickly. We offer white-glove onboarding and direct support from our founders to ensure a smooth start."
   }
 ];
 
