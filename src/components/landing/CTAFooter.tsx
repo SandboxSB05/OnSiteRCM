@@ -63,7 +63,7 @@ export function CTAFooter() {
       {/* Footer links */}
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {/* Company info */}
             <div>
               <div className="mb-4">
@@ -80,18 +80,6 @@ export function CTAFooter() {
               <ul className="space-y-2 text-gray-400" style={{ fontSize: '0.875rem' }}>
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="#integrations" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><Link to="/register" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">API Docs</a></li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400" style={{ fontSize: '0.875rem' }}>
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
               </ul>
             </div>
 
