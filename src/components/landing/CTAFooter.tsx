@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowRight, Mail, MapPin, Phone, MousePointerClick } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -12,8 +12,9 @@ export function CTAFooter() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle email submission
-    console.log("Email submitted:", email);
+    if (typeof window !== "undefined") {
+      window.open("https://calendly.com/henry-relaycxp/30min", "_blank", "noopener,noreferrer");
+    }
     setEmail("");
   };
 
@@ -48,13 +49,17 @@ export function CTAFooter() {
                 />
                 <Button 
                   type="submit"
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 flex-shrink-0"
+                  className="group bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 flex-shrink-0"
                 >
-                  Get Started
-                  <ArrowRight className="ml-2 w-4 h-4" />
+                  Book a Demo
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </div>
             </form>
+            <div className="mt-3 flex items-center justify-center gap-2 text-emerald-300 text-sm">
+              <MousePointerClick className="w-4 h-4 animate-pulse" />
+              <span>Opens Calendly in a new tab for live scheduling</span>
+            </div>
 
           </motion.div>
         </div>
@@ -63,43 +68,77 @@ export function CTAFooter() {
       {/* Footer links */}
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="flex flex-col lg:flex-row gap-10">
             {/* Company info */}
-            <div>
+            <div className="lg:w-1/3">
               <div className="mb-4">
                 <img src={logo} alt="Relay logo" className="h-40" />
               </div>
-              <p className="text-gray-400" style={{ fontSize: '0.875rem' }}>
+              <p className="text-gray-400 leading-relaxed" style={{ fontSize: '0.875rem' }}>
                 The communication layer for modern contractors.
               </p>
             </div>
 
-            {/* Product */}
-            <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400" style={{ fontSize: '0.875rem' }}>
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#integrations" className="hover:text-white transition-colors">Integrations</a></li>
-              </ul>
-            </div>
+            {/* Actionable columns */}
+            <div className="flex-1 grid sm:grid-cols-2 gap-6">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.4 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-gray-800 to-gray-900/80 p-6 shadow-[0_15px_45px_-30px_rgba(16,185,129,0.9)]"
+              >
+                <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4 text-gray-200 flex items-center gap-2">
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Product
+                </h4>
+                <ul className="space-y-3 text-gray-300" style={{ fontSize: '0.875rem' }}>
+                  <li>
+                    <a href="#features" className="hover:text-white transition-colors flex items-center gap-2">
+                      <span className="inline-flex h-px w-6 bg-emerald-500 opacity-70" />
+                      Features
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#integrations" className="hover:text-white transition-colors flex items-center gap-2">
+                      <span className="inline-flex h-px w-6 bg-emerald-500 opacity-70" />
+                      Integrations
+                    </a>
+                  </li>
+                </ul>
+              </motion.div>
 
-            {/* Contact */}
-            <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4">Contact</h4>
-              <ul className="space-y-3 text-gray-400" style={{ fontSize: '0.875rem' }}>
-                <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  <span>henry@relaycxp.com</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  <span>(831) 566-8549</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 mt-0.5" />
-                  <span>Provo, UT</span>
-                </li>
-              </ul>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-gray-800 to-gray-900/80 p-6 shadow-[0_15px_45px_-30px_rgba(16,185,129,0.35)]"
+              >
+                <h4 style={{ fontSize: '0.875rem', fontWeight: 550 }} className="mb-4 text-gray-200">
+                  Contact
+                </h4>
+                <ul className="space-y-4 text-gray-300" style={{ fontSize: '0.875rem' }}>
+                  <li className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-emerald-300" />
+                    </div>
+                    <span>henry@relaycxp.com</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-emerald-300" />
+                    </div>
+                    <span>(831) 566-8549</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-emerald-300" />
+                    </div>
+                    <span>Provo, UT</span>
+                  </li>
+                </ul>
+              </motion.div>
             </div>
           </div>
 

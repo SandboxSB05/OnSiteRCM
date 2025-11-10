@@ -5,42 +5,39 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     question: "What is Relay?",
-    answer:
-      "Relay is a communication and progress tracking tool for contractors that ties field updates directly into your CRM."
+    answer: "Relay is a job communication tool for contractors. Crews capture updates in the field and Relay syncs them to your CRM."
   },
   {
-    question: "How does Relay work with our CRM?",
-    answer:
-      "Relay syncs photos, voice updates, check-ins, and approved change orders to the correct job record in your CRM with no manual data entry."
+    question: "Does it work with our CRM?",
+    answer: "Yes. Relay connects with your CRM to automatically log updates, photos, and change orders. If you are not integrated yet, you can still use Relay and export updates."
+  },
+  {
+    question: "How do clients get updates?",
+    answer: "Clients receive updates by email or text. Each update includes a link to view or download a clean PDF report with photos and notes from the job."
+  },
+  {
+    question: "Can clients approve change orders?",
+    answer: "Yes. Clients can view and approve change orders through a secure link."
+  },
+  {
+    question: "What can crews send from the field?",
+    answer: "Voice notes, photos, progress status, check ins, and change order requests. You can also set photo requirements by phase."
   },
   {
     question: "Does the mobile app work offline?",
-    answer: "Not yet. Relay requires a connection to capture and sync updates in real time."
+    answer: "Not yet. Relay requires an internet connection to record and send updates."
   },
   {
-    question: "Can clients see updates?",
-    answer:
-      "Yes. You can share organized progress updates and approved change orders with clients so everyone stays aligned."
-  },
-  {
-    question: "What types of updates can crews send from the field?",
-    answer:
-      "Crews can record audio updates, take and upload photos, complete daily check-ins, and submit change orders for approval."
-  },
-  {
-    question: "Can Relay replace tools like CompanyCam?",
-    answer:
-      "For many teams, yes. Relay centralizes job photos, updates, and approvals while pushing the data into your CRM."
+    question: "Can Relay replace our current tools?",
+    answer: "For most teams, yes. Relay handles photos, progress tracking, and client updates in one place and connects directly to your CRM."
   },
   {
     question: "How is Relay priced?",
-    answer:
-      "Relay uses a monthly per-seat subscription. Pricing depends on your team size and feature needs. Talk with our team to get a custom setup."
+    answer: "Relay is billed monthly per seat. Pricing depends on team size and features. Talk with our team for a custom setup."
   },
   {
     question: "How long does setup take?",
-    answer:
-      "Most teams are up and running quickly. We offer white-glove onboarding and direct support from our founders to ensure a smooth start."
+    answer: "Most teams are up quickly. We provide white glove onboarding with direct support from the founders."
   }
 ];
 
