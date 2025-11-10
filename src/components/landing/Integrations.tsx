@@ -69,9 +69,14 @@ export function Integrations() {
             We partner with contractors to design the best way Relay fits into your workflow. 
             Whether you use JobNimbus, Buildertrend, or another CRM, our platform is built to connect when you are.
           </p>
-          <button className="px-8 py-4 bg-white text-emerald-600 rounded-xl hover:bg-gray-50 transition-colors shadow-lg">
+          <a
+            href="https://calendly.com/henry-relaycxp/30min"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center px-8 py-4 bg-white text-emerald-600 rounded-xl hover:bg-gray-50 transition-colors shadow-lg"
+          >
             Talk with our team
-          </button>
+          </a>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-stretch">
