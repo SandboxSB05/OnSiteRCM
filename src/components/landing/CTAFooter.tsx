@@ -68,16 +68,28 @@ export function CTAFooter() {
       {/* Footer links */}
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col lg:flex-row gap-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col lg:flex-row gap-10"
+          >
             {/* Company info */}
-            <div className="lg:w-1/3">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.5 }}
+              className="lg:w-1/3"
+            >
               <div className="mb-4">
                 <img src={logo} alt="Relay logo" className="h-40" />
               </div>
               <p className="text-gray-400 leading-relaxed" style={{ fontSize: '0.875rem' }}>
                 The communication layer for modern contractors.
               </p>
-            </div>
+            </motion.div>
 
             {/* Actionable columns */}
             <div className="flex-1 grid sm:grid-cols-2 gap-6">
@@ -140,10 +152,16 @@ export function CTAFooter() {
                 </ul>
               </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Bottom bar */}
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
+          >
             <p className="text-gray-500" style={{ fontSize: '0.875rem' }}>
               © 2025 Relay. All rights reserved.
             </p>
@@ -152,7 +170,7 @@ export function CTAFooter() {
               <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
               <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </footer>

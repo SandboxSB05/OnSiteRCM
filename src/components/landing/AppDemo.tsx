@@ -17,6 +17,10 @@ export function AppDemo() {
   const [textContent, setTextContent] = useState("");
   const [progressPhase, setProgressPhase] = useState("inspection");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successConfig, setSuccessConfig] = useState({
+    title: "Update Sent!",
+    subtitle: "Your client has been notified"
+  });
 
   // Add Unexpected Cost flow (separate screen)
   const [showCostScreen, setShowCostScreen] = useState(false);
@@ -51,6 +55,10 @@ export function AppDemo() {
   };
 
   const handleSendUpdate = () => {
+    setSuccessConfig({
+      title: "Update Sent!",
+      subtitle: "Your client has been notified"
+    });
     setShowSuccess(true);
     setTimeout(() => {
       // reset demo
@@ -81,6 +89,14 @@ export function AppDemo() {
       setCostPhotos([]);
       setCostCategory("additional-materials");
     }, 500);
+    setSuccessConfig({
+      title: "Request Submitted",
+      subtitle: "Change order sent for approval"
+    });
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 2000);
   };
 
   return (
@@ -308,7 +324,7 @@ export function AppDemo() {
                         <span>Back</span>
                       </button>
                       <h2 className="text-2xl mb-1">Add Unexpected Cost</h2>
-                      <p className="text-sm opacity-90">Test</p>
+                      <p className="text-sm opacity-90">Wilson Residence - New Roof Installation</p>
                     </div>
 
                     <div className="px-5 py-4 space-y-5">
@@ -419,8 +435,8 @@ export function AppDemo() {
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto">
                   <Check className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-2xl text-gray-900">Update Sent!</h3>
-                <p className="text-gray-600">Your client has been notified</p>
+                <h3 className="text-2xl text-gray-900">{successConfig.title}</h3>
+                <p className="text-gray-600">{successConfig.subtitle}</p>
               </div>
             </div>
           )}

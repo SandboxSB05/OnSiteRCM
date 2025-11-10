@@ -28,19 +28,19 @@ const crewSteps = [
   {
     icon: ClipboardCheck,
     title: "Assign",
-    description: "Crew leads get daily scopes, checklists, and required documentation. Crews record quick voice notes and photos from the field for effortless updates.",
+    description: "Crew leads receive daily scopes, checklists, and photo requirements. Crews check in on the app, record quick voice notes, and upload photos from the field.",
     color: "from-amber-500 to-orange-600"
   },
   {
     icon: RefreshCw,
     title: "Instant Sync",
-    description: "All field updates automatically flow into your CRM with the correct job details, timestamps, and attachments. Zero manual data entry.",
+    description: "All field updates flow directly into your CRM with job details, timestamps, and attachments. Everything stays organized with no manual data entry.",
     color: "from-orange-500 to-rose-500"
   },
   {
     icon: Users,
     title: "Office Visibility",
-    description: "Office staff sees organized, real-time updates in the CRM. Track progress, handle change orders, and stay aligned without constant phone calls.",
+    description: "Managers see who checked in and view real-time updates in the CRM. Track progress, manage change orders, and keep the team aligned without constant calls.",
     color: "from-rose-500 to-pink-500"
   }
 ];
