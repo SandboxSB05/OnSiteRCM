@@ -34,7 +34,7 @@ export function AppDemo() {
       setRecordingDone(true);
       if (!textContent) {
         setTextContent(
-          "Completed framing on west wall. Starting electrical rough-in tomorrow."
+          "Framing on the west wall wrapped up today, including blocking for the new window package. Crew verified plumb/level, uploaded inspection photos, and logged punch items in Relay. Electrical rough-in starts at 7am tomorrow with circuits pre-marked so we can pass inspection by Friday."
         );
       }
     }, 2000);

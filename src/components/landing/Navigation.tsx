@@ -18,11 +18,11 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </a>
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
               How It Works
+            </a>
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+              Features
             </a>
             <a href="#integrations" className="text-muted-foreground hover:text-foreground transition-colors">
               Integrations
@@ -60,11 +60,11 @@ export function Navigation() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 space-y-3">
-            <a href="#features" className="block text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </a>
             <a href="#how-it-works" className="block text-muted-foreground hover:text-foreground transition-colors">
               How It Works
+            </a>
+            <a href="#features" className="block text-muted-foreground hover:text-foreground transition-colors">
+              Features
             </a>
             <a href="#integrations" className="block text-muted-foreground hover:text-foreground transition-colors">
               Integrations

@@ -26,13 +26,13 @@ const STORY_FEATURES: StoryFeature[] = [
   {
     id: "crm-integration",
     title: "CRM Integration",
-    body: "Built to connect with your CRM so updates, check-ins, and change orders can log without manual entry when integrated.",
+    body: "Relay syncs updates, crew check ins, and change orders to your CRM automatically. No manual entry.",
     icon: Link2,
   },
   {
     id: "manage-crews",
     title: "Manage Crews",
-    body: "Track daily check-ins, assign tasks, and see who is on site with real-time visibility across every project.",
+    body: "Track daily check-ins, set photo requirements, and see who’s on site with real-time visibility across every project.",
     icon: Users,
   },
   {
