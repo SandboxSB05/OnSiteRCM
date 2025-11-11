@@ -6,6 +6,10 @@ import logo from "@/assets/RelayLogo.svg";
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const handleLogoClick = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setMobileMenuOpen(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
@@ -13,23 +17,30 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Relay logo" className="h-48" />
+            <button
+              type="button"
+              onClick={handleLogoClick}
+              className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              aria-label="Scroll to top"
+            >
+              <img src={logo} alt="Relay logo" className="h-36" />
+            </button>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </a>
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
               How It Works
+            </a>
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+              Features
             </a>
             <a href="#integrations" className="text-muted-foreground hover:text-foreground transition-colors">
               Integrations
             </a>
-            <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
+            {/* <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
               Testimonials
-            </a>
+            </a> */}
           </div>
 
           {/* CTA Buttons */}
@@ -37,11 +48,15 @@ export function Navigation() {
             <Link to="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link to="/register">
+            <a
+              href="https://calendly.com/henry-relaycxp/30min"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
                 Book a Demo
               </Button>
-            </Link>
+            </a>
           </div>
 
           {/* Mobile menu button */}
@@ -56,27 +71,31 @@ export function Navigation() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 space-y-3">
-            <a href="#features" className="block text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </a>
             <a href="#how-it-works" className="block text-muted-foreground hover:text-foreground transition-colors">
               How It Works
+            </a>
+            <a href="#features" className="block text-muted-foreground hover:text-foreground transition-colors">
+              Features
             </a>
             <a href="#integrations" className="block text-muted-foreground hover:text-foreground transition-colors">
               Integrations
             </a>
-            <a href="#testimonials" className="block text-muted-foreground hover:text-foreground transition-colors">
+            {/* <a href="#testimonials" className="block text-muted-foreground hover:text-foreground transition-colors">
               Testimonials
-            </a>
+            </a> */}
             <div className="flex flex-col gap-2 pt-2">
               <Link to="/login">
                 <Button variant="ghost" className="w-full">Sign In</Button>
               </Link>
-              <Link to="/register">
+              <a
+                href="https://calendly.com/henry-relaycxp/30min"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600">
                   Book a Demo
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         )}

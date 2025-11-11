@@ -1,38 +1,110 @@
-import { Smartphone, Link2, LayoutDashboard, BarChart3 } from "lucide-react";
-import { motion } from "framer-motion";
+import { ClipboardCheck, Link2, Smartphone, Users, type LucideIcon } from "lucide-react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { ImageWithFallback } from "./ImageWithFallback";
 
-const features = [
-  {
-    icon: Smartphone,
-    title: "Mobile App",
-    description: "Capture photos, add notes, and send updates from anywhere on the job site. Works offline and syncs when connected.",
-    gradient: "from-emerald-500 to-teal-600"
-  },
-  {
-    icon: Link2,
-    title: "CRM Integration",
-    description: "Seamlessly connects with JobNimbus, Buildertrend, and other leading contractor CRMs. No double data entry.",
-    gradient: "from-teal-500 to-cyan-600"
-  },
-  {
-    icon: LayoutDashboard,
-    title: "Client Dashboard",
-    description: "Give homeowners a beautiful portal to view all project updates, photos, and timeline in one place.",
-    gradient: "from-cyan-500 to-blue-600"
-  },
-  {
-    icon: BarChart3,
-    title: "Performance Analytics",
-    description: "Track communication metrics, client engagement, and team performance with detailed analytics and reporting.",
-    gradient: "from-blue-500 to-indigo-600"
-  }
-];
+type StoryFeature = {
+  id: string;
+  title: string;
+  body: string;
+  icon: LucideIcon;
+  label?: string;
+};
 
-export function Features() {
+const STORY_FEATURES: StoryFeature[] = [
+  {
+    id: "mobile-app",
+    title: "Mobile App",
+    body: "Capture photos, record voice updates, and send progress reports instantly from the field, all tied directly to each job.",
+    icon: Smartphone,
+  },
+  {
+    id: "crm-integration",
+    title: "CRM Integration",
+    body: "Relay syncs updates, crew check ins, and change orders to your CRM automatically. No manual entry.",
+    icon: Link2,
+  },
+  {
+    id: "manage-crews",
+    title: "Manage Crews",
+    body: "Track daily check-ins, set photo requirements, and see who’s on site with real-time visibility across every project.",
+    icon: Users,
+  },
+  {
+    id: "change-orders",
+    title: "Change Orders Made Simple",
+    body: "Create and send change orders in minutes. Clients and office staff review and confirm quickly for faster turnaround.",
+    label: "Change Order",
+    icon: ClipboardCheck,
+  },
+] as const;
+
+type FeaturesProps = {
+  imageSrc?: string;
+};
+
+const DEFAULT_IMAGE =
+  "https://images.unsplash.com/photo-1710974564457-44642eefc338?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjB3b3JrZXIlMjBwaG9uZXxlbnwxfHx8fDE3NjEzMzA5NDV8MA&ixlib=rb-4.1.0&q=80&w=1600";
+
+export function Features({ imageSrc = DEFAULT_IMAGE }: FeaturesProps) {
+  const storyRef = useRef<HTMLDivElement | null>(null);
+  const triggersRef = useRef<(HTMLElement | null)[]>([]);
+  const [activeFeature, setActiveFeature] = useState(STORY_FEATURES[0].id);
+  const reduceMotion = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: storyRef,
+    offset: ["start end", "end start"],
+  });
+
+  const imagePan = useTransform(
+    scrollYProgress,
+    [0, 1],
+    reduceMotion ? [0, 0] : [0, -60]
+  );
+  const imageZoom = useTransform(
+    scrollYProgress,
+    [0, 1],
+    reduceMotion ? [1, 1] : [1, 1.03]
+  );
+
+  useEffect(() => {
+    const STICKY_TOP_PX = 80;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const nextId = entry.target.getAttribute("data-feature-id");
+            if (nextId) setActiveFeature(nextId);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: `-${STICKY_TOP_PX}px 0px -50% 0px`,
+        threshold: 0.3,
+      }
+    );
+
+    triggersRef.current.forEach((node) => node && observer.observe(node));
+    return () => observer.disconnect();
+  }, []);
+
+  const overlayPositions = [
+    { top: "8%" },
+    { top: "24%" },
+    { top: "40%" },
+    { top: "58%" },
+  ];
+
   return (
     <section id="features" className="py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -40,142 +112,111 @@ export function Features() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <h2
+            className="text-[2.5rem] md:text-[3rem] font-semibold leading-tight"
+            style={{ letterSpacing: "-0.02em" }}
+          >
             Everything you need to delight your clients
+            <span className="block">and keep projects on track</span>
           </h2>
-          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
-            Powerful features designed specifically for contractors who care about communication
+          <p className="mt-4 text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+            See how Relay connects the field and the office so your team stays on the same page.
           </p>
         </motion.div>
 
-        {/* Feature grid */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group"
-            >
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-xl hover:border-emerald-200 transition-all h-full">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-5`}>
-                  <feature.icon className="w-6 h-6 text-white" />
+        <div ref={storyRef} className="relative">
+          <div className="sticky top-0 h-screen">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative w-full h-full rounded-[32px]">
+                <motion.div
+                  style={{ y: imagePan, scale: imageZoom }}
+                  className="absolute inset-0 overflow-hidden rounded-[32px]"
+                  aria-hidden="true"
+                >
+                  <ImageWithFallback
+                    src={imageSrc}
+                    alt="Relay mobile experience"
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+                <div className="absolute inset-0 rounded-[32px] bg-gradient-to-b from-black/35 via-black/30 to-black/45" />
+
+                {STORY_FEATURES.map((feature, index) => {
+                  const Icon = feature.icon;
+                  const titleId = `feature-${feature.id}-title`;
+                  return (
+                    <motion.section
+                      key={feature.id}
+                      aria-labelledby={titleId}
+                      initial={{ opacity: 0, y: reduceMotion ? 0 : 15 }}
+                      animate={{
+                        opacity: activeFeature === feature.id ? 1 : 0,
+                        y:
+                          reduceMotion || activeFeature === feature.id
+                            ? 0
+                            : 15,
+                      }}
+                      transition={{ duration: reduceMotion ? 0 : 0.3 }}
+                      className="absolute inset-x-6 md:inset-x-16"
+                      style={overlayPositions[index] ?? overlayPositions[0]}
+                    >
+                      <div className="mx-auto max-w-2xl rounded-[28px] bg-white/85 backdrop-blur border border-white/30 px-8 py-10 text-center text-gray-900">
+                        <div className="flex items-center justify-center gap-3 text-emerald-600 mb-4">
+                          <Icon className="w-7 h-7" aria-hidden="true" />
+                          <span className="text-base font-semibold tracking-[0.35em] uppercase">
+                            {feature.label ?? feature.title}
+                          </span>
+                        </div>
+                        <h3
+                          id={titleId}
+                          className="text-[2.75rem] md:text-[3rem] font-semibold leading-tight text-gray-900"
+                          style={{ letterSpacing: "-0.02em" }}
+                        >
+                          {feature.title}
+                        </h3>
+                        <p className="mt-4 text-lg md:text-xl text-gray-700 leading-relaxed">
+                          {feature.body}
+                        </p>
+                      </div>
+                    </motion.section>
+                  );
+                })}
+
+                <div className="hidden lg:flex flex-col gap-3 absolute top-1/2 right-8 -translate-y-1/2">
+                  {STORY_FEATURES.map((feature) => (
+                    <span
+                      key={feature.id}
+                      aria-hidden="true"
+                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                        activeFeature === feature.id
+                          ? "bg-emerald-400 scale-110 shadow-[0_0_0_6px_rgba(16,185,129,0.25)]"
+                          : "bg-white/40"
+                      }`}
+                    />
+                  ))}
                 </div>
-                
-                <h3 className="mb-3" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
-                  {feature.title}
-                </h3>
-                
-                <p className="text-muted-foreground">
-                  {feature.description}
-                </p>
               </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Feature showcase with images */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center mt-20">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h3 className="mb-4" style={{ fontSize: '2rem', fontWeight: 700 }}>
-              Built for the field
-            </h3>
-            <p className="text-muted-foreground mb-6" style={{ fontSize: '1.125rem' }}>
-              Our mobile app is designed for real-world job sites. Take photos with construction 
-              gloves on, work offline, and capture updates in seconds.
-            </p>
-            <ul className="space-y-3">
-              {[
-                "Intuitive interface for quick updates",
-                "Automatic photo organization",
-                "Voice-to-text for hands-free notes",
-                "Works without internet connection"
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
-                  </div>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="relative"
-          >
-            <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200 h-[600px]">
-              <ImageWithFallback
-                src="https://images.unsplash.com/photo-1710974564457-44642eefc338?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjB3b3JrZXIlMjBwaG9uZXxlbnwxfHx8fDE3NjEzMzA5NDV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                alt="Contractor using Relay app on job site"
-                className="w-full h-auto"
-              />
             </div>
-          </motion.div>
-        </div>
+          </div>
 
-        {/* Second feature showcase */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center mt-20">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="order-2 lg:order-1"
-          >
-            <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
-              <ImageWithFallback
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXNoYm9hcmQlMjBhbmFseXRpY3N8ZW58MXx8fHwxNzYxMjUxMDU2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                alt="Relay analytics dashboard"
-                className="w-full h-auto"
-              />
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="order-1 lg:order-2"
-          >
-            <h3 className="mb-4" style={{ fontSize: '2rem', fontWeight: 700 }}>
-              Insights that drive results
-            </h3>
-            <p className="text-muted-foreground mb-6" style={{ fontSize: '1.125rem' }}>
-              Understand what's working with detailed analytics. Track update frequency, 
-              client engagement, and identify opportunities to improve communication.
-            </p>
-            <ul className="space-y-3">
-              {[
-                "Real-time update tracking",
-                "Client engagement metrics",
-                "Team performance reports",
-                "Custom dashboards and exports"
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
-                  </div>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
+          <div>
+            {STORY_FEATURES.map((feature, index) => (
+              <section
+                key={feature.id}
+                ref={(el) => (triggersRef.current[index] = el)}
+                data-feature-id={feature.id}
+                className="h-screen grid content-center py-12 lg:py-20 scroll-mt-24"
+              >
+                <div className="sr-only">
+                  <h3>{feature.title}</h3>
+                  <p>{feature.body}</p>
+                </div>
+              </section>
+            ))}
+            <div className="h-screen" aria-hidden="true" />
+          </div>
         </div>
       </div>
     </section>
   );
 }
-
