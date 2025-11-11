@@ -11,7 +11,7 @@ import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { register, type RegisterData } from '@/services/authService';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/onsite-logo.png';
+import logo from '@/assets/RelayLogo.svg';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ export default function Register() {
 
       toast({
         title: 'Account created successfully!',
-        description: `Welcome to OnSite, ${response.user.name}!`,
+        description: `Welcome to Relay, ${response.user.name}!`,
       });
 
       // Redirect to dashboard after short delay
@@ -144,7 +144,7 @@ export default function Register() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="flex items-center justify-center mb-4"
           >
-            <img src={logo} alt="OnSite Logo" className="h-20" />
+            <img src={logo} alt="Relay logo" className="h-72" />
           </motion.div>
           <p className="text-muted-foreground" style={{ fontSize: '1.125rem' }}>
             Start your 14-day free trial
@@ -158,7 +158,7 @@ export default function Register() {
               Create Account
             </CardTitle>
             <CardDescription className="text-center">
-              Get started with OnSite today
+              Get started with Relay today
             </CardDescription>
           </CardHeader>
           <CardContent>

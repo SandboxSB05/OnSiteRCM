@@ -41,7 +41,7 @@ export function PaymentRequired() {
                   Your account is currently pending payment verification.
                 </p>
                 <p className="text-sm text-gray-700">
-                  To access the full features of OnSite RCM, please complete your payment setup.
+                  To access the full features of Relay RCM, please complete your payment setup.
                 </p>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Home,
   FolderOpen, 
-  Upload, 
+  Upload,
   BarChart3, 
   Users, 
   Settings,
@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
-import logo from "@/assets/onsite-logo.png";
+import logo from "@/assets/RelayLogo.svg";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -207,9 +207,11 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                 <Menu className="h-6 w-6" />
               </Button>
               <div className="flex items-center gap-3">
-                <img src={logo} alt="OnSite Logo" className="h-12 rounded-lg" />
+                <div className="h-20 w-32 overflow-hidden rounded-xl bg-white flex items-center justify-center shadow-sm mx-auto">
+                  <img src={logo} alt="Relay logo" className="h-48 object-contain -translate-x-1 translate-y-0" />
+                </div>
                 <div>
-                  <p className="text-xs font-semibold text-[#717182] uppercase tracking-wide">OnSite</p>
+                  <p className="text-xs font-semibold text-[#717182] uppercase tracking-wide">Relay</p>
                   <p className="text-base font-bold text-[#030213] leading-tight">Contractor Hub</p>
                 </div>
               </div>
@@ -226,11 +228,10 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
             <div className="relative ml-auto flex h-full w-[18rem] flex-col rounded-l-3xl border border-[rgba(0,0,0,0.08)] bg-white/95 p-5 shadow-2xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <img src={logo} alt="OnSite Logo" className="h-12 rounded-lg" />
+                  <div className="h-20 w-32 overflow-hidden rounded-xl bg-white flex items-center justify-center shadow-sm mx-auto">
+                    <img src={logo} alt="Relay logo" className="h-48 object-contain -translate-x-1 translate-y-0" />
+                  </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#717182]">
-                      OnSite
-                    </p>
                     <p className="text-base font-bold text-[#030213] leading-tight">Contractor Hub</p>
                   </div>
                 </div>
@@ -303,11 +304,11 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
               {/* Compact Header */}
               <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 px-4 py-5 text-white">
                 <div className="flex flex-col items-center gap-4">
-                  <img src={logo} alt="OnSite Logo" className="h-16 rounded-xl" />
+                  <div className="h-24 w-40 overflow-hidden rounded-2xl bg-white flex items-center justify-center shadow-md mx-auto">
+                    <img src={logo} alt="Relay logo" className="h-56 object-contain -translate-x-1 translate-y-1" />
+                  </div>
                   <div className="text-center">
-                    <p className="text-sm uppercase tracking-wider text-white/90 font-bold mb-1">
-                      OnSite
-                    </p>
+                    
                     <h2 className="text-base font-bold leading-tight">Contractor Hub</h2>
                   </div>
                 </div>
@@ -413,7 +414,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                 <Home className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#717182]">OnSite</p>
+                <p className="text-sm font-medium text-[#717182]">Relay</p>
                 <p className="text-base font-semibold text-[#030213]">
                   {user?.role === 'admin' ? 'Admin Hub' : 'Client Portal'}
                 </p>
@@ -437,7 +438,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#717182]">
-                    OnSite
+                    Relay
                   </p>
                   <p className="text-base font-semibold text-[#030213]">
                     {user?.role === 'admin' ? 'Admin Hub' : 'Client Portal'}
@@ -513,10 +514,12 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
             {/* Compact Header */}
             <div className="border-b border-[rgba(0,0,0,0.06)] bg-gradient-to-br from-emerald-500 to-teal-600 px-4 py-5 text-white">
               <div className="flex flex-col items-center gap-4">
-                <img src={logo} alt="OnSite Logo" className="h-16 rounded-xl" />
+                <div className="h-24 w-40 overflow-hidden rounded-2xl bg-white flex items-center justify-center shadow-md mx-auto">
+                  <img src={logo} alt="Relay logo" className="h-56 object-contain -translate-x-1 translate-y-1" />
+                </div>
                 <div className="text-center">
                   <p className="text-sm uppercase tracking-wider text-white/90 font-bold mb-1">
-                    OnSite
+                    Relay
                   </p>
                   <h2 className="text-base font-bold leading-tight">
                     {user?.role === 'admin' ? 'Admin Hub' : 'Client Portal'}

@@ -1,3 +1,5 @@
+import { getServerlessAuthToken } from './supabaseEntities';
+
 // Mock Integration Functions with detailed logging
 // Replace these with actual API calls to your backend services
 
@@ -37,22 +39,48 @@ interface EmailResponse {
   recipients: string[];
 }
 
-interface UploadFileParams {
-  file: File;
+interface BaseUploadParams {
   folder?: string;
   isPublic?: boolean;
+  projectId?: string;
+  dailyUpdateId?: string;
 }
 
-interface UploadFileResponse {
-  success: boolean;
-  url: string;
-  publicUrl: string;
-  filename: string;
-  originalName: string;
-  size: number;
-  type: string;
+interface UploadFileParams extends BaseUploadParams {
+  file: File;
+}
+
+interface UploadPhotosParams extends BaseUploadParams {
+  files: File[];
+}
+
+export interface UploadedPhotoMetadata {
+  bucket: string;
+  path: string;
   folder: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
   uploadedAt: string;
+  publicUrl: string | null;
+  url: string | null;
+  file_url: string | null;
+}
+
+interface UploadFileResponse extends UploadedPhotoMetadata {
+  success: boolean;
+  filename: string;
+  type: string;
+}
+
+interface UploadApiResponse {
+  success: boolean;
+  bucket?: string;
+  count?: number;
+  uploads?: any[];
+  error?: string;
+  message?: string;
 }
 
 interface SMSData {
@@ -147,46 +175,128 @@ export async function SendEmail(emailData: EmailData): Promise<EmailResponse> {
   return mockResponse;
 }
 
-// File Upload Service Integration
-export async function UploadFile(params: UploadFileParams): Promise<UploadFileResponse> {
-  const { file, folder, isPublic } = params;
-  
-  console.log('%c[API CALL] UploadFile()', 'color: #FF9800; font-weight: bold');
-  console.log('  → HTTP: POST /api/integrations/storage/upload');
-  console.log('  → File details:', {
-    fileName: file.name,
-    fileSize: `${(file.size / 1024).toFixed(2)} KB`,
-    fileType: file.type,
-    folder: folder || 'uploads',
-    isPublic: isPublic !== false
-  });
-  console.log('  → Expected backend action:');
-  console.log('    1. Validate file type and size');
-  console.log('    2. Generate unique filename');
-  console.log('    3. Upload to cloud storage (S3, Azure Blob, Cloudinary, etc)');
-  console.log('    4. Set permissions (public/private)');
-  console.log('    5. Return accessible URL');
-  console.log('    6. Store metadata in database');
-  
-  // Create a mock local URL (for display purposes only)
-  const mockUrl = URL.createObjectURL(file);
-  
-  const mockResponse = {
-    success: true,
-    url: mockUrl, // In production, this would be like: https://cdn.example.com/uploads/abc123.jpg
-    publicUrl: mockUrl,
-    filename: file.name,
-    originalName: file.name,
-    size: file.size,
-    type: file.type,
-    folder: folder || 'uploads',
-    uploadedAt: new Date().toISOString(),
+const DEFAULT_UPLOAD_FOLDER = 'uploads';
+const UPLOAD_ENDPOINT = '/api/integrations/storage/upload';
+
+const normalizeUploadMetadata = (
+  upload: any,
+  fallbackBucket: string,
+  fallbackFolder?: string
+): UploadedPhotoMetadata => {
+  const bucket = upload?.bucket || fallbackBucket || '';
+  const folder = upload?.folder || fallbackFolder || DEFAULT_UPLOAD_FOLDER;
+  const fileName =
+    upload?.fileName ||
+    upload?.filename ||
+    upload?.name ||
+    `file-${Date.now().toString(36)}`;
+  const originalName =
+    upload?.originalName || upload?.originalFilename || upload?.name || fileName;
+  const mimeType = upload?.mimeType || upload?.type || 'application/octet-stream';
+  const size = Number(upload?.size) || 0;
+  const uploadedAt = upload?.uploadedAt || new Date().toISOString();
+  const path = upload?.path || `${folder}/${fileName}`;
+  const publicUrl = upload?.publicUrl || upload?.url || upload?.file_url || null;
+
+  return {
+    bucket,
+    path,
+    folder,
+    fileName,
+    originalName,
+    mimeType,
+    size,
+    uploadedAt,
+    publicUrl,
+    url: publicUrl,
+    file_url: publicUrl,
   };
-  
-  console.log('  ← File "uploaded" to:', mockResponse.url);
-  console.warn('  ⚠️  WARNING: This is a MOCK - file is only stored locally in browser!');
-  
-  return mockResponse;
+};
+
+export async function UploadPhotos(params: UploadPhotosParams): Promise<UploadedPhotoMetadata[]> {
+  const { files, folder, isPublic, projectId, dailyUpdateId } = params;
+
+  if (!files || files.length === 0) {
+    throw new Error('No files provided for upload');
+  }
+
+  console.log('%c[API CALL] UploadPhotos()', 'color: #FF9800; font-weight: bold');
+  console.log('  → HTTP: POST /api/integrations/storage/upload');
+  console.log('  → Files:', files.map((file) => `${file.name} (${(file.size / 1024).toFixed(1)} KB)`));
+
+  const token = await getServerlessAuthToken();
+  const formData = new FormData();
+
+  files.forEach((file) => formData.append('photos', file));
+
+  if (folder) {
+    formData.append('folder', folder);
+  }
+  if (projectId) {
+    formData.append('project_id', projectId);
+  }
+  if (dailyUpdateId) {
+    formData.append('daily_update_id', dailyUpdateId);
+  }
+  if (typeof isPublic === 'boolean') {
+    formData.append('isPublic', String(isPublic));
+  }
+
+  const response = await fetch(UPLOAD_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      Authorization: token,
+    },
+    credentials: 'include',
+    body: formData,
+  });
+
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const responseText = await response.text();
+    throw new Error(`Unexpected response type: ${contentType || 'unknown'} - ${responseText}`);
+  }
+
+  const payload = (await response.json()) as UploadApiResponse;
+  if (!response.ok) {
+    const message = payload?.message || payload?.error || 'File upload failed';
+    throw new Error(message);
+  }
+
+  const uploads = Array.isArray(payload?.uploads) ? payload.uploads : [];
+  if (uploads.length === 0) {
+    throw new Error('Upload completed but no files were returned from the server');
+  }
+
+  const normalizedUploads = uploads.map((upload) =>
+    normalizeUploadMetadata(upload, payload?.bucket || '', folder)
+  );
+
+  console.log('  ← Uploaded files:', normalizedUploads.length);
+  return normalizedUploads;
+}
+
+// File Upload Service Integration (single file helper)
+export async function UploadFile(params: UploadFileParams): Promise<UploadFileResponse> {
+  const results = await UploadPhotos({
+    files: [params.file],
+    folder: params.folder,
+    isPublic: params.isPublic,
+    projectId: params.projectId,
+    dailyUpdateId: params.dailyUpdateId,
+  });
+
+  const first = results[0];
+  if (!first) {
+    throw new Error('File upload failed – no metadata returned');
+  }
+
+  return {
+    ...first,
+    success: true,
+    filename: first.fileName,
+    type: first.mimeType,
+  };
 }
 
 // Optional: SMS/Text Message Integration

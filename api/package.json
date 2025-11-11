@@ -1,13 +1,15 @@
 {
   "name": "onsite-api",
   "version": "1.0.0",
-  "description": "Vercel serverless API for OnSite Roofing Contractor Management",
+  "description": "Vercel serverless API for Relay Roofing Contractor Management",
+  "type": "commonjs",
   "private": true,
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
   "dependencies": {
+    "@fastify/busboy": "^2.1.1",
     "@supabase/supabase-js": "^2.39.0",
     "@vercel/node": "^3.0.12",
     "jsonwebtoken": "^9.0.2"

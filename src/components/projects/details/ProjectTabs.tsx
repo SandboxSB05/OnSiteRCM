@@ -1,12 +1,11 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Clock, BarChart3, FileText, Folder } from "lucide-react";
+import { Clock, FileText, Folder } from "lucide-react";
 
 export default function ProjectTabs({ activeTab, setActiveTab }) {
   const tabs = [
     { key: 'timeline', label: 'Timeline', icon: Clock },
     { key: 'updates', label: 'Daily Updates', icon: FileText },
-    { key: 'finances', label: 'Finances', icon: BarChart3 },
     { key: 'files', label: 'Files', icon: Folder }
   ];
 

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import heroImage from '@/assets/hero-mockup.png';
 
 export function Hero() {
@@ -10,102 +9,53 @@ export function Hero() {
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50 -z-10"></div>
       
-      <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left content */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full mb-6">
-              <span style={{ fontSize: '0.875rem' }}>Trusted by 500+ contractors</span>
-            </div>
-            
-            <h1 className="mb-6" style={{ fontSize: '3.5rem', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-              Simplify communication between contractors and homeowners
-            </h1>
-            
-            <p className="mb-8 text-muted-foreground" style={{ fontSize: '1.25rem', lineHeight: 1.6 }}>
-              OnSite connects to your CRM and helps you send professional project updates 
-              without leaving your workflow. Build trust through transparency.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/register">
-                <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
-                >
-                  Book a Demo
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-              <a href="#features">
-                <Button size="lg" variant="outline">
-                  Learn More
-                </Button>
-              </a>
-            </div>
-
-            {/* Social proof */}
-            <div className="mt-12 flex items-center gap-8">
-              <div>
-                <div style={{ fontSize: '1.875rem', fontWeight: 700 }}>98%</div>
-                <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>Client Satisfaction</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.875rem', fontWeight: 700 }}>50K+</div>
-                <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>Updates Sent</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.875rem', fontWeight: 700 }}>24/7</div>
-                <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>Support</div>
+      <div className="max-w-4xl mx-auto text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <a href="#interactive-demo" className="inline-block relative mb-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-full">
+            <div className="animate-border rounded-full p-[1px] bg-gradient-to-r from-[#000000] via-[#0066cc] to-[#000000] bg-[length:400%_400%]">
+              <div className="px-3 py-1 rounded-full bg-white hover:bg-gray-50 transition-colors">
+                <span style={{ fontSize: '0.875rem' }} className="text-gray-800">
+                  Experience our interactive demo
+                </span>
               </div>
             </div>
-          </motion.div>
-
-          {/* Right content - App mockup */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative flex justify-center"
-          >
-            <div className="relative w-2/3">
-              {/* Mobile app mockup */}
-              <div className="bg-white rounded-3xl shadow-2xl p-6 border border-gray-200">
-                <img
-                  src={heroImage}
-                  alt="OnSite Mobile App Interface"
-                  className="w-full rounded-xl"
-                />
-              </div>
-
-              {/* Floating update card */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="absolute -right-4 -bottom-4 bg-white rounded-2xl shadow-xl p-4 max-w-xs border border-gray-200"
+          </a>
+          
+          <h1 className="mb-6" style={{ fontSize: '3.5rem', fontWeight: 550, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+            Jobsite communication
+            <span className="block">simplified.</span>
+          </h1>
+          
+          <p className="mb-8 text-muted-foreground mx-auto max-w-2xl" style={{ fontSize: '1.25rem', lineHeight: 1.6 }}>
+            Relay connects your crews, clients, and CRM with automated updates that keep everyone aligned.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://calendly.com/henry-relaycxp/30min"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Button 
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span style={{ fontSize: '1.25rem' }}>✓</span>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Update Sent!</div>
-                    <p className="text-muted-foreground" style={{ fontSize: '0.75rem' }}>
-                      Kitchen renovation progress shared with client
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
+                Book a Demo
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </a>
+            <a href="#features">
+              <Button variant="outline">
+                Learn More
+              </Button>
+            </a>
+          </div>
+
+        </motion.div>
       </div>
     </section>
   );
 }
-

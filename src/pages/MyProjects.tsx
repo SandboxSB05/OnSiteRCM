@@ -17,7 +17,7 @@ interface ProjectType {
   address_line1?: string;
   project_status: string;
   project_type: string;
-  project_owner_id?: string;
+  contractor_id?: string;
   [key: string]: any;
 }
 
@@ -66,9 +66,9 @@ export default function MyProjects() {
       if (currentUser.role === 'client') {
         userProjects = await Project.filter({ client_id: currentUser.id });
       } else {
-        userProjects = await Project.filter({ project_owner_id: currentUser.id });
+        userProjects = await Project.filter({ contractor_id: currentUser.id });
       }
-      
+      console.log("Loaded user projects:", userProjects);
       setProjects(Array.isArray(userProjects) ? userProjects : []);
     } catch (error) {
       console.error("Error loading projects:", error);
@@ -123,7 +123,7 @@ export default function MyProjects() {
       
       const dataWithOwner = { 
         ...validProjectData, 
-        project_owner_id: user.id 
+        contractor_id: user.id 
       };
       
       if (editingProject) {

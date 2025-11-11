@@ -13,9 +13,11 @@ export interface LoginCredentials {
 export interface RegisterData {
   fullName: string;
   email: string;
-  company: string;
+  companyName?: string; // Only for contractors
   phone?: string;
   password: string;
+  role?: 'admin' | 'contractor' | 'crew_lead';
+  contractorId?: string; // Only for crew_leads
 }
 
 export interface AuthResponse {
@@ -23,10 +25,9 @@ export interface AuthResponse {
     id: string;
     email: string;
     name: string;
-    role: 'admin' | 'contractor' | 'client';
-    company: string;
+    role: 'admin' | 'contractor' | 'crew_lead';
     phone?: string;
-    payment_verified?: boolean;
+    companyName?: string; // Only for contractors
   };
   session: any;
 }
@@ -35,14 +36,14 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'contractor' | 'client';
-  company: string;
+  role: 'admin' | 'contractor' | 'crew_lead';
   phone?: string;
-  payment_verified?: boolean;
+  companyName?: string; // Only for contractors
 }
 
 /**
  * Login user with Supabase Auth
+ * Note: Requires RLS policy 'users_view_own' to allow users to read their own record
  */
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
@@ -53,29 +54,63 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
     });
 
     if (authError) {
+      console.error('Supabase auth error details:', {
+        message: authError.message,
+        status: (authError as any).status,
+        code: (authError as any).code,
+      });
       throw new Error(authError.message || 'Invalid email or password');
     }
 
-    if (!authData.user) {
+    if (!authData.user || !authData.session) {
       throw new Error('No user data returned');
     }
 
+    // Wait a moment for the session to be fully established
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     // Fetch user profile from public.users table
+    // This requires the 'users_view_own' RLS policy to be in place
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('id', authData.user.id)
       .single();
 
-    if (userError || !userData) {
-      throw new Error('Failed to fetch user profile');
+    if (userError) {
+      console.error('Error fetching user profile:', userError);
+      throw new Error(`Failed to fetch user profile: ${userError.message}`);
+    }
+
+    if (!userData) {
+      throw new Error('No user profile found');
+    }
+
+    // Fetch contractor data if user is a contractor
+    let companyName = undefined;
+    if (userData.role === 'contractor') {
+      const { data: contractorData, error: contractorError } = await supabase
+        .from('contractors')
+        .select('company_name')
+        .eq('id', userData.id)
+        .single();
+      
+      if (contractorError) {
+        console.error('Error fetching contractor data:', contractorError);
+      }
+      
+      companyName = contractorData?.company_name;
     }
 
     // Update last login
-    await supabase
+    const { error: updateError } = await supabase
       .from('users')
       .update({ last_login: new Date().toISOString() })
       .eq('id', userData.id);
+
+    if (updateError) {
+      console.error('Error updating last login:', updateError);
+    }
 
     return {
       user: {
@@ -83,13 +118,13 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
         email: userData.email,
         name: userData.name,
         role: userData.role,
-        company: userData.company || '',
         phone: userData.phone || undefined,
-        payment_verified: userData.payment_verified || false,
+        companyName: companyName,
       },
       session: authData.session,
     };
   } catch (error: any) {
+    console.error('Login error details:', error);
     throw new Error(error.message || 'Login failed');
   }
 };
@@ -109,10 +144,11 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
       body: JSON.stringify({
         fullName: userData.fullName,
         email: userData.email,
-        company: userData.company,
+        companyName: userData.companyName,
         phone: userData.phone,
         password: userData.password,
-        role: 'contractor', // Default role
+        role: userData.role || 'contractor', // Default role
+        contractorId: userData.contractorId,
       }),
     });
 
@@ -136,9 +172,8 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
         email: data.user.email,
         name: data.user.name,
         role: data.user.role,
-        company: data.user.company,
         phone: data.user.phone,
-        payment_verified: data.user.payment_verified || false,
+        companyName: data.user.companyName,
       },
       session: data.session,
     };
@@ -184,14 +219,25 @@ export const verifySession = async (): Promise<User> => {
       throw new Error('Failed to fetch user profile');
     }
 
+    // Fetch contractor data if user is a contractor
+    let companyName = undefined;
+    if (userData.role === 'contractor') {
+      const { data: contractorData } = await supabase
+        .from('contractors')
+        .select('company_name')
+        .eq('id', userData.id)
+        .single();
+      
+      companyName = contractorData?.company_name;
+    }
+
     return {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       role: userData.role,
-      company: userData.company || '',
       phone: userData.phone || undefined,
-      payment_verified: userData.payment_verified || false,
+      companyName: companyName,
     };
   } catch (error: any) {
     throw new Error(error.message || 'Session verification failed');
@@ -215,14 +261,25 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
     if (!userData) return null;
 
+    // Fetch contractor data if user is a contractor
+    let companyName = undefined;
+    if (userData.role === 'contractor') {
+      const { data: contractorData } = await supabase
+        .from('contractors')
+        .select('company_name')
+        .eq('id', userData.id)
+        .single();
+      
+      companyName = contractorData?.company_name;
+    }
+
     return {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       role: userData.role,
-      company: userData.company || '',
       phone: userData.phone || undefined,
-      payment_verified: userData.payment_verified || false,
+      companyName: companyName,
     };
   } catch (error) {
     console.error('Error getting current user:', error);

@@ -15,8 +15,9 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'contractor' | 'client';
-  company: string;
+  role: 'admin' | 'contractor' | 'crew_lead';
+  phone?: string;
+  companyName?: string; // Only for contractors
 }
 
 /**
@@ -92,28 +93,55 @@ export default async function handler(
       });
     }
 
+    // Fetch contractor data if user is a contractor
+    let companyName = undefined;
+    if (userData.role === 'contractor') {
+      const { data: contractorData } = await supabase
+        .from('contractors')
+        .select('company_name')
+        .eq('id', userData.id)
+        .single();
+      
+      companyName = contractorData?.company_name;
+    }
+
+    // Update last login
+    await supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', userData.id);
+
     // Generate token with real user data
     const tokenPayload = {
       userId: userData.id,
       email: userData.email,
       role: userData.role,
-      company: userData.company,
       exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours from now
     };
     
     // Create a simple base64 token
     const token = `Bearer.${Buffer.from(JSON.stringify(tokenPayload)).toString('base64')}`;
 
+    // Prepare user response
+    const userResponse: any = {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
+      role: userData.role,
+      phone: userData.phone || undefined
+    };
+
+    // Add company name for contractors
+    if (companyName) {
+      userResponse.companyName = companyName;
+    }
+
     // Return real user data
     return res.status(200).json({
-      user: {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        role: userData.role,
-        company: userData.company || ''
-      },
+      user: userResponse,
       token: token,
+      supabaseAccessToken: authData.session?.access_token || null,
+      supabaseRefreshToken: authData.session?.refresh_token || null,
       message: 'Login successful'
     });
 

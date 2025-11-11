@@ -1,141 +1,142 @@
-import { motion } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
-import followupLogo from '@/assets/followup-logo.png';
-import jobNimbusLogo from '@/assets/jobnimbus-logo.png';
+"use client";
 
-const integrations = [
-  { name: "JobNimbus", status: "Available", logo: jobNimbusLogo },
-  { name: "Buildertrend", status: "Available" },
-  { name: "AccuLynx", status: "Available" },
-  { name: "Salesforce", status: "Coming Soon" },
-  { name: "Followup", status: "Coming Soon", logo: followupLogo },
-  { name: "Custom CRM", status: "API Available" }
+import { motion } from "framer-motion";
+import { CheckCircle2, Code2, Zap, Users } from "lucide-react";
+import { FAQ } from "./FAQ";
+
+const integrationFeatures = [
+  {
+    icon: Code2,
+    title: "Integration Ready",
+    description: "Relay is built on a flexible API that makes connecting to CRMs simple when the time comes."
+  },
+  {
+    icon: Users,
+    title: "Collaborative Setup",
+    description: "We work with your CRM provider and your team to plan the right connection flow."
+  },
+  {
+    icon: Zap,
+    title: "White Glove Support",
+    description: "Our team helps configure Relay for your specific processes and reporting needs."
+  }
 ];
 
 const benefits = [
-  "Automatic two-way sync with your CRM",
-  "No duplicate data entry required",
-  "Updates appear as CRM activities",
-  "Preserve your existing workflow",
-  "Easy setup in under 5 minutes"
+  "Reduce double data entry",
+  "Keep your CRM as the source of truth",
+  "Streamline field updates and approvals",
+  "Maintain visibility across teams",
+  "Integration-ready platform and ongoing support"
 ];
 
 export function Integrations() {
   return (
-    <section id="integrations" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <section id="integrations" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
+        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, amount: 0.35 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
-            Integrates with your tools
+          <h2 style={{ fontSize: "2.5rem", fontWeight: 550, letterSpacing: "-0.02em" }}>
+            Built to connect with your CRM
           </h2>
-          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
-            OnSite connects seamlessly with the CRM platforms contractors already use
+          <p
+            className="mt-4 text-muted-foreground max-w-2xl mx-auto"
+            style={{ fontSize: "1.125rem" }}
+          >
+            Relay is designed to connect with the tools your team already uses.
+            We collaborate with your CRM provider to make setup seamless when you’re ready to integrate.
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Integration logos */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+        {/* CTA card */}
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.97 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: false, amount: 0.35 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-12 mb-12 text-white text-center shadow-[0_25px_60px_-30px_rgba(16,185,129,0.75)]"
+        >
+          <h3 className="mb-4" style={{ fontSize: "1.875rem", fontWeight: 550 }}>
+            Let’s build your integration together
+          </h3>
+          <p className="max-w-2xl mx-auto mb-8 opacity-90" style={{ fontSize: "1.125rem" }}>
+            We partner with contractors to design the best way Relay fits into your workflow. 
+            Whether you use JobNimbus, Buildertrend, or another CRM, our platform is built to connect when you are.
+          </p>
+          <a
+            href="https://calendly.com/henry-relaycxp/30min"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center px-8 py-4 bg-white text-emerald-600 rounded-xl hover:bg-gray-50 transition-colors shadow-lg"
           >
-            <div className="grid grid-cols-2 gap-4">
-              {integrations.map((integration, index) => (
+            Talk with our team
+          </a>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-2 gap-12 items-stretch">
+          {/* How it works */}
+          <motion.div
+            initial={{ opacity: 0, y: 45, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.65, ease: "easeOut" }}
+            className="relative rounded-2xl p-8 border-2 border-emerald-200 bg-gradient-to-br from-gray-50 to-white flex flex-col shadow-[0_25px_60px_-35px_rgba(16,185,129,0.65)]"
+          >
+            <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 550 }}>
+              How we build it
+            </h3>
+            <div className="space-y-4 flex-1">
+              {integrationFeatures.map((feature, index) => (
                 <motion.div
-                  key={integration.name}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-emerald-200 transition-all"
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, amount: 0.3 }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
+                  className="flex items-start gap-4"
                 >
-                  <div className="flex flex-col items-center text-center">
-                    {/* Logo placeholder */}
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center mb-3">
-                      {integration.logo ? (
-                        <img src={integration.logo} alt={integration.name} className="w-12 h-12 object-contain" />
-                      ) : (
-                        <span style={{ fontSize: '1.5rem', fontWeight: 700 }} className="text-emerald-700">
-                          {integration.name.charAt(0)}
-                        </span>
-                      )}
+                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <feature.icon className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "1rem", fontWeight: 550 }} className="mb-1">
+                      {feature.title}
                     </div>
-                    
-                    <div style={{ fontSize: '0.9375rem', fontWeight: 600 }} className="mb-1">
-                      {integration.name}
-                    </div>
-                    
-                    <div className="inline-flex items-center gap-1">
-                      {integration.status === "Available" && (
-                        <>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span className="text-emerald-600" style={{ fontSize: '0.75rem' }}>
-                            {integration.status}
-                          </span>
-                        </>
-                      )}
-                      {integration.status === "Coming Soon" && (
-                        <span className="text-muted-foreground" style={{ fontSize: '0.75rem' }}>
-                          {integration.status}
-                        </span>
-                      )}
-                      {integration.status === "API Available" && (
-                        <span className="text-blue-600" style={{ fontSize: '0.75rem' }}>
-                          {integration.status}
-                        </span>
-                      )}
-                    </div>
+                    <p className="text-muted-foreground" style={{ fontSize: "0.875rem" }}>
+                      {feature.description}
+                    </p>
                   </div>
                 </motion.div>
               ))}
             </div>
-
-            {/* API info */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200"
-            >
-              <h4 style={{ fontSize: '1rem', fontWeight: 600 }} className="mb-2">
-                Don't see your CRM?
-              </h4>
-              <p className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>
-                We offer a flexible API for custom integrations. Contact our team to discuss 
-                connecting OnSite with your specific platform.
-              </p>
-            </motion.div>
           </motion.div>
 
-          {/* Benefits list */}
+          {/* Benefits */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200"
+            initial={{ opacity: 0, y: 45, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.65, delay: 0.1, ease: "easeOut" }}
+            className="relative bg-white rounded-2xl p-8 border-2 border-emerald-200 flex flex-col shadow-[0_25px_60px_-35px_rgba(16,185,129,0.65)]"
           >
-            <h3 className="mb-6" style={{ fontSize: '1.5rem', fontWeight: 700 }}>
-              Why integration matters
+            <h3 className="mb-6" style={{ fontSize: "1.5rem", fontWeight: 550 }}>
+              What you get
             </h3>
-            
-            <div className="space-y-4 mb-8">
+
+            <div className="space-y-4 mb-8 flex-1">
               {benefits.map((benefit, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, amount: 0.3 }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
                   className="flex items-start gap-3"
                 >
                   <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -146,26 +147,28 @@ export function Integrations() {
               ))}
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6">
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-100">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <span style={{ fontSize: '1.5rem' }}>🔌</span>
+                  <Code2 className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '1rem', fontWeight: 600 }} className="mb-1">
-                    Quick setup
+                  <div style={{ fontSize: "1rem", fontWeight: 550 }} className="mb-1">
+                    API first architecture
                   </div>
-                  <p className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>
-                    Our team helps you connect to your CRM in minutes, not days. 
-                    White-glove onboarding included.
+                  <p className="text-muted-foreground" style={{ fontSize: "0.875rem" }}>
+                    Built on modern APIs that make integrations reliable, fast, and easy to
+                    maintain as your needs evolve.
                   </p>
                 </div>
               </div>
             </div>
           </motion.div>
         </div>
+
+        {/* Keep FAQ like the original section */}
+        <FAQ />
       </div>
     </section>
   );
 }
-

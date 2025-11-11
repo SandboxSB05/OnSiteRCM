@@ -1,4 +1,4 @@
--- OnSite RCM Database Schema
+-- Relay RCM Database Schema
 -- Standardized schema for production implementation
 -- Date: October 15, 2025
 
@@ -67,6 +67,8 @@ CREATE TABLE daily_updates (
   update_date DATE NOT NULL,
   work_description TEXT NOT NULL,
   ai_summary TEXT,
+  project_phase VARCHAR(100),
+  project_phase_progress INTEGER CHECK (project_phase_progress BETWEEN 0 AND 100),
   photos JSONB DEFAULT '[]'::jsonb,
   created_date TIMESTAMPTZ DEFAULT NOW(),
   updated_date TIMESTAMPTZ DEFAULT NOW()

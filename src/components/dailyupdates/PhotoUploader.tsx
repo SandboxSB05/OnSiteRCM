@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadFile } from '@/api/integrations';
+import { UploadPhotos } from '@/api/integrations';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,9 +24,13 @@ export default function PhotoUploader({ photos, onChange }) {
          return;
       }
       
-      const uploadPromises = acceptedFiles.map(file => UploadFile({ file }));
-      const results = await Promise.all(uploadPromises);
-      const newPhotos = results.map(res => res.file_url).filter(url => url);
+      const uploadResults = await UploadPhotos({
+        files: acceptedFiles,
+        folder: 'daily-updates',
+      });
+      const newPhotos = uploadResults
+        .map(res => res.file_url || res.publicUrl || res.url)
+        .filter((url): url is string => Boolean(url));
       
       if (onChange) {
         onChange([...safePhotos, ...newPhotos]);

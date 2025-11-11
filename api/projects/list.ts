@@ -1,10 +1,12 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Get environment variables lazily to support dev server middleware
+const getConfig = () => ({
+  supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+});
 
 /**
  * GET /api/projects/list
@@ -25,6 +27,9 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Get config lazily to support dev server middleware
+  const { supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey } = getConfig();
+
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ 
@@ -34,30 +39,125 @@ export default async function handler(
   }
 
   try {
-    const { userId, role } = req.query;
+    // Authorize using our own API token (returned from /api/auth/login)
+    // Expect header: Authorization: Bearer.<base64 json payload>
+    const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
 
-    // Query real projects from Supabase using projects_with_clients view
-    // This matches exactly how the MyProjects page queries: Project.filter()
+    if (!authHeader.startsWith('Bearer.')) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Missing or invalid authorization token' });
+    }
+
+    let tokenPayload: any;
+    try {
+      const base64 = authHeader.split('Bearer.')[1];
+      const json = Buffer.from(base64, 'base64').toString('utf8');
+      tokenPayload = JSON.parse(json);
+    } catch (e) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token format' });
+    }
+
+    if (!tokenPayload?.userId || !tokenPayload?.exp || Date.now() > tokenPayload.exp) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Token expired or invalid' });
+    }
+
+    const userId = String(tokenPayload.userId);
+    const role = String(tokenPayload.role || 'contractor');
+
+    const {
+      order,
+      limit,
+      id,
+      contractor_id,
+      client_id,
+      project_status,
+      project_type,
+    } = req.query;
+
+    const normalizeParam = (value: string | string[] | undefined) => {
+      if (!value) return undefined;
+      return Array.isArray(value) ? value[0] : value;
+    };
+
+    const normalizedOrder = normalizeParam(order);
+    const normalizedLimit = normalizeParam(limit);
+    const filters = {
+      id: normalizeParam(id),
+      contractor_id: normalizeParam(contractor_id),
+      client_id: normalizeParam(client_id),
+      project_status: normalizeParam(project_status),
+      project_type: normalizeParam(project_type),
+    };
+
+    // Use service role on the server to bypass RLS safely (NEVER expose this key to clients)
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      const missing = [];
+      if (!supabaseUrl) missing.push('SUPABASE_URL');
+      if (!supabaseServiceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+      console.error('Missing Supabase credentials:', missing.join(', '));
+      return res.status(500).json({ 
+        error: 'Server misconfiguration', 
+        message: `Missing credentials: ${missing.join(', ')}`
+      });
+    }
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    // Query projects with clients view
+    // Filters match MyProjects page semantics
     let query = supabase.from('projects_with_clients').select('*');
 
     // Apply filters exactly like the website's Project.filter() method
-    if (userId && role === 'contractor') {
-      // For contractors/admins, get projects they own
-      query = query.eq('project_owner_id', userId);
+    if (userId && (role === 'contractor' || role === 'admin')) {
+      // For contractors/admins, get projects they own (match MyProjects.tsx)
+      query = query.eq('contractor_id', userId);
     } else if (userId && role === 'client') {
       // For clients, get projects where they are the client
       query = query.eq('client_id', userId);
     }
 
-    // Order by created_date descending (newest first)
-    const { data: projects, error } = await query.order('created_date', { ascending: false });
+    // Apply additional filters from query string
+    Object.entries(filters).forEach(([key, value]) => {
+      if (!value) return;
+      if (key === 'id') {
+        query = query.eq('id', value);
+      } else if (typeof value === 'string' && value.includes(',')) {
+        const values = value
+          .split(',')
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0);
+        if (values.length > 0) {
+          query = query.in(key, values);
+        }
+      } else {
+        query = query.eq(key, value);
+      }
+    });
+
+    // Handle ordering
+    if (normalizedOrder) {
+      const desc = normalizedOrder.startsWith('-');
+      const field = desc ? normalizedOrder.substring(1) : normalizedOrder;
+      query = query.order(field, { ascending: !desc });
+    } else {
+      query = query.order('created_date', { ascending: false });
+    }
+
+    // Handle limit
+    if (normalizedLimit) {
+      const parsed = parseInt(normalizedLimit, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        query = query.limit(parsed);
+      }
+    }
+
+    let { data: projects, error } = await query;
     
     console.log('Supabase query result:', { 
       projectCount: projects?.length, 
       error: error?.message,
       userId, 
       role,
-      view: 'projects_with_clients'
+      view: 'projects_with_clients',
+      filters
     });
 
     if (error) {
@@ -65,85 +165,82 @@ export default async function handler(
       return res.status(500).json({
         error: 'Database error',
         message: error.message,
-        details: error.details
+        details: error.details,
+        hint: error.hint
       });
     }
 
-    // If no real projects, return mock data as fallback
+    // If no results from the view, try querying the base table as a fallback
     if (!projects || projects.length === 0) {
-      const mockProjects = [
-      {
-        id: 'proj-1',
-        project_name: 'Wilson Residence Roof Replacement',
-        client_name: 'Sarah Wilson',
-        client_id: 'user-default',
-        project_owner_id: 'user-default',
-        address_line1: '123 Oak Street',
-        city: 'San Francisco',
-        state: 'CA',
-        zip_code: '94102',
-        project_type: 'Roof Replacement',
-        status: 'in_progress',
-        completion_percentage: 75,
-        created_date: '2024-01-15',
-        start_date: '2024-02-01',
-        estimated_completion_date: '2024-03-15',
-        budget: 25000,
-        actual_cost: 18000
-      },
-      {
-        id: 'proj-2',
-        project_name: 'Johnson Commercial Building',
-        client_name: 'Mike Johnson',
-        client_id: 'user-default',
-        project_owner_id: 'user-default',
-        address_line1: '456 Pine Avenue',
-        city: 'San Francisco',
-        state: 'CA',
-        zip_code: '94103',
-        project_type: 'Roof Repair',
-        status: 'in_progress',
-        completion_percentage: 50,
-        created_date: '2024-02-01',
-        start_date: '2024-02-15',
-        estimated_completion_date: '2024-04-01',
-        budget: 45000,
-        actual_cost: 22500
-      },
-      {
-        id: 'proj-3',
-        project_name: 'Davis Kitchen Remodel',
-        client_name: 'Jennifer Davis',
-        client_id: 'user-default',
-        project_owner_id: 'user-default',
-        address_line1: '789 Maple Drive',
-        city: 'Oakland',
-        state: 'CA',
-        zip_code: '94601',
-        project_type: 'Roof Inspection',
-        status: 'planning',
-        completion_percentage: 25,
-        created_date: '2024-03-01',
-        start_date: null,
-        estimated_completion_date: '2024-05-01',
-        budget: 15000,
-        actual_cost: 3750
+      let baseQuery = supabase.from('projects').select('*');
+      if (userId && (role === 'contractor' || role === 'admin')) {
+        baseQuery = baseQuery.eq('contractor_id', userId);
+      } else if (userId && role === 'client') {
+        baseQuery = baseQuery.eq('client_id', userId);
       }
-      ];
 
-      return res.status(200).json({
-        projects: mockProjects,
-        count: mockProjects.length,
-        message: 'Projects retrieved successfully (fallback mock data)',
-        source: 'mock'
+      Object.entries(filters).forEach(([key, value]) => {
+        if (!value) return;
+        if (key === 'id') {
+          baseQuery = baseQuery.eq('id', value);
+        } else if (typeof value === 'string' && value.includes(',')) {
+          const values = value
+            .split(',')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+          if (values.length > 0) {
+            baseQuery = baseQuery.in(key, values);
+          }
+        } else {
+          baseQuery = baseQuery.eq(key, value);
+        }
       });
+
+      if (normalizedOrder) {
+        const desc = normalizedOrder.startsWith('-');
+        const field = desc ? normalizedOrder.substring(1) : normalizedOrder;
+        baseQuery = baseQuery.order(field, { ascending: !desc });
+      } else {
+        baseQuery = baseQuery.order('created_date', { ascending: false });
+      }
+
+      if (normalizedLimit) {
+        const parsed = parseInt(normalizedLimit, 10);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          baseQuery = baseQuery.limit(parsed);
+        }
+      }
+
+      const { data: baseProjects, error: baseError } = await baseQuery;
+      if (baseError) {
+        console.error('Supabase base table error:', baseError);
+      } else if (baseProjects && baseProjects.length > 0) {
+        projects = baseProjects;
+      }
     }
 
+    // Ensure JSON column is consistently present in the response
+    const normalizedProjects = (projects || []).map((project: any) => ({
+      ...project,
+      project_progress:
+        project?.project_progress !== undefined ? project.project_progress : null,
+    }));
+
+    console.log(
+      'Project progress snapshot:',
+      normalizedProjects.map((project: any) => ({
+        id: project.id,
+        project_progress: project.project_progress,
+      }))
+    );
+
+    // Return real data from Supabase (no mock fallback)
     return res.status(200).json({
-      projects: projects,
-      count: projects.length,
-      message: 'Projects retrieved successfully from database',
-      source: 'supabase'
+      projects: normalizedProjects,
+      count: normalizedProjects.length,
+      message: normalizedProjects.length ? 'Projects retrieved successfully from database' : 'No projects found',
+      source: 'supabase',
+      filters: { userId, role }
     });
 
   } catch (error) {
@@ -155,4 +252,3 @@ export default async function handler(
     });
   }
 }
-

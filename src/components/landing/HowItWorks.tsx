@@ -1,28 +1,58 @@
-import { Camera, RefreshCw, Send } from "lucide-react";
+import { Camera, RefreshCw, Send, ClipboardCheck, Users, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
+import { AppDemo } from "./AppDemo";
+import { useState } from "react";
 
-const steps = [
+const homeownerSteps = [
   {
     icon: Camera,
     title: "Capture",
-    description: "Project managers use the OnSite mobile app to capture photos, notes, and progress summaries right from the job site.",
+    description: "Record voice updates, snap photos, and log progress right from the field. Relay keeps everything organized.",
     color: "from-emerald-500 to-teal-600"
   },
   {
     icon: RefreshCw,
     title: "Sync",
-    description: "Updates automatically sync back into your CRM (JobNimbus, Buildertrend, etc.) as activity entries, keeping your records complete.",
+    description: "Relay automatically syncs updates, photos, and check-ins into your CRM. No manual entry, no missed information.",
     color: "from-teal-500 to-cyan-600"
   },
   {
     icon: Send,
     title: "Update",
-    description: "Homeowners receive clean, branded updates through text or email, improving transparency and trust throughout the project.",
+    description: "Clients receive clean progress reports and instant change order approvals that keep everyone aligned.",
     color: "from-cyan-500 to-blue-600"
   }
 ];
 
+const crewSteps = [
+  {
+    icon: ClipboardCheck,
+    title: "Assign",
+    description: "Crew leads receive daily scopes, checklists, and photo requirements. Crews check in on the app, record quick voice notes, and upload photos from the field.",
+    color: "from-amber-500 to-orange-600"
+  },
+  {
+    icon: RefreshCw,
+    title: "Instant Sync",
+    description: "All field updates flow directly into your CRM with job details, timestamps, and attachments. Everything stays organized with no manual data entry.",
+    color: "from-orange-500 to-rose-500"
+  },
+  {
+    icon: Users,
+    title: "Office Visibility",
+    description: "Managers see who checked in and view real-time updates in the CRM. Track progress, manage change orders, and keep the team aligned without constant calls.",
+    color: "from-rose-500 to-pink-500"
+  }
+];
+
 export function HowItWorks() {
+  const [audience, setAudience] = useState<"homeowners" | "crews">("homeowners");
+  const activeSteps = audience === "homeowners" ? homeownerSteps : crewSteps;
+  const subtitle =
+    audience === "homeowners"
+      ? "Three simple steps to transform how you communicate with homeowners"
+      : "Three simple steps to keep field crews aligned and accountable";
+
   return (
     <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
@@ -31,24 +61,47 @@ export function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 550, letterSpacing: '-0.02em' }}>
             How It Works
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto" style={{ fontSize: '1.125rem' }}>
-            Three simple steps to transform how you communicate with homeowners
+            {subtitle}
           </p>
+          <div className="mt-8 inline-flex items-center gap-3 bg-white border border-gray-200 rounded-full p-1">
+            <button
+              onClick={() => setAudience("homeowners")}
+              className={`px-5 py-2 text-sm font-medium rounded-full transition-colors ${
+                audience === "homeowners"
+                  ? "bg-emerald-500 text-white"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Communicate with Homeowners
+            </button>
+            <button
+              onClick={() => setAudience("crews")}
+              className={`px-5 py-2 text-sm font-medium rounded-full transition-colors ${
+                audience === "crews"
+                  ? "bg-emerald-500 text-white"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Communicate with Crews
+            </button>
+          </div>
+          <div className="hidden md:block mt-6 h-0.5 w-full bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 opacity-60" />
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((step, index) => (
+          {activeSteps.map((step, index) => (
             <motion.div
               key={step.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              initial={{ opacity: 0, y: 20, filter: "blur(10px)", scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
+              viewport={{ margin: "-100px" }}
+              transition={{ duration: 0.8, delay: index * 0.2, ease: "easeOut" }}
             >
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-lg transition-shadow h-full">
                 {/* Icon */}
@@ -58,13 +111,13 @@ export function HowItWorks() {
 
                 {/* Step number */}
                 <div className="inline-block px-3 py-1 bg-gray-100 rounded-full mb-4">
-                  <span className="text-muted-foreground" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+                  <span className="text-muted-foreground" style={{ fontSize: '0.75rem', fontWeight: 550 }}>
                     STEP {index + 1}
                   </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="mb-3" style={{ fontSize: '1.5rem', fontWeight: 600 }}>
+                <h3 className="mb-3" style={{ fontSize: '1.5rem', fontWeight: 550 }}>
                   {step.title}
                 </h3>
 
@@ -77,12 +130,17 @@ export function HowItWorks() {
           ))}
         </div>
 
-        {/* Connection line - desktop only */}
-        <div className="hidden md:block relative -mt-96 mb-96 pointer-events-none">
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 opacity-50"></div>
-        </div>
+        {/* App Demo Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ margin: "-100px" }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mt-24"
+        >
+          <AppDemo />
+        </motion.div>
       </div>
     </section>
   );
 }
-

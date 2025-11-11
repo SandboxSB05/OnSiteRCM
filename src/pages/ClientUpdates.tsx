@@ -345,7 +345,7 @@ The weather conditions were favorable, allowing us to make excellent progress. O
         <div style="background-color: #f9fafb; padding: 24px; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
           <p style="margin: 0; color: #6b7280; font-size: 14px;">
             Best regards,<br/>
-            <span style="font-weight: 600; color: #1f2937;">Your OnSite Roofing Team</span>
+            <span style="font-weight: 600; color: #1f2937;">Your Relay Roofing Team</span>
           </p>
           <p style="margin: 16px 0 0 0; color: #9ca3af; font-size: 12px;">
             This is an automated update from your roofing contractor. For questions or concerns, please reply to this email or contact us directly.
