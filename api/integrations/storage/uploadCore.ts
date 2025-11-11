@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import busboy from '@fastify/busboy';
 import { randomUUID } from 'crypto';
 import type { IncomingMessage } from 'http';
@@ -241,7 +241,7 @@ const parseAuthToken = (req: IncomingMessage) => {
 };
 
 const uploadFilesToSupabase = async (
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   folder: string,
   files: ParsedFile[],
   bucket: string
