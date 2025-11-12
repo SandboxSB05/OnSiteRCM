@@ -71,11 +71,30 @@ const sanitizePathSegment = (value?: string | null) => {
 };
 
 const buildFolder = (fields: Record<string, string>) => {
+  // Check for phase-based structure first: projectId/phaseName
+  const projectId = 
+    fields.project_id || 
+    fields.projectId || 
+    fields.project_folder;
+  
+  const phaseName = 
+    fields.phase_name || 
+    fields.phaseName || 
+    fields.project_phase ||
+    fields.projectPhase;
+
+  if (projectId && phaseName) {
+    const sanitizedProjectId = sanitizePathSegment(projectId);
+    const sanitizedPhaseName = sanitizePathSegment(phaseName);
+    if (sanitizedProjectId && sanitizedPhaseName) {
+      return `${sanitizedProjectId}/${sanitizedPhaseName}`;
+    }
+  }
+
+  // Fallback to legacy folder structure
   const rawFolder =
     fields.folder ||
-    fields.project_folder ||
-    fields.projectId ||
-    fields.project_id ||
+    projectId ||
     'uploads';
 
   const folder = sanitizePathSegment(rawFolder);
