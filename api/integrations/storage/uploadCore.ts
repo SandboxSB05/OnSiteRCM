@@ -255,12 +255,20 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
 const parseAuthToken = async (req: IncomingMessage) => {
   const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
 
-  if (!authHeader.startsWith('Bearer ')) {
-    return { error: 'Missing or invalid authorization token' };
+  if (!authHeader) {
+    return { error: 'Missing authorization token' };
   }
 
   try {
-    const token = authHeader.slice('Bearer '.length).trim();
+    // Handle both "Bearer <token>" and raw token formats
+    let token = authHeader;
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice('Bearer '.length).trim();
+      console.log('[Auth] Stripped Bearer prefix from authorization header');
+    } else {
+      console.log('[Auth] Token received without Bearer prefix, using as-is');
+    }
+
     if (!token) {
       return { error: 'Missing or invalid authorization token' };
     }
