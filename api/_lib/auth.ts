@@ -34,6 +34,10 @@ export async function verifySupabaseJWT(authHeader?: string): Promise<VerifiedTo
     throw new Error('Missing token in Authorization header');
   }
 
+  if (!SUPABASE_URL) {
+    throw new Error('SUPABASE_URL is not configured');
+  }
+
   try {
     // Validate signature and standard claims
     const { payload } = await jwtVerify(token, JWKS, {
@@ -54,6 +58,10 @@ export async function verifySupabaseJWT(authHeader?: string): Promise<VerifiedTo
     };
   } catch (error) {
     if (error instanceof Error) {
+      // Log more details for debugging
+      console.error('[JWT Verification] Error type:', error.name);
+      console.error('[JWT Verification] Message:', error.message);
+      console.error('[JWT Verification] Stack:', error.stack?.substring(0, 200));
       throw new Error(`JWT verification failed: ${error.message}`);
     }
     throw new Error('JWT verification failed');

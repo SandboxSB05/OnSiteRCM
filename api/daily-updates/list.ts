@@ -17,7 +17,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Verify Supabase JWT token
-    const { token } = await verifySupabaseJWT(req.headers.authorization as string);
+    let token: string;
+    try {
+      const verified = await verifySupabaseJWT(req.headers.authorization as string);
+      token = verified.token;
+    } catch (authError: any) {
+      console.error('[JWT Verification Error]', authError?.message);
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: authError?.message || 'Invalid or missing token'
+      });
+    }
     
     // Create user-scoped Supabase client (RLS will handle authorization)
     const supabase = supabaseUserClient(token);
