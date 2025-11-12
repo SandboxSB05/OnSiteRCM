@@ -1,16 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client with service role key to bypass RLS
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
-
 interface RegisterRequestBody {
   fullName: string;
   email: string;
@@ -65,6 +55,29 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Initialize Supabase client with service role key to bypass RLS
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase environment variables', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      env: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+    });
+    return res.status(500).json({
+      error: 'Configuration error',
+      message: 'Supabase environment variables are not configured'
+    });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ 

@@ -59,10 +59,20 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       }),
     });
 
-    const data = await response.json();
+    // Try to parse response as JSON
+    let data;
+    try {
+      const text = await response.text();
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      throw new Error('Server returned invalid response. Please check API configuration.');
+    }
 
     if (!response.ok) {
-      throw new Error(data.message || data.error || 'Login failed');
+      const errorMsg = data.details || data.message || 'Login failed';
+      console.error('Login failed:', errorMsg);
+      throw new Error(errorMsg);
     }
 
     // Set the session in the Supabase client so it's available for future calls
@@ -73,6 +83,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       });
     }
 
+    console.log('🔐 LOGIN SUCCESSFUL - Session received with access_token');
     return {
       user: {
         id: data.user.id,
@@ -113,10 +124,20 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
       }),
     });
 
-    const data = await response.json();
+    // Try to parse response as JSON
+    let data;
+    try {
+      const text = await response.text();
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      throw new Error('Server returned invalid response. Please check API configuration.');
+    }
 
     if (!response.ok) {
-      throw new Error(data.message || data.error || 'Registration failed');
+      const errorMsg = data.details || data.message || 'Registration failed';
+      console.error('Registration failed:', errorMsg);
+      throw new Error(errorMsg);
     }
 
     // If session was created, set it in Supabase client
@@ -127,6 +148,7 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
       });
     }
 
+    console.log('🔐 REGISTRATION SUCCESSFUL - Session received with access_token');
     return {
       user: {
         id: data.user.id,
