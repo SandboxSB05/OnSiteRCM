@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifySupabaseJWT } from '../_lib/auth';
-import { supabaseUserClient } from '../_lib/supabase';
+import { verifySupabaseJWT } from '../_lib/auth.js';
+import { supabaseUserClient } from '../_lib/supabase.js';
 
 const getSingleQueryParam = (value: string | string[] | undefined) => {
   if (!value) return undefined;

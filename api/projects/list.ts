@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifySupabaseJWT } from '../_lib/auth';
-import { supabaseUserClient } from '../_lib/supabase';
+import { verifySupabaseJWT } from '../_lib/auth.js';
+import { supabaseUserClient } from '../_lib/supabase.js';
 
 /**
  * GET /api/projects/list
@@ -33,13 +33,18 @@ export default async function handler(
   }
 
   try {
+    console.log('[Projects] Endpoint called');
+    console.log('[Projects] Authorization header:', req.headers.authorization ? '✓' : '✗');
+    
     // Verify Supabase JWT token
     let token: string;
     try {
+      console.log('[Projects] Verifying JWT...');
       const verified = await verifySupabaseJWT(req.headers.authorization as string);
       token = verified.token;
+      console.log('[Projects] JWT verified for user:', verified.userId);
     } catch (authError: any) {
-      console.error('[JWT Verification Error]', authError?.message);
+      console.error('[Projects] JWT Verification failed:', authError?.message);
       return res.status(401).json({
         error: 'Unauthorized',
         message: authError?.message || 'Invalid or missing token'
@@ -47,7 +52,9 @@ export default async function handler(
     }
     
     // Create user-scoped Supabase client (RLS will handle filtering)
+    console.log('[Projects] Creating Supabase client...');
     const supabase = supabaseUserClient(token);
+    console.log('[Projects] Supabase client created successfully');
 
     const {
       order,
@@ -135,7 +142,10 @@ export default async function handler(
     });
 
   } catch (error: any) {
-    console.error('Get projects error:', error);
+    console.error('[Projects] Endpoint error:', error);
+    console.error('[Projects] Error name:', error?.name);
+    console.error('[Projects] Error message:', error?.message);
+    console.error('[Projects] Error stack:', error?.stack?.substring(0, 500));
     
     // Check if it's an authentication error
     if (error?.message?.includes('JWT') || error?.message?.includes('Authorization')) {
