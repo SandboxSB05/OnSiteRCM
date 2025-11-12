@@ -49,12 +49,15 @@ export async function verifySupabaseJWT(authHeader?: string): Promise<VerifiedTo
   }
 
   try {
+    console.log('[AUTH] Verifying JWT token...');
+    
     // Validate signature and standard claims
     const { payload } = await jwtVerify(token, JWKS, {
       issuer: `${SUPABASE_URL}/auth/v1`, // Supabase issues tokens with this issuer
-      // Optionally add audience check if you set one
-      // audience: 'authenticated',
+      algorithms: ['HS256', 'RS256'], // Support both HMAC and RSA algorithms
     });
+
+    console.log('[AUTH] JWT verification successful');
 
     // payload.sub is the user id (UUID in auth.users)
     if (!payload.sub) {
@@ -71,7 +74,14 @@ export async function verifySupabaseJWT(authHeader?: string): Promise<VerifiedTo
       // Log more details for debugging
       console.error('[JWT Verification] Error type:', error.name);
       console.error('[JWT Verification] Message:', error.message);
-      console.error('[JWT Verification] Stack:', error.stack?.substring(0, 200));
+      console.error('[JWT Verification] Stack:', error.stack?.substring(0, 500));
+      
+      // Check if it's a key resolution error
+      if (error.message.includes('Unsupported') || error.message.includes('alg')) {
+        console.error('[JWT Verification] Algorithm mismatch - checking JWKS...');
+        console.error('[JWT Verification] SUPABASE_URL:', SUPABASE_URL);
+      }
+      
       throw new Error(`JWT verification failed: ${error.message}`);
     }
     throw new Error('JWT verification failed');
