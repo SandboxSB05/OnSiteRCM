@@ -108,7 +108,11 @@ export async function verifySupabaseJWT(authHeader: string | undefined) {
     console.log('[AUTH] Token verified successfully');
     console.log('[AUTH] Verified user ID:', verified.payload.sub);
     
-    return verified.payload as any;
+    return {
+      token: token,
+      userId: verified.payload.sub as string,
+      payload: verified.payload
+    };
   } catch (error) {
     console.error('[AUTH] JWT verification failed:', error);
     if (error instanceof Error) {
