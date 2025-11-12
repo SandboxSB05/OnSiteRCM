@@ -65,21 +65,26 @@ const listFilesRecursively = async (
     });
 
   if (error) {
-    throw new Error(`Failed to list ${folderPath}: ${error.message}`);
+    console.warn(`[Daily Update Photos] Warning listing ${folderPath}: ${error.message}`);
+    return allFiles;
   }
 
   for (const item of items || []) {
     if (item.name.startsWith('.')) continue;
 
-    if (item.id) {
-      // It's a file
+    const itemPath = `${folderPath}/${item.name}`;
+    
+    if (!item.metadata) {
+      // It's a directory (folders don't have metadata in Supabase)
+      console.log(`[Daily Update Photos] Recursing into folder: ${itemPath}`);
+      await listFilesRecursively(supabase, bucket, itemPath, allFiles);
+    } else {
+      // It's a file (files have metadata like size, mimetype)
+      console.log(`[Daily Update Photos] Found file: ${itemPath}`);
       allFiles.push({
         ...item,
-        fullPath: `${folderPath}/${item.name}`,
+        fullPath: itemPath,
       });
-    } else {
-      // It's a directory (in Supabase storage, folders don't have an id)
-      await listFilesRecursively(supabase, bucket, `${folderPath}/${item.name}`, allFiles);
     }
   }
 
