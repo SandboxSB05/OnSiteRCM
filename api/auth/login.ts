@@ -111,37 +111,20 @@ export default async function handler(
       .update({ last_login: new Date().toISOString() })
       .eq('id', userData.id);
 
-    // Generate token with real user data
-    const tokenPayload = {
-      userId: userData.id,
-      email: userData.email,
-      role: userData.role,
-      exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours from now
-    };
-    
-    // Create a simple base64 token
-    const token = `Bearer.${Buffer.from(JSON.stringify(tokenPayload)).toString('base64')}`;
-
     // Prepare user response
-    const userResponse: any = {
+    const userResponse: User = {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       role: userData.role,
-      phone: userData.phone || undefined
+      phone: userData.phone || undefined,
+      companyName: companyName,
     };
 
-    // Add company name for contractors
-    if (companyName) {
-      userResponse.companyName = companyName;
-    }
-
-    // Return real user data
+    // Return Supabase session tokens (no more custom Bearer. tokens!)
     return res.status(200).json({
       user: userResponse,
-      token: token,
-      supabaseAccessToken: authData.session?.access_token || null,
-      supabaseRefreshToken: authData.session?.refresh_token || null,
+      session: authData.session, // Contains access_token and refresh_token
       message: 'Login successful'
     });
 

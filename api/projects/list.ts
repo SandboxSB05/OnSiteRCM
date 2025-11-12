@@ -1,21 +1,18 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
-
-// Get environment variables lazily to support dev server middleware
-const getConfig = () => ({
-  supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-});
+import { verifySupabaseJWT } from '../_lib/auth';
+import { supabaseUserClient } from '../_lib/supabase';
 
 /**
  * GET /api/projects/list
  * 
- * Get list of projects from Supabase
+ * Get list of projects from Supabase with RLS-based filtering
  * 
  * Query Parameters:
- * - userId: string (optional) - Filter projects by user
- * - role: string (optional) - User role (admin, contractor, client)
+ * - id: string (optional) - Filter by specific project ID
+ * - project_status: string (optional) - Comma-separated list of statuses
+ * - project_type: string (optional) - Comma-separated list of types
+ * - order: string (optional) - Sort field (prefix with - for descending)
+ * - limit: number (optional) - Limit number of results
  * 
  * Response:
  * {
@@ -27,9 +24,6 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  // Get config lazily to support dev server middleware
-  const { supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey } = getConfig();
-
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ 
@@ -39,36 +33,16 @@ export default async function handler(
   }
 
   try {
-    // Authorize using our own API token (returned from /api/auth/login)
-    // Expect header: Authorization: Bearer.<base64 json payload>
-    const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
-
-    if (!authHeader.startsWith('Bearer.')) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Missing or invalid authorization token' });
-    }
-
-    let tokenPayload: any;
-    try {
-      const base64 = authHeader.split('Bearer.')[1];
-      const json = Buffer.from(base64, 'base64').toString('utf8');
-      tokenPayload = JSON.parse(json);
-    } catch (e) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token format' });
-    }
-
-    if (!tokenPayload?.userId || !tokenPayload?.exp || Date.now() > tokenPayload.exp) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Token expired or invalid' });
-    }
-
-    const userId = String(tokenPayload.userId);
-    const role = String(tokenPayload.role || 'contractor');
+    // Verify Supabase JWT token
+    const { token } = await verifySupabaseJWT(req.headers.authorization as string);
+    
+    // Create user-scoped Supabase client (RLS will handle filtering)
+    const supabase = supabaseUserClient(token);
 
     const {
       order,
       limit,
       id,
-      contractor_id,
-      client_id,
       project_status,
       project_type,
     } = req.query;
@@ -82,39 +56,15 @@ export default async function handler(
     const normalizedLimit = normalizeParam(limit);
     const filters = {
       id: normalizeParam(id),
-      contractor_id: normalizeParam(contractor_id),
-      client_id: normalizeParam(client_id),
       project_status: normalizeParam(project_status),
       project_type: normalizeParam(project_type),
     };
 
-    // Use service role on the server to bypass RLS safely (NEVER expose this key to clients)
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-      const missing = [];
-      if (!supabaseUrl) missing.push('SUPABASE_URL');
-      if (!supabaseServiceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
-      console.error('Missing Supabase credentials:', missing.join(', '));
-      return res.status(500).json({ 
-        error: 'Server misconfiguration', 
-        message: `Missing credentials: ${missing.join(', ')}`
-      });
-    }
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-
     // Query projects with clients view
-    // Filters match MyProjects page semantics
+    // RLS policies will automatically filter based on the authenticated user
     let query = supabase.from('projects_with_clients').select('*');
 
-    // Apply filters exactly like the website's Project.filter() method
-    if (userId && (role === 'contractor' || role === 'admin')) {
-      // For contractors/admins, get projects they own (match MyProjects.tsx)
-      query = query.eq('contractor_id', userId);
-    } else if (userId && role === 'client') {
-      // For clients, get projects where they are the client
-      query = query.eq('client_id', userId);
-    }
-
-    // Apply additional filters from query string
+    // Apply filters from query string (NOT from client-provided userId/role!)
     Object.entries(filters).forEach(([key, value]) => {
       if (!value) return;
       if (key === 'id') {
@@ -149,16 +99,7 @@ export default async function handler(
       }
     }
 
-    let { data: projects, error } = await query;
-    
-    console.log('Supabase query result:', { 
-      projectCount: projects?.length, 
-      error: error?.message,
-      userId, 
-      role,
-      view: 'projects_with_clients',
-      filters
-    });
+    const { data: projects, error } = await query;
 
     if (error) {
       console.error('Supabase error:', error);
@@ -170,55 +111,6 @@ export default async function handler(
       });
     }
 
-    // If no results from the view, try querying the base table as a fallback
-    if (!projects || projects.length === 0) {
-      let baseQuery = supabase.from('projects').select('*');
-      if (userId && (role === 'contractor' || role === 'admin')) {
-        baseQuery = baseQuery.eq('contractor_id', userId);
-      } else if (userId && role === 'client') {
-        baseQuery = baseQuery.eq('client_id', userId);
-      }
-
-      Object.entries(filters).forEach(([key, value]) => {
-        if (!value) return;
-        if (key === 'id') {
-          baseQuery = baseQuery.eq('id', value);
-        } else if (typeof value === 'string' && value.includes(',')) {
-          const values = value
-            .split(',')
-            .map((item) => item.trim())
-            .filter((item) => item.length > 0);
-          if (values.length > 0) {
-            baseQuery = baseQuery.in(key, values);
-          }
-        } else {
-          baseQuery = baseQuery.eq(key, value);
-        }
-      });
-
-      if (normalizedOrder) {
-        const desc = normalizedOrder.startsWith('-');
-        const field = desc ? normalizedOrder.substring(1) : normalizedOrder;
-        baseQuery = baseQuery.order(field, { ascending: !desc });
-      } else {
-        baseQuery = baseQuery.order('created_date', { ascending: false });
-      }
-
-      if (normalizedLimit) {
-        const parsed = parseInt(normalizedLimit, 10);
-        if (!Number.isNaN(parsed) && parsed > 0) {
-          baseQuery = baseQuery.limit(parsed);
-        }
-      }
-
-      const { data: baseProjects, error: baseError } = await baseQuery;
-      if (baseError) {
-        console.error('Supabase base table error:', baseError);
-      } else if (baseProjects && baseProjects.length > 0) {
-        projects = baseProjects;
-      }
-    }
-
     // Ensure JSON column is consistently present in the response
     const normalizedProjects = (projects || []).map((project: any) => ({
       ...project,
@@ -226,25 +118,23 @@ export default async function handler(
         project?.project_progress !== undefined ? project.project_progress : null,
     }));
 
-    console.log(
-      'Project progress snapshot:',
-      normalizedProjects.map((project: any) => ({
-        id: project.id,
-        project_progress: project.project_progress,
-      }))
-    );
-
-    // Return real data from Supabase (no mock fallback)
+    // Return real data from Supabase
     return res.status(200).json({
       projects: normalizedProjects,
       count: normalizedProjects.length,
-      message: normalizedProjects.length ? 'Projects retrieved successfully from database' : 'No projects found',
-      source: 'supabase',
-      filters: { userId, role }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get projects error:', error);
+    
+    // Check if it's an authentication error
+    if (error?.message?.includes('JWT') || error?.message?.includes('Authorization')) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: error.message || 'Invalid token'
+      });
+    }
+    
     return res.status(500).json({
       error: 'Internal server error',
       message: 'An unexpected error occurred while fetching projects',

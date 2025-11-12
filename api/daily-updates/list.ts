@@ -1,8 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { verifySupabaseJWT } from '../_lib/auth';
+import { supabaseUserClient } from '../_lib/supabase';
 
 const getSingleQueryParam = (value: string | string[] | undefined) => {
   if (!value) return undefined;
@@ -18,32 +16,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
-    if (!authHeader.startsWith('Bearer.')) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Missing or invalid authorization token' });
-    }
-
-    let tokenPayload: any;
-    try {
-      const base64 = authHeader.split('Bearer.')[1];
-      const json = Buffer.from(base64, 'base64').toString('utf8');
-      tokenPayload = JSON.parse(json);
-    } catch (error) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token format' });
-    }
-
-    if (!tokenPayload?.userId || !tokenPayload?.exp || Date.now() > tokenPayload.exp) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Token expired or invalid' });
-    }
-
-    if (!supabaseServiceRoleKey) {
-      return res.status(500).json({
-        error: 'Server misconfiguration',
-        message: 'Missing SUPABASE_SERVICE_ROLE_KEY',
-      });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    // Verify Supabase JWT token
+    const { token } = await verifySupabaseJWT(req.headers.authorization as string);
+    
+    // Create user-scoped Supabase client (RLS will handle authorization)
+    const supabase = supabaseUserClient(token);
 
     const projectIdParam =
       (req.query['project_id'] as string | string[] | undefined) ??
@@ -125,8 +102,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dailyUpdates: normalizedUpdates,
       count: normalizedUpdates.length,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('List daily updates error:', error);
+    
+    // Check if it's an authentication error
+    if (error?.message?.includes('JWT') || error?.message?.includes('Authorization')) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: error.message || 'Invalid token'
+      });
+    }
+    
     return res.status(500).json({
       error: 'Internal server error',
       message: 'An unexpected error occurred while listing daily updates',

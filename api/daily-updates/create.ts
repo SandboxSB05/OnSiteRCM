@@ -1,8 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { verifySupabaseJWT } from '../_lib/auth';
+import { supabaseUserClient } from '../_lib/supabase';
 
 const parseRequestBody = (body: any) => {
   if (!body) {
@@ -29,32 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
-    if (!authHeader.startsWith('Bearer.')) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Missing or invalid authorization token' });
-    }
-
-    let tokenPayload: any;
-    try {
-      const base64 = authHeader.split('Bearer.')[1];
-      const json = Buffer.from(base64, 'base64').toString('utf8');
-      tokenPayload = JSON.parse(json);
-    } catch (error) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token format' });
-    }
-
-    if (!tokenPayload?.userId || !tokenPayload?.exp || Date.now() > tokenPayload.exp) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Token expired or invalid' });
-    }
-
-    if (!supabaseServiceRoleKey) {
-      return res.status(500).json({
-        error: 'Server misconfiguration',
-        message: 'Missing SUPABASE_SERVICE_ROLE_KEY',
-      });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    // Verify Supabase JWT token
+    const { token, userId } = await verifySupabaseJWT(req.headers.authorization as string);
+    
+    // Create user-scoped Supabase client (RLS will handle authorization)
+    const supabase = supabaseUserClient(token);
     const body = parseRequestBody(req.body);
 
     const projectId = body.project_id;
@@ -83,19 +60,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       insertData.ai_summary = body.ai_summary;
     }
 
-    if (tokenPayload.userId) {
-      insertData.created_by = tokenPayload.userId;
-    }
+    // Set created_by from verified JWT
+    insertData.created_by = userId;
 
     // photos - JSONB array
     // NOTE: Photos should be inserted into the update_photos table, not daily_updates
     // The daily_updates table does not have a photos column in the schema_supabase.sql
     // If you need to store photo metadata alongside the update, use the update_photos table instead
     // For now, we skip photos here to avoid schema mismatch errors
-
-    if (body.ai_summary) {
-      insertData.ai_summary = body.ai_summary;
-    }
 
     // project_phase fields
     if (body.project_phase_worked_on || body.project_phase) {
@@ -128,8 +100,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: 'Daily update created successfully',
       dailyUpdate,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create daily update error:', error);
+    
+    // Check if it's an authentication error
+    if (error?.message?.includes('JWT') || error?.message?.includes('Authorization')) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: error.message || 'Invalid token'
+      });
+    }
+    
     return res.status(500).json({
       error: 'Internal server error',
       message: 'An unexpected error occurred while creating the daily update',

@@ -11,26 +11,40 @@ const getSingleQueryParam = (value: string | string[] | undefined) => {
   return Array.isArray(value) ? value[0] : value;
 };
 
+/**
+ * Parse and verify Supabase JWT token from Authorization header
+ * This is a simplified version for the photos handler.
+ */
 const parseAuthToken = (headerValue: string | string[] | undefined) => {
   const rawHeader = Array.isArray(headerValue) ? headerValue[0] : headerValue || '';
-  if (!rawHeader.startsWith('Bearer ') && !rawHeader.startsWith('Bearer.')) {
+  if (!rawHeader.startsWith('Bearer ')) {
     return { error: 'Missing or invalid authorization token' };
   }
 
   try {
-    const base64 = rawHeader.replace(/^Bearer[\s.]+/, '');
-    if (!base64) {
+    const token = rawHeader.slice('Bearer '.length).trim();
+    if (!token) {
       return { error: 'Missing or invalid authorization token' };
     }
 
-    const json = Buffer.from(base64, 'base64').toString('utf8');
-    const payload = JSON.parse(json);
-
-    if (!payload?.userId || !payload?.exp || Date.now() > payload.exp) {
-      return { error: 'Token expired or invalid' };
+    // Parse JWT payload (basic extraction without full verification)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return { error: 'Invalid token format' };
     }
 
-    return { payload };
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+
+    if (!payload?.sub) {
+      return { error: 'Token missing user ID' };
+    }
+
+    // Check expiration (JWT exp is in seconds, not milliseconds)
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      return { error: 'Token expired' };
+    }
+
+    return { payload: { userId: payload.sub, token } };
   } catch (error) {
     console.error('[Daily Update Photos] Token parse error:', error);
     return { error: 'Invalid token format' };
