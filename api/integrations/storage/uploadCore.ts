@@ -71,7 +71,7 @@ const sanitizePathSegment = (value?: string | null) => {
 };
 
 const buildFolder = (fields: Record<string, string>) => {
-  // Check for phase-based structure first: projectId/phaseName
+  // Check for full nested structure: projectId/phaseName/dailyUpdateId
   const projectId = 
     fields.project_id || 
     fields.projectId || 
@@ -83,6 +83,23 @@ const buildFolder = (fields: Record<string, string>) => {
     fields.project_phase ||
     fields.projectPhase;
 
+  const dailyUpdateId =
+    fields.daily_update_id ||
+    fields.dailyUpdateId ||
+    fields.daily_updates_id ||
+    fields.dailyUpdatesId;
+
+  // Preferred: Full nested structure with project, phase, and daily update
+  if (projectId && phaseName && dailyUpdateId) {
+    const sanitizedProjectId = sanitizePathSegment(projectId);
+    const sanitizedPhaseName = sanitizePathSegment(phaseName);
+    const sanitizedDailyUpdateId = sanitizePathSegment(dailyUpdateId);
+    if (sanitizedProjectId && sanitizedPhaseName && sanitizedDailyUpdateId) {
+      return `${sanitizedProjectId}/${sanitizedPhaseName}/${sanitizedDailyUpdateId}`;
+    }
+  }
+
+  // Secondary: Phase-based structure without daily update ID
   if (projectId && phaseName) {
     const sanitizedProjectId = sanitizePathSegment(projectId);
     const sanitizedPhaseName = sanitizePathSegment(phaseName);
