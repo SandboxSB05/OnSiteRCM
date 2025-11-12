@@ -65,8 +65,8 @@ export interface VerifiedToken {
  */
 export async function verifySupabaseJWT(authHeader: string | undefined) {
   try {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('[AUTH] Missing or invalid authorization header');
+    if (!authHeader) {
+      console.log('[AUTH] Missing authorization header');
       return null;
     }
 
@@ -75,13 +75,21 @@ export async function verifySupabaseJWT(authHeader: string | undefined) {
       return null;
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    // Handle both "Bearer <token>" and raw token formats
+    let token = authHeader;
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      console.log('[AUTH] Stripped Bearer prefix from authorization header');
+    } else {
+      console.log('[AUTH] Token received without Bearer prefix, using as-is');
+    }
+    
     console.log('[AUTH] Token received, starting verification with JWT secret');
     
     // Decode token to inspect it
     const parts = token.split('.');
     if (parts.length !== 3) {
-      console.error('[AUTH] Invalid token format');
+      console.error('[AUTH] Invalid token format, expected 3 parts but got:', parts.length);
       return null;
     }
     
