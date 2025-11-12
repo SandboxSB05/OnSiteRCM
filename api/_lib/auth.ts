@@ -1,6 +1,7 @@
 import { jwtVerify, importSPKI, importJWK } from 'jose';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 
 if (!SUPABASE_URL) {
   console.error('[AUTH] Missing SUPABASE_URL. Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')).join(', '));
@@ -8,6 +9,7 @@ if (!SUPABASE_URL) {
 }
 
 console.log('[AUTH] Initialized with SUPABASE_URL:', SUPABASE_URL);
+console.log('[AUTH] JWT Secret available:', !!SUPABASE_JWT_SECRET);
 
 // Cache for JWKS keys
 let jwksCache: any = null;
@@ -21,14 +23,26 @@ async function getJWKS() {
   }
   
   try {
-    console.log('[AUTH] Fetching JWKS from:', `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`);
-    const response = await fetch(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`);
+    const jwksUrl = `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`;
+    console.log('[AUTH] Fetching JWKS from:', jwksUrl);
+    const response = await fetch(jwksUrl);
+    console.log('[AUTH] JWKS response status:', response.status);
+    
     if (!response.ok) {
+      const text = await response.text();
+      console.error('[AUTH] JWKS response error:', text.substring(0, 200));
       throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
     }
-    jwksCache = await response.json();
+    
+    const text = await response.text();
+    console.log('[AUTH] JWKS response body:', text.substring(0, 500));
+    
+    jwksCache = JSON.parse(text);
     jkwsCacheTime = now;
     console.log('[AUTH] JWKS fetched successfully, keys count:', jwksCache.keys?.length || 0);
+    if (jwksCache.keys && jwksCache.keys.length > 0) {
+      console.log('[AUTH] First key alg:', jwksCache.keys[0].alg);
+    }
     return jwksCache;
   } catch (error) {
     console.error('[AUTH] Failed to fetch JWKS:', error);
@@ -49,98 +63,49 @@ export interface VerifiedToken {
  * @returns An object containing the verified token, userId, and full payload
  * @throws Error if the token is missing, invalid, or expired
  */
-export async function verifySupabaseJWT(authHeader?: string): Promise<VerifiedToken> {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new Error('Missing or invalid Authorization header');
-  }
-
-  const token = authHeader.slice('Bearer '.length).trim();
-
-  if (!token) {
-    throw new Error('Missing token in Authorization header');
-  }
-
-  if (!SUPABASE_URL) {
-    throw new Error('SUPABASE_URL is not configured');
-  }
-
+export async function verifySupabaseJWT(authHeader: string | undefined) {
   try {
-    console.log('[AUTH] Verifying JWT token...');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[AUTH] Missing or invalid authorization header');
+      return null;
+    }
+
+    if (!SUPABASE_JWT_SECRET) {
+      console.error('[AUTH] SUPABASE_JWT_SECRET is not configured');
+      return null;
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    console.log('[AUTH] Token received, starting verification with JWT secret');
     
-    // Decode header to see what algorithm is being used
+    // Decode token to inspect it
     const parts = token.split('.');
     if (parts.length !== 3) {
-      throw new Error('Invalid JWT format');
+      console.error('[AUTH] Invalid token format');
+      return null;
     }
     
     const header = JSON.parse(Buffer.from(parts[0], 'base64').toString('utf-8'));
-    console.log('[AUTH] Token header:', JSON.stringify(header));
-    
-    // Get JWKS keys
-    const jwks = await getJWKS();
-    
-    // Find the key that matches the kid in the token header
-    let key = null;
-    if (header.kid) {
-      console.log('[AUTH] Looking for key with kid:', header.kid);
-      key = jwks.keys?.find((k: any) => k.kid === header.kid);
-      if (!key) {
-        console.error('[AUTH] No key found for kid:', header.kid);
-        console.error('[AUTH] Available kids:', jwks.keys?.map((k: any) => k.kid).join(', '));
-      }
-    } else {
-      // If no kid, use the first key
-      console.log('[AUTH] No kid in header, using first available key');
-      key = jwks.keys?.[0];
-    }
-    
-    if (!key) {
-      throw new Error('No suitable key found in JWKS for token verification');
-    }
-    
-    console.log('[AUTH] Using key with alg:', key.alg);
-    console.log('[AUTH] Full key:', JSON.stringify(key).substring(0, 200));
-    
-    // Import the key - the algorithm must be one that jose supports
-    try {
-      const publicKey = await importJWK(key, key.alg);
-      
-      // Validate signature and standard claims
-      const { payload } = await jwtVerify(token, publicKey, {
-        issuer: `${SUPABASE_URL}/auth/v1`, // Supabase issues tokens with this issuer
-      });
+    console.log('[AUTH] Token header:', header);
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+    console.log('[AUTH] Token payload:', JSON.stringify(payload).substring(0, 200));
 
-      console.log('[AUTH] JWT verification successful');
-
-      // payload.sub is the user id (UUID in auth.users)
-      if (!payload.sub) {
-        throw new Error('Token missing subject (user ID)');
-      }
-
-      return {
-        token,
-        userId: payload.sub as string,
-        payload,
-      };
-    } catch (importError) {
-      console.error('[AUTH] Failed to import key or verify JWT:', importError);
-      throw importError;
-    }
+    // Import the JWT secret as the key
+    console.log('[AUTH] Importing JWT secret as key...');
+    const secret = new TextEncoder().encode(SUPABASE_JWT_SECRET);
+    
+    // Verify the token using the JWT secret
+    console.log('[AUTH] Verifying token with JWT secret...');
+    const verified = await jwtVerify(token, secret);
+    console.log('[AUTH] Token verified successfully');
+    console.log('[AUTH] Verified user ID:', verified.payload.sub);
+    
+    return verified.payload as any;
   } catch (error) {
+    console.error('[AUTH] JWT verification failed:', error);
     if (error instanceof Error) {
-      // Log more details for debugging
-      console.error('[JWT Verification] Error type:', error.name);
-      console.error('[JWT Verification] Message:', error.message);
-      console.error('[JWT Verification] Stack:', error.stack?.substring(0, 500));
-      
-      // Check if it's a key resolution error
-      if (error.message.includes('Unsupported') || error.message.includes('alg')) {
-        console.error('[JWT Verification] Algorithm mismatch - checking JWKS...');
-        console.error('[JWT Verification] SUPABASE_URL:', SUPABASE_URL);
-      }
-      
-      throw new Error(`JWT verification failed: ${error.message}`);
+      console.error('[AUTH] Error details:', error.message);
     }
-    throw new Error('JWT verification failed');
+    return null;
   }
 }
