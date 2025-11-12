@@ -1,14 +1,24 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL!;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 
 if (!SUPABASE_URL) {
+  console.error('[AUTH] Missing SUPABASE_URL. Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')).join(', '));
   throw new Error('SUPABASE_URL or VITE_SUPABASE_URL must be defined');
 }
 
+console.log('[AUTH] Initialized with SUPABASE_URL:', SUPABASE_URL);
+
 // Create a remote JWKS (JSON Web Key Set) for verifying Supabase JWTs
 // This automatically caches the keys and refreshes them as needed
-const JWKS = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+let JWKS: any;
+try {
+  JWKS = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+  console.log('[AUTH] JWKS initialized successfully');
+} catch (error) {
+  console.error('[AUTH] Failed to initialize JWKS:', error);
+  throw error;
+}
 
 export interface VerifiedToken {
   token: string;
