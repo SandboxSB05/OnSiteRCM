@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const DEFAULT_BUCKET = 'onsite-photos';
+const DEFAULT_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'relay_photos';
 const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 
 const getSingleQueryParam = (value: string | string[] | undefined) => {
@@ -176,6 +176,21 @@ const getPhotosFromDailyUpdateFolder = async (
     sanitizedPhaseName,
     sanitizedDailyUpdateId,
   });
+
+  // First, let's check if the phase folder exists
+  console.log('[Daily Update Photos] Checking phase folder first:', `${sanitizedProjectId}/${sanitizedPhaseName}`);
+  const { data: phaseContents, error: phaseError } = await supabase.storage
+    .from(bucket)
+    .list(`${sanitizedProjectId}/${sanitizedPhaseName}`, {
+      limit: 1000,
+      sortBy: { column: 'created_at', order: 'asc' },
+    });
+
+  if (phaseError) {
+    console.error('[Daily Update Photos] Error listing phase folder:', phaseError);
+  } else {
+    console.log('[Daily Update Photos] Phase folder contents:', phaseContents?.map((item: any) => ({ name: item.name, isDir: !item.metadata })));
+  }
 
   const { data: files, error } = await supabase.storage
     .from(bucket)
