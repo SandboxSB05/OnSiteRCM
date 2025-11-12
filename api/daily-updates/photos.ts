@@ -46,7 +46,7 @@ const sanitizePathSegment = (value?: string | null) => {
   }
   return value
     .split(/[/\\]/)
-    .map((segment) => segment.replace(/[^a-zA-Z0-9_-]/g, ''))
+    .map((segment) => segment.replace(/[^a-zA-Z0-9_\-]/g, ''))
     .filter(Boolean)
     .join('/');
 };
@@ -247,7 +247,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         daily_update_id: dailyUpdateIdParam,
       });
 
-      const photos = await getPhotosFromDailyUpdateFolder(
+      let photos = await getPhotosFromDailyUpdateFolder(
         supabase,
         projectIdParam,
         phaseNameParam,
