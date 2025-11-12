@@ -166,6 +166,16 @@ const getPhotosFromDailyUpdateFolder = async (
   const folderPath = `${sanitizedProjectId}/${sanitizedPhaseName}/${sanitizedDailyUpdateId}`;
 
   console.log('[Daily Update Photos] Listing files from daily update folder:', folderPath);
+  console.log('[Daily Update Photos] Debug - Original values:', {
+    projectId,
+    phaseName,
+    dailyUpdateId,
+  });
+  console.log('[Daily Update Photos] Debug - Sanitized values:', {
+    sanitizedProjectId,
+    sanitizedPhaseName,
+    sanitizedDailyUpdateId,
+  });
 
   const { data: files, error } = await supabase.storage
     .from(bucket)
@@ -176,8 +186,11 @@ const getPhotosFromDailyUpdateFolder = async (
 
   if (error) {
     console.error('[Daily Update Photos] Error listing files:', error);
-    throw new Error(`Failed to list files from ${folderPath}: ${error.message}`);
+    console.error('[Daily Update Photos] Tried to list path:', folderPath);
+    return [];
   }
+
+  console.log('[Daily Update Photos] Files in folder:', files);
 
   const photos = await Promise.all(
     (files || [])
