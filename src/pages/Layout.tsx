@@ -14,7 +14,8 @@ import {
   X,
   MessageSquare,
   ArrowRight,
-  RefreshCw // Added for role switcher
+  RefreshCw, // Added for role switcher
+  UserPlus // Added for crew leads
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,11 @@ const getUserNavigationItems = (role: 'admin' | 'contractor' | 'client') => {
       title: "Create Update",
       url: createPageUrl("DailyUpdates"),
       icon: Upload,
+    },
+    {
+      title: "Crew Leads",
+      url: createPageUrl("CrewLeads"),
+      icon: UserPlus,
     },
     // {
     //   title: "My Analytics", // Added "My Analytics"

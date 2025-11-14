@@ -28,6 +28,12 @@ import ClientUpdates from "./ClientUpdates";
 
 import ClientUpdateDetail from "./ClientUpdateDetail";
 
+import CrewLeads from "./CrewLeads";
+
+import CrewLeadSignup from "./CrewLeadSignup";
+
+import AuthCallback from "./AuthCallback";
+
 import { PaymentRequired } from "./PaymentRequired";
 
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
@@ -64,6 +70,8 @@ const PAGES = {
     
     ClientUpdateDetail: ClientUpdateDetail,
     
+    CrewLeads: CrewLeads,
+    
 }
 
 function _getCurrentPage(url: string) {
@@ -86,10 +94,23 @@ function PagesContent() {
     const currentPage = _getCurrentPage(location.pathname);
     
     // Public routes that don't need authentication
-    const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail', '/payment-required'];
+    const publicRoutes = ['/', '/login', '/register', '/clientupdatedetail', '/payment-required', '/crew-lead-signup', '/auth-callback'];
     const isPublicRoute = publicRoutes.some(route => 
         location.pathname.toLowerCase() === route.toLowerCase()
     );
+    
+    // Check if there's a recovery/invite token in the URL (from Supabase email)
+    const hash = location.hash;
+    const hasInviteToken = hash.includes('access_token') && (hash.includes('type=recovery') || hash.includes('type=invite'));
+    
+    // If there's an invite token and we're on home page, redirect to crew-lead-signup
+    if (hasInviteToken && location.pathname === '/') {
+        return (
+            <Routes>
+                <Route path="*" element={<Navigate to="/crew-lead-signup" replace />} />
+            </Routes>
+        );
+    }
     
     // If authenticated and trying to access login/register, redirect based on role
     if (isAuthenticated && user && (location.pathname === '/login' || location.pathname === '/register')) {
@@ -109,6 +130,8 @@ function PagesContent() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/payment-required" element={<PaymentRequired />} />
+                <Route path="/auth-callback" element={<AuthCallback />} />
+                <Route path="/crew-lead-signup" element={<CrewLeadSignup />} />
                 <Route path="/ClientUpdateDetail" element={<ClientUpdateDetail />} />
             </Routes>
         );
@@ -185,6 +208,13 @@ function PagesContent() {
                 <Route path="/ClientUpdates" element={
                     <ProtectedRoute allowedRoles={['admin', 'contractor']}>
                         <ClientUpdates />
+                    </ProtectedRoute>
+                } />
+                
+                {/* Contractor Only - Crew Leads Management */}
+                <Route path="/CrewLeads" element={
+                    <ProtectedRoute allowedRoles={['contractor']}>
+                        <CrewLeads />
                     </ProtectedRoute>
                 } />
                 

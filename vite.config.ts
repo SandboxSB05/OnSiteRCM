@@ -6,8 +6,19 @@ const devApiMiddleware = () => ({
   name: 'dev-api-middleware',
   configureServer(server: any) {
     server.middlewares.use(async (req: any, res: any, next: any) => {
-      if (!req.url || (!req.url.startsWith('/api/projects/') && !req.url.startsWith('/api/auth/'))) {
+      if (!req.url || (!req.url.startsWith('/api/projects/') && !req.url.startsWith('/api/auth/') && !req.url.startsWith('/api/crew-leads/'))) {
         return next()
+      }
+      
+      // Add CORS headers
+      res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Max-Age', '86400');
+      
+      // Handle preflight OPTIONS requests
+      if (req.method === 'OPTIONS') {
+        return res.writeHead(200).end();
       }
       
       // Set required environment variables for handler
@@ -88,6 +99,18 @@ const devApiMiddleware = () => ({
         } else if (req.url.startsWith('/api/auth/register')) {
           const mod = require('./api/auth/register.ts')
           handler = mod.default
+        } else if (req.url.startsWith('/api/auth/crew-lead-signup')) {
+          const mod = require('./api/auth/crew-lead-signup.ts')
+          handler = mod.default
+        } else if (req.url.startsWith('/api/crew-leads/invite')) {
+          const mod = require('./api/crew-leads/invite.js')
+          handler = mod.default
+        } else if (req.url.startsWith('/api/crew-leads/list')) {
+          const mod = require('./api/crew-leads/list.js')
+          handler = mod.default
+        } else if (req.url.startsWith('/api/crew-leads/delete')) {
+          const mod = require('./api/crew-leads/delete.js')
+          handler = mod.default
         }
         
         if (handler) {
@@ -121,12 +144,14 @@ export default defineConfig(({ mode }) => {
   process.env.SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL
   process.env.SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY
   process.env.SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_JWT_SECRET = env.SUPABASE_JWT_SECRET
   process.env.SUPABASE_STORAGE_BUCKET = env.SUPABASE_STORAGE_BUCKET || 'relay_photos'
   
   console.log('📦 [Vite Config] Environment variables loaded:');
   console.log('  - SUPABASE_URL:', process.env.SUPABASE_URL ? '✓' : '✗');
   console.log('  - SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✓' : '✗');
   console.log('  - SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✓' : '✗');
+  console.log('  - SUPABASE_JWT_SECRET:', process.env.SUPABASE_JWT_SECRET ? '✓' : '✗');
   
   return {
     plugins: [react(), devApiMiddleware()],
