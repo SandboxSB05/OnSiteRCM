@@ -41,6 +41,13 @@ export default async function handler(
     try {
       console.log('[Projects] Verifying JWT...');
       const verified = await verifySupabaseJWT(req.headers.authorization as string);
+      if (!verified) {
+        console.error('[Projects] JWT verification returned null');
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'Invalid or missing token'
+        });
+      }
       token = verified.token;
       console.log('[Projects] JWT verified for user:', verified.userId);
     } catch (authError: any) {

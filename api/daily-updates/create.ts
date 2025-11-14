@@ -32,6 +32,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let userId: string;
     try {
       const verified = await verifySupabaseJWT(req.headers.authorization as string);
+      if (!verified) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'Invalid or missing token'
+        });
+      }
       token = verified.token;
       userId = verified.userId;
     } catch (authError: any) {
