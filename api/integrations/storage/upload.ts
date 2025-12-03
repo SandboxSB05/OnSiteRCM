@@ -354,7 +354,34 @@ const getFieldValue = (fields: Record<string, string>, keys: string[]): string |
   return undefined;
 };
 
+// CORS headers helper
+const setCorsHeaders = (res: VercelResponse, origin?: string) => {
+  const allowedOrigins = [
+    'http://localhost:8081',
+    'http://localhost:3000',
+    'http://localhost:5173',
+  ];
+  
+  // Add your production domain
+  const productionOrigin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
+  
+  const allowOrigin = origin && (allowedOrigins.includes(origin) || origin === productionOrigin) 
+    ? origin 
+    : allowedOrigins[0];
+  
+  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Handle CORS preflight
+  setCorsHeaders(res, req.headers.origin as string);
+  if (req.method === 'OPTIONS') {
+    console.log('[Upload API] Handling OPTIONS preflight request');
+    return res.status(200).end();
+  }
   try {
     console.log('[Upload API] Handler invoked');
     console.log('[Upload API] Request method:', req.method);
