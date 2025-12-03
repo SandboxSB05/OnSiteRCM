@@ -3,7 +3,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import busboy from '@fastify/busboy';
 import { randomUUID } from 'crypto';
 
-// Helper to get environment variables lazily (for dev server middleware compatibility)
+// Helper to get environment variables lazily
+// All upload logic inlined - no external dependencies
 const getConfig = () => ({
   supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
