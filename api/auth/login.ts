@@ -1,11 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 interface LoginRequestBody {
   email: string;
   password: string;
@@ -47,6 +42,37 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Initialize Supabase client with current environment variables
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  
+  console.log('🔐 [Login Handler] Starting login request');
+  console.log('🔐 [Login Handler] VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL ? '✓' : '✗');
+  console.log('🔐 [Login Handler] SUPABASE_URL:', process.env.SUPABASE_URL ? '✓' : '✗');
+  console.log('🔐 [Login Handler] VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY ? `✓ (${process.env.VITE_SUPABASE_ANON_KEY.substring(0, 20)}...)` : '✗');
+  console.log('🔐 [Login Handler] SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? `✓ (${process.env.SUPABASE_ANON_KEY.substring(0, 20)}...)` : '✗');
+  console.log('🔐 [Login Handler] All env keys:', Object.keys(process.env).filter(k => k.includes('SUPABASE')));
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ [Login Handler] Missing Supabase environment variables', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseAnonKey,
+      url: supabaseUrl,
+      keyStart: supabaseAnonKey?.substring(0, 20)
+    });
+    return res.status(500).json({
+      error: 'Configuration error',
+      message: 'Supabase environment variables are not configured',
+      details: {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseAnonKey
+      }
+    });
+  }
+
+  console.log('✅ [Login Handler] Creating Supabase client with URL:', supabaseUrl);
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ 
@@ -66,18 +92,32 @@ export default async function handler(
       });
     }
 
+    console.log('🔐 [Login Handler] Attempting to authenticate email:', email.toLowerCase());
+
     // Authenticate with Supabase
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase(),
       password: password,
     });
 
-    if (authError || !authData.user) {
+    if (authError) {
+      console.error('❌ [Login Handler] Authentication error:', authError);
+      return res.status(401).json({
+        error: 'Authentication failed',
+        message: authError.message || 'Invalid email or password',
+        details: authError.message
+      });
+    }
+
+    if (!authData.user) {
+      console.error('❌ [Login Handler] No user returned from Supabase');
       return res.status(401).json({
         error: 'Authentication failed',
         message: 'Invalid email or password'
       });
     }
+
+    console.log('✅ [Login Handler] User authenticated:', authData.user.id);
 
     // Fetch user profile from users table
     const { data: userData, error: userError } = await supabase
@@ -111,37 +151,20 @@ export default async function handler(
       .update({ last_login: new Date().toISOString() })
       .eq('id', userData.id);
 
-    // Generate token with real user data
-    const tokenPayload = {
-      userId: userData.id,
-      email: userData.email,
-      role: userData.role,
-      exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours from now
-    };
-    
-    // Create a simple base64 token
-    const token = `Bearer.${Buffer.from(JSON.stringify(tokenPayload)).toString('base64')}`;
-
     // Prepare user response
-    const userResponse: any = {
+    const userResponse: User = {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       role: userData.role,
-      phone: userData.phone || undefined
+      phone: userData.phone || undefined,
+      companyName: companyName,
     };
 
-    // Add company name for contractors
-    if (companyName) {
-      userResponse.companyName = companyName;
-    }
-
-    // Return real user data
+    // Return Supabase session tokens (no more custom Bearer. tokens!)
     return res.status(200).json({
       user: userResponse,
-      token: token,
-      supabaseAccessToken: authData.session?.access_token || null,
-      supabaseRefreshToken: authData.session?.refresh_token || null,
+      session: authData.session, // Contains access_token and refresh_token
       message: 'Login successful'
     });
 

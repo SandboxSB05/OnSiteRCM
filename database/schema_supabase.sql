@@ -20,11 +20,12 @@ CREATE TABLE public.users (
 -- =========================================================================
 
   CREATE TABLE public.contractors(
-    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     company_name TEXT,
     verified BOOLEAN DEFAULT FALSE,
     subscription_tier TEXT DEFAULT 'basic',
     address TEXT,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_date TIMESTAMPTZ DEFAULT NOW(),
     updated_date TIMESTAMPTZ DEFAULT NOW()
   )
@@ -34,14 +35,28 @@ CREATE TABLE public.users (
 -- =========================================================================
 
   CREATE TABLE crew_leads (
-  id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   contractor_id UUID REFERENCES contractors(id) ON DELETE CASCADE,
   status TEXT CHECK (status IN ('pending', 'active', 'inactive')) DEFAULT 'pending',
-  invite_token UUID UNIQUE, -- used in email invite link
   invited_at TIMESTAMP DEFAULT NOW(),
-  activated_at TIMESTAMP,
+  email TEXT,
+  name TEXT,
   phone TEXT,
   notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- =========================================================================
+-- PENDING CREW LEADS TABLE
+-- =========================================================================
+CREATE TABLE pending_crew_leads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  contractor_id UUID NOT NULL REFERENCES contractors(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  notes TEXT,
+  invited_at TIMESTAMP DEFAULT NOW(),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -228,7 +243,10 @@ CREATE INDEX idx_contractors_subscription ON contractors(subscription_tier);
 -- Crew leads indexes
 CREATE INDEX idx_crew_leads_contractor ON crew_leads(contractor_id);
 CREATE INDEX idx_crew_leads_status ON crew_leads(status);
-CREATE INDEX idx_crew_leads_invite_token ON crew_leads(invite_token);
+
+-- Pending crew leads indexes
+CREATE INDEX idx_pending_crew_leads_contractor ON pending_crew_leads(contractor_id);
+CREATE INDEX idx_pending_crew_leads_email ON pending_crew_leads(email);
 
 -- Projects indexes
 CREATE INDEX idx_projects_contractor ON projects(contractor_id);

@@ -9,61 +9,32 @@ import { supabase } from '../../lib/supabaseClient';
 type ServerlessAuthCache = { token: string; exp: number };
 let serverlessAuthTokenCache: ServerlessAuthCache | null = null;
 
-const encodeBase64 = (value: string) => {
-  if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
-    return window.btoa(value);
-  }
-  if (typeof btoa === 'function') {
-    return btoa(value);
-  }
-  throw new Error('No base64 encoder available for auth token payload');
-};
-
+/**
+ * Get Supabase access token for API calls
+ * Returns the actual Supabase JWT token (not a custom Bearer. token)
+ */
 export const getServerlessAuthToken = async () => {
   const bufferMs = 5000;
+  
+  // Check cache first
   if (serverlessAuthTokenCache && serverlessAuthTokenCache.exp > Date.now() + bufferMs) {
     return serverlessAuthTokenCache.token;
   }
 
-  const {
-    data: { user: authUser },
-    error,
-  } = await supabase.auth.getUser();
+  // Get current session from Supabase
+  const { data: { session }, error } = await supabase.auth.getSession();
 
-  if (error || !authUser) {
-    throw new Error('Not authenticated');
+  if (error || !session?.access_token) {
+    throw new Error('Not authenticated - no valid session');
   }
 
-  const appMetadata = (authUser as any)?.app_metadata || {};
-  const userMetadata = (authUser as any)?.user_metadata || {};
+  // Extract expiration from token (JWT exp claim is in seconds, not milliseconds)
+  const tokenExp = session.expires_at ? session.expires_at * 1000 : Date.now() + 60 * 60 * 1000;
 
-  let role =
-    (appMetadata && appMetadata.role) ||
-    (userMetadata && userMetadata.role) ||
-    null;
-
-  if (!role) {
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', authUser.id)
-      .single();
-
-    if (profileError) {
-      throw new Error(profileError.message);
-    }
-
-    role = profile?.role || 'contractor';
-  }
-
-  const payload = {
-    userId: authUser.id,
-    role,
-    exp: Date.now() + 30 * 60 * 1000,
-  };
-
-  const token = `Bearer.${encodeBase64(JSON.stringify(payload))}`;
-  serverlessAuthTokenCache = { token, exp: payload.exp };
+  // Cache the token with its expiration
+  const token = `Bearer ${session.access_token}`;
+  serverlessAuthTokenCache = { token, exp: tokenExp };
+  
   return token;
 };
 

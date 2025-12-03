@@ -9,7 +9,9 @@
 // ENUMS
 // =========================================================================
 
-export type UserRole = 'admin' | 'contractor' | 'client';
+export type UserRole = 'admin' | 'contractor' | 'crew_lead' | 'client';
+
+export type CrewLeadStatus = 'pending' | 'active' | 'inactive';
 
 export type ProjectType = 
   | 'residential_replacement'
@@ -54,6 +56,28 @@ export interface DbUser {
   role: UserRole;
   created_date: string;
   updated_date: string;
+}
+
+export interface DbContractor {
+  id: string;
+  company_name: string;
+  verified: boolean;
+  subscription_tier: string;
+  address?: string;
+  is_admin: boolean;
+  created_date: string;
+  updated_date: string;
+}
+
+export interface DbCrewLead {
+  id: string;
+  contractor_id: string;
+  status: CrewLeadStatus;
+  invited_at: string;
+  activated_at?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+  created_at: string;
 }
 
 export interface DbProject {

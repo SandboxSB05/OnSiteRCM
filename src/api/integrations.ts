@@ -44,6 +44,7 @@ interface BaseUploadParams {
   isPublic?: boolean;
   projectId?: string;
   dailyUpdateId?: string;
+  phaseName?: string;
 }
 
 interface UploadFileParams extends BaseUploadParams {
@@ -214,7 +215,7 @@ const normalizeUploadMetadata = (
 };
 
 export async function UploadPhotos(params: UploadPhotosParams): Promise<UploadedPhotoMetadata[]> {
-  const { files, folder, isPublic, projectId, dailyUpdateId } = params;
+  const { files, folder, isPublic, projectId, dailyUpdateId, phaseName } = params;
 
   if (!files || files.length === 0) {
     throw new Error('No files provided for upload');
@@ -234,6 +235,9 @@ export async function UploadPhotos(params: UploadPhotosParams): Promise<Uploaded
   }
   if (projectId) {
     formData.append('project_id', projectId);
+  }
+  if (phaseName) {
+    formData.append('phase_name', phaseName);
   }
   if (dailyUpdateId) {
     formData.append('daily_update_id', dailyUpdateId);

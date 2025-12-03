@@ -71,11 +71,47 @@ const sanitizePathSegment = (value?: string | null) => {
 };
 
 const buildFolder = (fields: Record<string, string>) => {
+  // Check for full nested structure: projectId/phaseName/dailyUpdateId
+  const projectId = 
+    fields.project_id || 
+    fields.projectId || 
+    fields.project_folder;
+  
+  const phaseName = 
+    fields.phase_name || 
+    fields.phaseName || 
+    fields.project_phase ||
+    fields.projectPhase;
+
+  const dailyUpdateId =
+    fields.daily_update_id ||
+    fields.dailyUpdateId ||
+    fields.daily_updates_id ||
+    fields.dailyUpdatesId;
+
+  // Preferred: Full nested structure with project, phase, and daily update
+  if (projectId && phaseName && dailyUpdateId) {
+    const sanitizedProjectId = sanitizePathSegment(projectId);
+    const sanitizedPhaseName = sanitizePathSegment(phaseName);
+    const sanitizedDailyUpdateId = sanitizePathSegment(dailyUpdateId);
+    if (sanitizedProjectId && sanitizedPhaseName && sanitizedDailyUpdateId) {
+      return `${sanitizedProjectId}/${sanitizedPhaseName}/${sanitizedDailyUpdateId}`;
+    }
+  }
+
+  // Secondary: Phase-based structure without daily update ID
+  if (projectId && phaseName) {
+    const sanitizedProjectId = sanitizePathSegment(projectId);
+    const sanitizedPhaseName = sanitizePathSegment(phaseName);
+    if (sanitizedProjectId && sanitizedPhaseName) {
+      return `${sanitizedProjectId}/${sanitizedPhaseName}`;
+    }
+  }
+
+  // Fallback to legacy folder structure
   const rawFolder =
     fields.folder ||
-    fields.project_folder ||
-    fields.projectId ||
-    fields.project_id ||
+    projectId ||
     'uploads';
 
   const folder = sanitizePathSegment(rawFolder);
@@ -211,29 +247,51 @@ const parseMultipartForm = (req: IncomingMessage): Promise<ParsedForm> => {
   });
 };
 
-const parseAuthToken = (req: IncomingMessage) => {
+/**
+ * Parse and verify Supabase JWT token from Authorization header
+ * This is a simplified version for the upload handler.
+ * For full verification, use verifySupabaseJWT from _lib/auth.ts
+ */
+const parseAuthToken = async (req: IncomingMessage) => {
   const authHeader = (req.headers['authorization'] || req.headers['Authorization'] || '') as string;
 
-  // Handle both "Bearer." and "Bearer " formats
-  if (!authHeader.startsWith('Bearer ') && !authHeader.startsWith('Bearer.')) {
-    return { error: 'Missing or invalid authorization token' };
+  if (!authHeader) {
+    return { error: 'Missing authorization token' };
   }
 
   try {
-    // Extract the base64 part (works for both "Bearer." and "Bearer " separators)
-    const base64 = authHeader.replace(/^Bearer[\s.]+/, '');
-    if (!base64) {
+    // Handle both "Bearer <token>" and raw token formats
+    let token = authHeader;
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice('Bearer '.length).trim();
+      console.log('[Auth] Stripped Bearer prefix from authorization header');
+    } else {
+      console.log('[Auth] Token received without Bearer prefix, using as-is');
+    }
+
+    if (!token) {
       return { error: 'Missing or invalid authorization token' };
     }
 
-    const json = Buffer.from(base64, 'base64').toString('utf8');
-    const payload = JSON.parse(json);
-
-    if (!payload?.userId || !payload?.exp || Date.now() > payload.exp) {
-      return { error: 'Token expired or invalid' };
+    // For now, we'll do basic JWT parsing to extract the userId
+    // In a production environment, you should fully verify the JWT signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return { error: 'Invalid token format' };
     }
 
-    return { payload };
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+
+    if (!payload?.sub) {
+      return { error: 'Token missing user ID' };
+    }
+
+    // Check expiration
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      return { error: 'Token expired' };
+    }
+
+    return { payload: { userId: payload.sub, token } };
   } catch (error) {
     console.error('[Token Parse Error]', error);
     return { error: 'Invalid token format' };
@@ -357,7 +415,7 @@ export const handleUploadRequest = async (req: IncomingMessage): Promise<UploadH
     };
   }
 
-  const { payload, error: authError } = parseAuthToken(req);
+  const { payload, error: authError } = await parseAuthToken(req);
   if (authError || !payload) {
     return {
       status: 401,

@@ -42,86 +42,58 @@ export interface User {
 }
 
 /**
- * Login user with Supabase Auth
- * Note: Requires RLS policy 'users_view_own' to allow users to read their own record
+ * Login user via backend API endpoint
+ * This returns a proper Supabase session with access_token and refresh_token
  */
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
-    // Sign in with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: credentials.email.toLowerCase(),
-      password: credentials.password,
+    // Call the backend login endpoint (which uses the anon key)
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: credentials.email.toLowerCase(),
+        password: credentials.password,
+      }),
     });
 
-    if (authError) {
-      console.error('Supabase auth error details:', {
-        message: authError.message,
-        status: (authError as any).status,
-        code: (authError as any).code,
+    // Try to parse response as JSON
+    let data;
+    try {
+      const text = await response.text();
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      throw new Error('Server returned invalid response. Please check API configuration.');
+    }
+
+    if (!response.ok) {
+      const errorMsg = data.details || data.message || 'Login failed';
+      console.error('Login failed:', errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // Set the session in the Supabase client so it's available for future calls
+    if (data.session) {
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
       });
-      throw new Error(authError.message || 'Invalid email or password');
     }
 
-    if (!authData.user || !authData.session) {
-      throw new Error('No user data returned');
-    }
-
-    // Wait a moment for the session to be fully established
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Fetch user profile from public.users table
-    // This requires the 'users_view_own' RLS policy to be in place
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single();
-
-    if (userError) {
-      console.error('Error fetching user profile:', userError);
-      throw new Error(`Failed to fetch user profile: ${userError.message}`);
-    }
-
-    if (!userData) {
-      throw new Error('No user profile found');
-    }
-
-    // Fetch contractor data if user is a contractor
-    let companyName = undefined;
-    if (userData.role === 'contractor') {
-      const { data: contractorData, error: contractorError } = await supabase
-        .from('contractors')
-        .select('company_name')
-        .eq('id', userData.id)
-        .single();
-      
-      if (contractorError) {
-        console.error('Error fetching contractor data:', contractorError);
-      }
-      
-      companyName = contractorData?.company_name;
-    }
-
-    // Update last login
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', userData.id);
-
-    if (updateError) {
-      console.error('Error updating last login:', updateError);
-    }
-
+    console.log('🔐 LOGIN SUCCESSFUL - Session received with access_token');
     return {
       user: {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        role: userData.role,
-        phone: userData.phone || undefined,
-        companyName: companyName,
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role,
+        phone: data.user.phone,
+        companyName: data.user.companyName,
       },
-      session: authData.session,
+      session: data.session,
     };
   } catch (error: any) {
     console.error('Login error details:', error);
@@ -152,10 +124,20 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
       }),
     });
 
-    const data = await response.json();
+    // Try to parse response as JSON
+    let data;
+    try {
+      const text = await response.text();
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      throw new Error('Server returned invalid response. Please check API configuration.');
+    }
 
     if (!response.ok) {
-      throw new Error(data.message || data.error || 'Registration failed');
+      const errorMsg = data.details || data.message || 'Registration failed';
+      console.error('Registration failed:', errorMsg);
+      throw new Error(errorMsg);
     }
 
     // If session was created, set it in Supabase client
@@ -166,6 +148,7 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
       });
     }
 
+    console.log('🔐 REGISTRATION SUCCESSFUL - Session received with access_token');
     return {
       user: {
         id: data.user.id,
